@@ -109,7 +109,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.plantfriends"
+    namespace "com.thekian.plantfriends"
     defaultConfig {
         applicationId 'com.thekian.plantfriends'
         minSdkVersion rootProject.ext.minSdkVersion
@@ -167,6 +167,9 @@ android {
 }
 
 dependencies {
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:31.0.1') // Firebase BOM ensures correct version management
+    implementation 'com.google.firebase:firebase-auth'
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
@@ -199,3 +202,5 @@ if (rnVersion < versionToNumber(0, 75, 0)) {
     apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), "../native_modules.gradle");
     applyNativeModulesAppBuildGradle(project)
 }
+
+apply plugin: 'com.google.gms.google-services'

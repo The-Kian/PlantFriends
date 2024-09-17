@@ -1,13 +1,17 @@
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { Text, View, StyleSheet } from "react-native";
+
+import AuthNavigator from "@/context/auth/AuthNavigator";
+import TabLayout from "./(tabs)/_layout";
+import HomeScreen from "./(tabs)/home";
+import { AuthProvider } from "context/auth/AuthProvider";
+import React from "react";
+import RootLayout from "./_layout";
 
 export default function Index() {
 
   return (
-    <ThemedView    >
-      <ThemedText>Edit app/index.tsx to edit this screen.</ThemedText>
-    </ThemedView>
+    <AuthProvider>
+      <RootLayout  />
+    </AuthProvider>
   );
 }
 
