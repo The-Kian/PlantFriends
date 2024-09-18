@@ -3,9 +3,18 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
+const path = require('path')
 
 config.resolver.alias = {
-    '@/': __dirname,
+    '@': __dirname,
+    "@context": path.resolve(__dirname, "src/context"),
+    "@components": path.resolve(__dirname, "src/components"),
+    "@screens": path.resolve(__dirname, "src/screens"),
+    "@utils": path.resolve(__dirname, "src/utils"),
+    "@assets": path.resolve(__dirname, "src/assets"),
+    "@constants": path.resolve(__dirname, "src/constants"),
+    "@hooks": path.resolve(__dirname, "src/hooks"),
+    "@styles": path.resolve(__dirname, "src/styles"),
   };
 
 module.exports = config;

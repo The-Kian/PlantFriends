@@ -3,7 +3,7 @@ import { useState } from "react";
 import { AuthProps } from "@context/auth/AuthTypes";
 
 import { View } from "react-native";
-import ThemedButton from "@components/ui/ThemedButton";
+import ThemedButton from "../ui/ThemedButton";
 import Input from "@components/ui/Input";
 
 import { useContext } from "react";
