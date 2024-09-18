@@ -4,7 +4,7 @@ import { useState } from "react";
 import AuthForm from "./AuthForm";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { AuthProps, CredentialsType } from "@context/auth/AuthTypes";
-import { ThemedView } from "../ThemedView";
+import { ThemedView } from "@components/ui/ThemedView";
 import ThemedButton from "../ui/ThemedButton";
 import { RootStackParamList } from "@components/navigation/types";
 

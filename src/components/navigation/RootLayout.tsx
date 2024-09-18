@@ -5,6 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import LoginScreen from "@screens/auth/login";
 import TabNavigator from "./TabNavigator";
 import SignupScreen from "@screens/auth/signup";
+import ProfileSettingsScreen from "@screens/settings/profile";
 
 export default function RootLayout() {
   const { user } = useContext(AuthContext);
@@ -14,7 +15,10 @@ export default function RootLayout() {
   return (
       <Stack.Navigator>
         {user ? (
+          <>
           <Stack.Screen name="Tab" component={TabNavigator} options={{ headerShown: false }} />
+          <Stack.Screen name="Profile" component={ProfileSettingsScreen} options={{ headerShown: false }} />
+          </>
         ) : (
           <>
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />

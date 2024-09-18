@@ -8,7 +8,7 @@ import Input from "@components/ui/Input";
 
 import { useContext } from "react";
 import { AuthContext } from "@context/auth/AuthProvider";
-import { ThemedView } from "@components/ThemedView";
+import { ThemedView } from "@components/ui/ThemedView";
 
 const AuthForm = ({ authScreenType, onSubmit, credentialsInvalid }: AuthProps) => {
   const { user } = useContext(AuthContext);

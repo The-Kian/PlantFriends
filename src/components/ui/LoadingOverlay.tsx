@@ -1,7 +1,7 @@
 
 import { ActivityIndicator, Text, View } from 'react-native';
-import { ThemedView } from '../ThemedView';
-import { ThemedText } from '../ThemedText';
+import { ThemedView } from '@components/ui/ThemedView';
+import { ThemedText } from './ThemedText';
 
 function LoadingOverlay(props: { message: string }) {
 	return (
