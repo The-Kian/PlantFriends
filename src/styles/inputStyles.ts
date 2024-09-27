@@ -4,7 +4,11 @@ import { Colors } from "@constants/Colors";
 
 export const inputStyles = StyleSheet.create({
 	inputContainer: {
-		marginVertical: 0,
+		marginVertical: 10,
+		padding: 8,
+		borderRadius: 4,
+		borderWidth: 1,
+		marginHorizontal: 10,
 	},
 	label: {
 		color: 'grey',
@@ -19,6 +23,7 @@ export const inputStyles = StyleSheet.create({
 		backgroundColor: Colors.light.background,
 		borderRadius: 4,
 		fontSize: 16,
+		
 	},
 	inputInvalid: {
 		backgroundColor: "red",

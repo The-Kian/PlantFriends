@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, ViewStyle } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 
 import { ThemedView } from '@components/ui/ThemedView';
@@ -9,17 +9,19 @@ import { createButtonStyles } from '@styles/buttonStyles';
 type ThemedButtonProps = {
   children: ReactNode;
   onPress: () => void;
+  additionalStyle?: ViewStyle | ViewStyle[];
 };
 
-function ThemedButton({ children, onPress }: ThemedButtonProps) {
+function ThemedButton({ children, onPress,additionalStyle}: ThemedButtonProps) {
   const { colors } = useTheme();
   const buttonStyles = createButtonStyles({ colors });
   
 
   return (
     <Pressable
-      style={({ pressed }) => [buttonStyles.buttons, pressed && buttonStyles.buttonPressed]}
-      onPress={onPress}
+    onPress={onPress}
+    style={({ pressed }) => [buttonStyles.buttons, additionalStyle,
+       pressed && buttonStyles.buttonPressed]}
     >
         <ThemedText>{children}</ThemedText>
          </Pressable>
