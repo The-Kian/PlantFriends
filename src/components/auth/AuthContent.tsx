@@ -4,10 +4,9 @@ import { useState } from "react";
 import AuthForm from "./AuthForm";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { AuthProps, CredentialsType } from "@context/auth/AuthTypes";
-import { ThemedView } from "@components/ui/ThemedView";
-import ThemedButton from "../ui/ThemedButton";
+import { ThemedView } from "@components/ui/Views/ThemedView";
+import ThemedButton from "../ui/Buttons/ThemedButton";
 import { RootStackParamList } from "@components/navigation/types";
-
 
 function AuthContent({ authScreenType, onSubmit }: AuthProps) {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -39,7 +38,11 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
     const emailsAreEqual = email === confirmEmail;
     const passwordsAreEqual = password === confirmPassword;
 
-    if (!emailIsValid || !passwordIsValid || (authScreenType == "signUp" && (!emailsAreEqual || !passwordsAreEqual))) {
+    if (
+      !emailIsValid ||
+      !passwordIsValid ||
+      (authScreenType == "signUp" && (!emailsAreEqual || !passwordsAreEqual))
+    ) {
       Alert.alert("Invalid input", "Please check your entered credentials.");
       setCredentialsInvalid({
         email: !emailIsValid,
@@ -53,13 +56,20 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
   }
 
   return (
-    <ThemedView >
-      <AuthForm onSubmit={submitHandler} credentialsInvalid={credentialsInvalid} authScreenType={authScreenType} />
+    <ThemedView>
+      <AuthForm
+        onSubmit={submitHandler}
+        credentialsInvalid={credentialsInvalid}
+        authScreenType={authScreenType}
+      />
       <ThemedView>
         {authScreenType !== "update" && (
-          <ThemedButton onPress={switchAuthModeHandler}>
-            {authScreenType === "login" ? "Create a new user" : "Login instead"}
-          </ThemedButton>
+          <ThemedButton
+            onPress={switchAuthModeHandler}
+            title={
+              authScreenType === "login" ? "Create a new user" : "Login instead"
+            }
+          />
         )}
       </ThemedView>
     </ThemedView>

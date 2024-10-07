@@ -1,9 +1,9 @@
-import PlantCustomizationModal from "@components/plant/PlantCustomisationModal";
-import Input from "@components/ui/Input";
-import LoadingOverlay from "@components/ui/LoadingOverlay";
-import SearchResultComponent from "@components/ui/SearchResult";
-import { ThemedText } from "@components/ui/ThemedText";
-import { ThemedView } from "@components/ui/ThemedView";
+import PlantCustomizationModal from "@components/plant/PlantCustomizationModal";
+import Input from "@components/ui/Input/Input";
+import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
+import SearchResultComponent from "@components/ui/Buttons/SearchResult";
+import { ThemedText } from "@components/ui/Text/ThemedText";
+import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant } from "@constants/IPlant";
 import { useFetchPlants } from "@hooks/useFetchPlants";
 import React, { useState } from "react";

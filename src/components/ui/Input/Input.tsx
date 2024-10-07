@@ -1,6 +1,6 @@
 import { View, Text, TextInput, KeyboardTypeOptions } from 'react-native';
-import { inputStyles } from '@styles/inputStyles';
-import { ThemedText } from './ThemedText';
+import { useInputStyles } from './Input.styles';
+
 
 function Input(props: {
   placeholder?: string,
@@ -10,6 +10,8 @@ function Input(props: {
   value: string,
   isInvalid: boolean,
 }) {
+
+	const inputStyles = useInputStyles();
 	return (
 		<View style={inputStyles.inputContainer}>
 			<TextInput
