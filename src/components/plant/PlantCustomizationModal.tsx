@@ -61,11 +61,13 @@ const PlantCustomizationModal = ({
               title="Save"
               onPress={handleSave}
               additionalStyle={styles.button}
+              variant="accept"
             />
             <ThemedButton
               title="Cancel"
               onPress={onClose}
               additionalStyle={styles.button}
+              variant="decline"
             />
           </View>
         </ThemedView>

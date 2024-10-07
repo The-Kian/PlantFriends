@@ -30,5 +30,11 @@ export const useThemedButtonStyles = () => {
       fontSize: theme.fonts.sizeMedium,
       fontWeight: theme.fonts.weightBold as "700",
     },
+    acceptButton: {
+      backgroundColor: theme.colors.greenButton,
+    },
+    cancelButton: {
+      backgroundColor: theme.colors.redButton,
+    },
   });
 };
