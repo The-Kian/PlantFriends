@@ -7,12 +7,12 @@ import { ThemedText } from '@components/ui/ThemedText';
 import { createButtonStyles } from '@styles/buttonStyles';
 
 type ThemedButtonProps = {
-  children: ReactNode;
+  title?: string;
   onPress: () => void;
   additionalStyle?: ViewStyle | ViewStyle[];
 };
 
-function ThemedButton({ children, onPress,additionalStyle}: ThemedButtonProps) {
+function ThemedButton({ title, onPress,additionalStyle}: ThemedButtonProps) {
   const { colors } = useTheme();
   const buttonStyles = createButtonStyles({ colors });
   
@@ -23,7 +23,7 @@ function ThemedButton({ children, onPress,additionalStyle}: ThemedButtonProps) {
     style={({ pressed }) => [buttonStyles.buttons, additionalStyle,
        pressed && buttonStyles.buttonPressed]}
     >
-        <ThemedText>{children}</ThemedText>
+        <ThemedText>{title}</ThemedText>
          </Pressable>
   );
 }
