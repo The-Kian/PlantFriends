@@ -1,36 +1,26 @@
 import { IPlant } from "@constants/IPlant";
 import { ThemedText } from "./ThemedText";
-import { ThemedView } from "./ThemedView";
-import { Pressable, StyleSheet } from "react-native";
+import { searchResultStyle } from "@styles/buttonStyles";
 import ThemedButton from "./ThemedButton";
-import { useState } from "react";
 
-const SearchResultComponent = ({ plant }: { plant: IPlant }) => {
-    const [pressed, setPressed] = useState(false);
+interface SearchResultComponentProps {
+  plant: IPlant;
+  onSelect: () => void;
+}
+
+const SearchResultComponent = ({
+  plant,
+  onSelect,
+}: SearchResultComponentProps) => {
   return (
     <ThemedButton
       onPress={() => {
-        console.log(`🚀 ~ SearchResultComponent ~ plant:`, plant);
+        onSelect();
       }}
       additionalStyle={[searchResultStyle.container]}
-    >
-        <ThemedText>{plant.attributes.name}</ThemedText>
-    </ThemedButton>
+      title={plant.attributes.name}
+    />
   );
 };
 
 export default SearchResultComponent;
-
-const searchResultStyle = StyleSheet.create({
-  container: {
-    padding: 10,
-    margin: 10,
-    borderRadius: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "90%",
-    height: 50,
-    borderWidth: 1,
-  },
-});
