@@ -1,6 +1,6 @@
 import { IPlant } from "@constants/IPlant";
-import { ThemedText } from "./ThemedText";
-import { searchResultStyle } from "@styles/buttonStyles";
+import { ThemedText } from "../Text/ThemedText";
+import { searchResultStyle } from "./SearchResult.styles";
 import ThemedButton from "./ThemedButton";
 
 interface SearchResultComponentProps {
