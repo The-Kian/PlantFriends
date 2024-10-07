@@ -1,5 +1,5 @@
 import AuthContent from '@components/auth/AuthContent'
-import LoadingOverlay from '@components/ui/LoadingOverlay'
+import LoadingOverlay from '@components/ui/Views/LoadingOverlay'
 import { AuthContext } from '@context/auth/AuthProvider'
 import { CredentialsType } from '@context/auth/AuthTypes'
 import { useContext, useState } from 'react'

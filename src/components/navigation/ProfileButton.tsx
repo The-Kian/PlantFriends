@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, useColorScheme } from 'react-native
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from './types';
-import { Colors } from '@constants/Colors';
+import { Colors } from 'src/theme/Colors';
 
 const ProfileButton = () => {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
