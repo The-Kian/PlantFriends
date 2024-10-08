@@ -4,43 +4,51 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: adopt
-          cache: gradle
-
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: Setup Node  
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: yarn
 
-      - name: Run Yarn Install
+      - name: Install Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      - name: Install Yarn & Dependencies
         run: |
-             npm i -g corepack
-             yarn install
+          npm i -g corepack
+          yarn install
 
-      - name: Build application
+      - name: Build Expo Android App
         run: |
-             cd android
-             ./gradlew assembleRelease
+          npx expo install --fix
+          yarn android --no-interactive
 
-      - name: Upload application
+      - name: Build APK with Gradle
+        run: |
+          cd android
+          ./gradlew assembleRelease
+
+      - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
-          name: app
+          name: app-release
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 7
+
+      - name: Run Jest tests
+        run: yarn test
