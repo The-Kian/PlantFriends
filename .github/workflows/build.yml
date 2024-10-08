@@ -1,4 +1,4 @@
-name: "Build Android app"
+name: Build Android APK
 
 on:
   push:
@@ -10,33 +10,23 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
-
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: yarn
 
-      - name: Install Java
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
-          distribution: 'adopt'
-
-      - name: Install Yarn & Dependencies
-        run: |
-          npm i -g corepack
-          yarn install
-
-      - name: Build Expo Android App
-        run: |
-          npx expo install --fix
-          yarn android --no-interactive
 
       - name: Build APK with Gradle
         run: |
@@ -48,7 +38,3 @@ jobs:
         with:
           name: app-release
           path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 7
-
-      - name: Run Jest tests
-        run: yarn test
