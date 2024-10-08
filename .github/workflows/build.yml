@@ -32,7 +32,7 @@ jobs:
         with: 
           node-version: '18'
       - name: thing
-        run: yarn why babel-plugin-react-compiler
+        run: yarn upgrade expo babel-preset-expo
         
       - name: Run Yarn Install
         run: | 
