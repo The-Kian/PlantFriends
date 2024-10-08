@@ -3,10 +3,10 @@ run-name: ${{ github.actor }} is learning build Android App using Github Actions
 on: 
   push:
     branches:
-      - develop-uat
+      - The-Kian-Build
   pull_request: 
     branches:
-      - develop-uat
+      - main
 jobs:
   build:
     runs-on: ubuntu-20.04
