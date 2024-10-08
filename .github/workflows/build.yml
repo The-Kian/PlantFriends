@@ -1,29 +1,50 @@
-name: react-native-android-build-apk
-on:
+name: "Build Android App"
+run-name: ${{ github.actor }} is learning build Android App using Github Actions
+on: 
   push:
     branches:
-      - master
+      - The-Kian-Build
+  pull_request: 
+    branches:
+      - main
 jobs:
-  install-and-test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
-      - name: Install npm dependencies
-        run: |
-          npm install
-  build-android:
-    needs: install-and-test
-    runs-on: ubuntu-latest
-    steps: 
-      - uses: actions/checkout@v3
-      - name: Install npm dependencies
-        run: |
-          yarn install
-      - name: Build Android Release
-        run: |
-          cd android && ./gradlew assembleRelease
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v1
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Java 
+        uses: actions/setup-java@v2
         with:
-          name: app-release.apk
-          path: android/app/build/outputs/apk/release/
+          java-version: '20'
+          distribution: "adopt"
+          cache: "gradle"
+
+      - name: Change wrapper permissions
+        run: chmod +x ./android/gradlew
+      
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '18'
+        
+      - name: Run Yarn Install
+        run: | 
+              npm install -g yarn
+              yarn install
+
+      - name: Build App
+        run: |
+              cd ./android
+              ./gradlew assembleRelease
+
+      - name: Upload APK to Artifacts
+        uses: actions/upload-artifact@v3
+        with: 
+            name: app
+            path: ./android/app/build/outputs/apk/release/app-release.apk
+            retention-days: 3

@@ -52,5 +52,8 @@
     "react-test-renderer": "18.2.0",
     "typescript": "~5.3.3"
   },
+  "resolutions": {
+    "babel-plugin-react-compiler": "0.0.0-experimental-592953e-20240517"
+  },
   "private": true
 }
