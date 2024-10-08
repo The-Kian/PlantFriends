@@ -31,9 +31,9 @@ jobs:
         uses: actions/setup-node@v4
         with: 
           node-version: '18'
-      - name: yarn remove babel-plugin-react-compiler
-        run: yarn remove babel-plugin-react-compiler
-
+      - name: thing
+        run: yarn why babel-plugin-react-compiler
+        
       - name: Run Yarn Install
         run: | 
               npm install -g yarn
