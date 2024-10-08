@@ -1,5 +1,5 @@
 name: "Build Android App"
-run-name: ${{ github.actor }} is learning build Android App using Github Actions
+run-name: Using EAS Build
 on: 
   push:
     branches:
@@ -8,43 +8,30 @@ on:
     branches:
       - main
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  preview:
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v3
 
-      - name: Install Java 
-        uses: actions/setup-java@v2
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
         with:
-          java-version: '20'
-          distribution: "adopt"
-          cache: "gradle"
+          node-version: 18.x
+          cache: yarn
 
-      - name: Change wrapper permissions
-        run: chmod +x ./android/gradlew
-      
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
+      - name: 🏗 Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with: 
-          node-version: '18'
-        
-      - name: Run Yarn Install
-        run: | 
-              npm install -g yarn
-              yarn install
+      - name: 📦 Install dependencies
+        run: yarn install
 
-      - name: Build App
-        run: |
-              cd ./android
-              ./gradlew assembleRelease
-
-      - name: Upload APK to Artifacts
-        uses: actions/upload-artifact@v3
-        with: 
-            name: app
-            path: ./android/app/build/outputs/apk/release/app-release.apk
-            retention-days: 3
+      - name: 🚀 Create preview
+        uses: expo/expo-github-action/preview@v8
+        with:
+          # `github.event.pull_request.head.ref` is only available on `pull_request` triggers.
+          # Use your own, or keep the automatically inferred branch name from `--auto`, when using different triggers.
+          command: eas update --auto --branch ${{ github.event.pull_request.head.ref }}
