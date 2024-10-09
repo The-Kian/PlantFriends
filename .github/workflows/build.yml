@@ -1,4 +1,4 @@
-name: Build Android APK
+name: "Build Android app"
 
 on:
   push:
@@ -7,34 +7,44 @@ on:
   pull_request:
     branches:
       - main
+      - PlantAPI
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Set up Node.js
+      - name: Install Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: adopt
+          cache: gradle
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Setup Node  
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+          cache: 'yarn'
 
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Install JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-
-      - name: Build APK with Gradle
+      - name: Run Yarn Install
         run: |
-          cd android
-          ./gradlew assembleRelease
+             npm i -g corepack
+             yarn install
 
-      - name: Upload APK
+      - name: Build application
+        run: |
+             cd android
+             ./gradlew assembleRelease
+
+      - name: Upload application
         uses: actions/upload-artifact@v3
         with:
-          name: app-release
+          name: app
           path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 3
