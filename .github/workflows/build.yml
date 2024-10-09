@@ -1,37 +1,48 @@
-name: "Build Android App"
-run-name: Using EAS Build
-on: 
+name: "Build Android app"
+
+on:
   push:
     branches:
-      - The-Kian-Build
-  pull_request: 
+      - main
+  pull_request:
     branches:
       - main
 jobs:
-  preview:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: macos-latest
     steps:
-      - name: 🏗 Setup repo
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: 🏗 Setup Node
+      - name: Install Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: adopt
+          cache: gradle
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Setup Node  
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
-          cache: yarn
+          node-version: '18'
+          cache: 'yarn'
 
-      - name: 🏗 Setup EAS
-        uses: expo/expo-github-action@v8
+      - name: Run Yarn Install
+        run: |
+             npm i -g corepack
+             yarn install
+
+      - name: Build application
+        run: |
+             cd android
+             ./gradlew assembleRelease
+
+      - name: Upload application
+        uses: actions/upload-artifact@v3
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: 📦 Install dependencies
-        run: yarn install
-
-      - name: 🚀 Create preview
-        uses: expo/expo-github-action/preview@v8
-        with:
-          # `github.event.pull_request.head.ref` is only available on `pull_request` triggers.
-          # Use your own, or keep the automatically inferred branch name from `--auto`, when using different triggers.
-          command: eas update --auto --branch ${{ github.event.pull_request.head.ref }}
+          name: app
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 3
