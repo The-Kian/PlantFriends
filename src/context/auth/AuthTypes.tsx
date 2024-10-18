@@ -1,5 +1,5 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import { NativeStackNavigationProp } from "react-native-screens/lib/typescript/native-stack/types";
+
 
 export type CredentialsInvalidType = {
   email: boolean;

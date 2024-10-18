@@ -1,25 +1,36 @@
-
 import { useState } from "react";
 import { AuthProps } from "@context/auth/AuthTypes";
 
 import { View } from "react-native";
-import ThemedButton from "../ui/ThemedButton";
-import Input from "@components/ui/Input";
+import ThemedButton from "../ui/Buttons/ThemedButton";
+import Input from "@components/ui/Input/Input";
 
 import { useContext } from "react";
 import { AuthContext } from "@context/auth/AuthProvider";
-import { ThemedView } from "@components/ui/ThemedView";
+import { ThemedView } from "@components/ui/Views/ThemedView";
 
-const AuthForm = ({ authScreenType, onSubmit, credentialsInvalid }: AuthProps) => {
+const AuthForm = ({
+  authScreenType,
+  onSubmit,
+  credentialsInvalid,
+}: AuthProps) => {
   const { user } = useContext(AuthContext);
 
-  const [enteredEmail, setEnteredEmail] = useState(user?.email ?? "test@gmail.com");
-  const [enteredConfirmEmail, setEnteredConfirmEmail] = useState("test@gmail.com");
+  const [enteredEmail, setEnteredEmail] = useState(
+    user?.email ?? "test@gmail.com"
+  );
+  const [enteredConfirmEmail, setEnteredConfirmEmail] =
+    useState("test@gmail.com");
   const [enteredPassword, setEnteredPassword] = useState("password");
-  const [enteredConfirmPassword, setEnteredConfirmPassword] = useState("password");
+  const [enteredConfirmPassword, setEnteredConfirmPassword] =
+    useState("password");
 
-  const [enteredDisplayName, setEnteredDisplayName] = useState(user?.displayName ?? "");
-  const [enteredDateofBirth, setEnteredDateOfBirth] = useState(user?.displayName ?? "12/12/1997");
+  const [enteredDisplayName, setEnteredDisplayName] = useState(
+    user?.displayName ?? ""
+  );
+  const [enteredDateofBirth, setEnteredDateOfBirth] = useState(
+    user?.displayName ?? "12/12/1997"
+  );
 
   const {
     email: emailIsInvalid,
@@ -30,24 +41,24 @@ const AuthForm = ({ authScreenType, onSubmit, credentialsInvalid }: AuthProps) =
 
   function updateInputValueHandler(inputType: string, enteredValue: string) {
     switch (inputType) {
-    case "email":
-      setEnteredEmail(enteredValue);
-      break;
-    case "confirmEmail":
-      setEnteredConfirmEmail(enteredValue);
-      break;
-    case "password":
-      setEnteredPassword(enteredValue);
-      break;
-    case "confirmPassword":
-      setEnteredConfirmPassword(enteredValue);
-      break;
-    case "displayName":
-      setEnteredDisplayName(enteredValue);
-      break;
-    case "dateOfBirth":
-      setEnteredDateOfBirth(enteredValue);
-      break;
+      case "email":
+        setEnteredEmail(enteredValue);
+        break;
+      case "confirmEmail":
+        setEnteredConfirmEmail(enteredValue);
+        break;
+      case "password":
+        setEnteredPassword(enteredValue);
+        break;
+      case "confirmPassword":
+        setEnteredConfirmPassword(enteredValue);
+        break;
+      case "displayName":
+        setEnteredDisplayName(enteredValue);
+        break;
+      case "dateOfBirth":
+        setEnteredDateOfBirth(enteredValue);
+        break;
     }
   }
 
@@ -66,8 +77,8 @@ const AuthForm = ({ authScreenType, onSubmit, credentialsInvalid }: AuthProps) =
       <View>
         {authScreenType !== "update" && (
           <Input
-            label="Email Address"
-            onUpdateValue={updateInputValueHandler.bind(this, "email")}
+            placeholder="Email Address"
+            onChangeText={updateInputValueHandler.bind(this, "email")}
             value={enteredEmail}
             keyboardType="email-address"
             isInvalid={emailIsInvalid}
@@ -76,15 +87,15 @@ const AuthForm = ({ authScreenType, onSubmit, credentialsInvalid }: AuthProps) =
         {authScreenType == "signUp" && (
           <View>
             <Input
-              label="Confirm Email Address"
-              onUpdateValue={updateInputValueHandler.bind(this, "confirmEmail")}
+              placeholder="Confirm Email Address"
+              onChangeText={updateInputValueHandler.bind(this, "confirmEmail")}
               value={enteredConfirmEmail}
               keyboardType="email-address"
               isInvalid={emailsDontMatch}
             />
             <Input
-              label="Date of Birth"
-              onUpdateValue={updateInputValueHandler.bind(this, "dateOfBirth")}
+              placeholder="Date of Birth"
+              onChangeText={updateInputValueHandler.bind(this, "dateOfBirth")}
               value={enteredDateofBirth}
               keyboardType="number-pad"
               isInvalid={false}
@@ -93,16 +104,16 @@ const AuthForm = ({ authScreenType, onSubmit, credentialsInvalid }: AuthProps) =
         )}
         {authScreenType !== "login" && (
           <Input
-            label="Display Name"
-            onUpdateValue={updateInputValueHandler.bind(this, "displayName")}
+            placeholder="Display Name"
+            onChangeText={updateInputValueHandler.bind(this, "displayName")}
             value={enteredDisplayName}
             isInvalid={false}
           />
         )}
         {authScreenType !== "update" && (
           <Input
-            label="Password"
-            onUpdateValue={updateInputValueHandler.bind(this, "password")}
+            placeholder="Password"
+            onChangeText={updateInputValueHandler.bind(this, "password")}
             secure
             value={enteredPassword}
             isInvalid={passwordIsInvalid}
@@ -110,18 +121,25 @@ const AuthForm = ({ authScreenType, onSubmit, credentialsInvalid }: AuthProps) =
         )}
         {authScreenType == "signUp" && (
           <Input
-            label="Confirm Password"
-            onUpdateValue={updateInputValueHandler.bind(this, "confirmPassword")}
+            placeholder="Confirm Password"
+            onChangeText={updateInputValueHandler.bind(this, "confirmPassword")}
             secure
             value={enteredConfirmPassword}
             isInvalid={passwordsDontMatch}
           />
         )}
         <ThemedView>
-          <ThemedButton onPress={submitHandler}>
-            {authScreenType === "login" ? "Log In" : authScreenType === "signUp" ? "Sign Up" : "Update details"}
-            </ThemedButton>
-          </ThemedView>
+          <ThemedButton
+            onPress={submitHandler}
+            title={
+              authScreenType === "login"
+                ? "Log In"
+                : authScreenType === "signUp"
+                ? "Sign Up"
+                : "Update details"
+            }
+          />
+        </ThemedView>
       </View>
     </View>
   );

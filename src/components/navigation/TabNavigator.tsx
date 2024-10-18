@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import TabTwoScreen from "@screens/tabs/explore";
 import HomeScreen from "@screens/tabs/home";
 import ProfileButton from "./ProfileButton";
+import PlantScreen from "@screens/tabs/MyPlants";
 
 export default function TabNavigator() {
   const Tab = createBottomTabNavigator();
@@ -18,9 +18,9 @@ export default function TabNavigator() {
         options={{ tabBarLabel: "Home"}}
       />
       <Tab.Screen
-        name="Explore"
-        component={TabTwoScreen}
-        options={{ tabBarLabel: "Explore" }} 
+        name="MyPlants"
+        component={PlantScreen}
+        options={{ tabBarLabel: "My Plants" }} 
       />
     </Tab.Navigator>
   );

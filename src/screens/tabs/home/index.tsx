@@ -1,14 +1,18 @@
 import { Image, StyleSheet, Platform } from 'react-native';
 
-import { HelloWave } from '@components/HelloWave';
-import ParallaxScrollView from '@components/ui/ParallaxScrollView';
-import { ThemedText } from '@components/ui/ThemedText';
-import { ThemedView } from '@components/ui/ThemedView';
+import { HelloWave } from '@components/ui/HelloWave';
+import ParallaxScrollView from '@components/ui/Views/ParallaxScrollView';
+import { ThemedText } from '@components/ui/Text/ThemedText';
+import { ThemedView } from '@components/ui/Views/ThemedView';
 import ProfileButton from '@components/navigation/ProfileButton';
-import { Colors } from '@constants/Colors';
+import { Colors } from 'src/theme/Colors';
+import ThemedButton from '@components/ui/Buttons/ThemedButton';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '@components/navigation/types';
 
 export default function HomeScreen() {
 
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: Colors['light'].headerBackground, dark: Colors['dark'].headerBackground }}
@@ -21,6 +25,7 @@ export default function HomeScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Plant Friends!</ThemedText>
         <HelloWave />
+
       </ThemedView>
     </ParallaxScrollView>
   );

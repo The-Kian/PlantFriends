@@ -14,7 +14,8 @@ config.resolver.alias = {
     "@assets": path.resolve(__dirname, "src/assets"),
     "@constants": path.resolve(__dirname, "src/constants"),
     "@hooks": path.resolve(__dirname, "src/hooks"),
-    "@styles": path.resolve(__dirname, "src/styles"),
+    "@theme": path.resolve(__dirname, "src/theme"),
+    "@common": path.resolve(__dirname, "src/common"),
   };
 
 module.exports = config;
