@@ -1,13 +1,13 @@
 // PlantCustomizationModal.tsx
 
 import React, { useState } from "react";
-import { Modal, View, TextInput, StyleSheet } from "react-native";
+import { Modal, View, ScrollView } from "react-native";
 import { IPlant } from "@constants/IPlant";
 import { ThemedText } from "@components/ui/Text/ThemedText";
-import { ThemedView } from "@components/ui/Views/ThemedView";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import { useTheme } from "@hooks/useTheme";
 import { useCustomizationModalStyles } from "./PlantCustomizationModal.styles";
+import GeneralInfoSection from "./GeneralInfoSection";
+import UserDataSection from "./UserDataSection";
 
 interface PlantCustomizationModalProps {
   plant: IPlant;
@@ -20,16 +20,47 @@ const PlantCustomizationModal = ({
   onClose,
   onSave,
 }: PlantCustomizationModalProps) => {
-  const [customName, setCustomName] = useState(plant.attributes.name);
-  const [customWateringSchedule, setCustomWateringSchedule] = useState(plant.attributes.water_requirements);
+  const [customPlant, setCustomPlant] = useState<IPlant>({
+    ...plant,
+    attributes: { ...plant.attributes },
+    user_data: plant.user_data ? { ...plant.user_data } : {},
+  });
+
   const styles = useCustomizationModalStyles();
 
+  const handleAttributeChange = <K extends keyof IPlant["attributes"]>(
+    field: K,
+    value: IPlant["attributes"][K]
+  ) => {
+    setCustomPlant((prevPlant) => ({
+      ...prevPlant,
+      attributes: {
+        ...prevPlant.attributes,
+        [field]: value,
+      },
+    }));
+  };
+
+
+  type UserData = NonNullable<IPlant['user_data']>;
+
+  const handleUserDataChange = <K extends keyof UserData>(
+    field: K,
+    value: UserData[K]
+  ) => {
+    setCustomPlant((prevPlant) => ({
+      ...prevPlant,
+      user_data: {
+        ...prevPlant.user_data,
+        [field]: value,
+      },
+    }));
+  };
+  
+
   const handleSave = () => {
-    const customizedPlant = {
-      ...plant,
-      attributes: { ...plant.attributes, name: customName },
-    };
-    onSave(customizedPlant);
+    onSave(customPlant);
+    onClose();
   };
 
   return (
@@ -37,44 +68,39 @@ const PlantCustomizationModal = ({
       visible={true}
       transparent={true}
       animationType="slide"
-      onRequestClose={onClose} // For Android back button
+      onRequestClose={onClose}
     >
       <View style={styles.modalOverlay}>
-        <ThemedView style={styles.modalContent}>
-          <ThemedText style={styles.title}>Customize Your Plant</ThemedText>
-          <TextInput
-            value={customName}
-            onChangeText={setCustomName}
-            style={styles.textInput}
-            placeholder="Enter custom name"
-            placeholderTextColor={styles.title.color}
-          />
-          <TextInput
-            value={customWateringSchedule}
-            onChangeText={setCustomWateringSchedule}
-            style={styles.textInput}
-            placeholder="Enter custom watering schedule"
-            placeholderTextColor={styles.title.color}
-          />
-          <View style={styles.buttonContainer}>
-            <ThemedButton
-              title="Save"
-              onPress={handleSave}
-              additionalStyle={styles.button}
-              variant="accept"
+        <View style={styles.modalContent}>
+          <ScrollView>
+            <ThemedText style={styles.title}>Customize Your Plant</ThemedText>
+            <GeneralInfoSection
+              attributes={customPlant.attributes}
+              onAttributeChange={handleAttributeChange}
             />
-            <ThemedButton
-              title="Cancel"
-              onPress={onClose}
-              additionalStyle={styles.button}
-              variant="decline"
+            <UserDataSection
+              userData={customPlant.user_data ?? {}}
+              onUserDataChange={handleUserDataChange}
             />
-          </View>
-        </ThemedView>
+            <View style={styles.buttonContainer}>
+              <ThemedButton
+                title="Save"
+                onPress={handleSave}
+                additionalStyle={styles.button}
+                variant="accept"
+              />
+              <ThemedButton
+                title="Cancel"
+                onPress={onClose}
+                additionalStyle={styles.button}
+                variant="decline"
+              />
+            </View>
+          </ScrollView>
+        </View>
       </View>
     </Modal>
   );
 };
 
 export default PlantCustomizationModal;
-

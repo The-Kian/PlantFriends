@@ -3,7 +3,7 @@ import { AuthProps } from "@context/auth/AuthTypes";
 
 import { View } from "react-native";
 import ThemedButton from "../ui/Buttons/ThemedButton";
-import Input from "@components/ui/Input/Input";
+import Input from "@components/ui/Input/TextInputField";
 
 import { useContext } from "react";
 import { AuthContext } from "@context/auth/AuthProvider";
@@ -77,55 +77,48 @@ const AuthForm = ({
       <View>
         {authScreenType !== "update" && (
           <Input
-            placeholder="Email Address"
+            label="Email Address"
             onChangeText={updateInputValueHandler.bind(this, "email")}
             value={enteredEmail}
             keyboardType="email-address"
-            isInvalid={emailIsInvalid}
           />
         )}
         {authScreenType == "signUp" && (
           <View>
             <Input
-              placeholder="Confirm Email Address"
+              label="Confirm Email Address"
               onChangeText={updateInputValueHandler.bind(this, "confirmEmail")}
               value={enteredConfirmEmail}
               keyboardType="email-address"
-              isInvalid={emailsDontMatch}
             />
+            {/* // change */}
             <Input
-              placeholder="Date of Birth"
+              label="Date of Birth"
               onChangeText={updateInputValueHandler.bind(this, "dateOfBirth")}
               value={enteredDateofBirth}
               keyboardType="number-pad"
-              isInvalid={false}
             />
           </View>
         )}
         {authScreenType !== "login" && (
           <Input
-            placeholder="Display Name"
+          label="Display Name"
             onChangeText={updateInputValueHandler.bind(this, "displayName")}
             value={enteredDisplayName}
-            isInvalid={false}
           />
         )}
         {authScreenType !== "update" && (
           <Input
-            placeholder="Password"
+          label="Password"
             onChangeText={updateInputValueHandler.bind(this, "password")}
-            secure
             value={enteredPassword}
-            isInvalid={passwordIsInvalid}
           />
         )}
         {authScreenType == "signUp" && (
           <Input
-            placeholder="Confirm Password"
+          label="Confirm Password"
             onChangeText={updateInputValueHandler.bind(this, "confirmPassword")}
-            secure
             value={enteredConfirmPassword}
-            isInvalid={passwordsDontMatch}
           />
         )}
         <ThemedView>
