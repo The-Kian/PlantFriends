@@ -1,50 +1,66 @@
 import { IPlant } from "@constants/IPlant";
 import { useState, useEffect } from "react";
-
+import { mapOpenFarmPlantToIPlant } from "src/helpers/mapOpenFarmPlantToIPlant";
+import { mapPerenualPlantToIPlant } from "src/helpers/mapPerenualPlantToIPlant";
 
 export const useFetchPlants = (searchQuery: string) => {
-    const [plants, setPlants] = useState<IPlant[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string|null>(null);
-    
-    useEffect(() => {
-        const URL = 'https://openfarm.cc/api/v1'
-        if (searchQuery.length === 0) {
-            return;
-        }
+  const [plants, setPlants] = useState<IPlant[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-        const fetchPlants = async () => {
-            setLoading(true);
-            try {
-                const response = await fetch(
-                    `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`
-                );
-                const data = await response.json();
-                const plantsData: IPlant[] = data.data.map((plant: any) => ({
-                        id: plant.id,
-                        attributes: {
-                            name: plant.attributes.name,
-                            slug: plant.attributes.slug,
-                            binomial_name: plant.attributes.binomial_name,
-                            common_names: plant.attributes.common_names,
-                            description: plant.attributes.description,
-                            sun_requirements: plant.attributes.sun_requirements,
-                            water_requirements: plant.attributes.water_requirements,
-                            temperature_minimum: plant.attributes.temperature_minimum,
-                            temperature_maximum: plant.attributes.temperature_maximum,
-                        },
-                    }));
-                setPlants(plantsData);
-            } catch (error: any) {
-                setError(error.message);
-                console.log(`🚀 ~ fetchPlants ~ error.message:`, error.message)
-            } finally {
-                setLoading(false);
-            }
+  useEffect(() => {
+    if (searchQuery.length === 0) {
+      return;
+    }
+
+    const fetchPlants = async () => {
+        setLoading(true);
+        try {
+          const plantsData = await fetchOpenFarmPlants(searchQuery);
+        // const plantsData = await fetchPerenualPlants(searchQuery);
+          console.log(`🚀 ~ fetchPlants ~ plantsData:`, plantsData)
+          
+          setPlants(plantsData);
+        } catch (error: any) {
+          setError(error.message);
+          console.log(`🚀 ~ fetchPlants ~ error.message:`, error.message);
+        } finally {
+          setLoading(false);
         }
-        fetchPlants();
+      };
+  
+      fetchPlants();
     }, [searchQuery]);
-    
-    return { plants, loading, error };
 
+  return { plants, loading, error };
+};
+
+const fetchOpenFarmPlants = async (searchQuery: string): Promise<IPlant[]> => {
+  const URL = `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`;
+  const response = await fetch(URL);
+  const data = await response.json();
+
+  if (data.data && Array.isArray(data.data)) {
+    const plantsData: IPlant[] = data.data.map((plant: any) =>
+      mapOpenFarmPlantToIPlant(plant)
+    );
+    return plantsData;
+  } else {
+    throw new Error("No plants found");
+  }
+};
+
+const fetchPerenualPlants = async (searchQuery: string): Promise<IPlant[]> => {
+  const URL = `https://perenual.com/api/species-list?key=${process.env.PERENUAL_API_KEY}&q=${searchQuery}`;
+  const response = await fetch(URL);
+  const data = await response.json();
+
+  if (data.data && Array.isArray(data.data)) {
+    const plantsData: IPlant[] = data.data.map((plant: any) =>
+      mapPerenualPlantToIPlant(plant)
+    );
+    return plantsData;
+  } else {
+    throw new Error("No plants found");
+  }
 };

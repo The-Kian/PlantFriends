@@ -16,6 +16,7 @@ const SearchResultComponent = ({
     <ThemedButton
       onPress={() => {
         onSelect();
+        console.log(`🚀 ~ plant:`, plant)
       }}
       additionalStyle={[searchResultStyle.container]}
       title={plant.attributes.name}
