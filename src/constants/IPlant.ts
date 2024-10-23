@@ -30,6 +30,7 @@ export interface IPlant {
     reminders_enabled?: boolean;
     notes?: string;
     location?: string;
+    houseLocation?: "Kitchen" | "Living Room" | "Bedroom" | "Bathroom" | "Office" | "Balcony" | "Garden" | "";
     is_favorite?: boolean;
   };
 }

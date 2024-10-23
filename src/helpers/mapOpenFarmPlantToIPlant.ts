@@ -19,19 +19,18 @@ export const mapOpenFarmPlantToIPlant = (plant: any): IPlant => {
         common_names: attributes.common_names || [],
         description: attributes.description || '',
         sun_requirements: attributes.sun_requirements || '',
-        watering_frequency: undefined, // Not available from OpenFarm
-        fertilizer_needs: '', // Not available from OpenFarm
-        temperature_minimum: undefined, // Not available from OpenFarm
-        temperature_maximum: undefined, // Not available from OpenFarm
-        humidity_requirements: '', // Not available from OpenFarm
-        growth_rate: '', // Not available from OpenFarm
-        pruning_needs: '', // Not available from OpenFarm
-        pest_susceptibility: [], // Not available from OpenFarm
-        toxicity: '', // Not available from OpenFarm
+        watering_frequency: 0, 
+        temperature_minimum: 0, 
+        temperature_maximum: 0,
+        humidity_requirements: '', 
+        growth_rate: '', 
+        pruning_needs: '', 
+        pest_susceptibility: [], 
+        toxicity: '',
         images: images,
-        planting_season: '', // Not available from OpenFarm
-        harvest_season: '', // Not available from OpenFarm
-        mature_size: attributes.height || '', // Using 'height' as 'mature_size' if available
+        planting_season: '', 
+        harvest_season: '', 
+        mature_size: attributes.height || '', 
       },
     };
   };
