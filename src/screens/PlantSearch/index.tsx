@@ -6,8 +6,10 @@ import SearchResultComponent from "@components/ui/Buttons/SearchResult";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant } from "@constants/IPlant";
 import { useFetchPlants } from "@hooks/useFetchPlants";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Button, FlatList, Text } from "react-native";
+import savePlantToFirebase from "src/helpers/savePlantToFirebase";
+import { AuthContext } from "@context/auth/AuthProvider";
 
 interface PlantSearchScreenProps {
   navigation: any;
@@ -20,12 +22,15 @@ export default function PlantSearchScreen({
   const { plants, loading, error } = useFetchPlants(searchQuery);
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
 
+  const { user } = useContext(AuthContext);
+
   return (
     <ThemedView>
       <Input
         value={searchQuery}
         onChangeText={setSearchQuery}
-        label={"Search for a plant"}      />
+        label={"Search for a plant"}
+      />
       {loading && <LoadingOverlay message={`Searching for ${searchQuery}`} />}
       {error && <Text>Error fetching plants</Text>}
       <FlatList
@@ -39,8 +44,13 @@ export default function PlantSearchScreen({
         )}
       />
       {selectedPlant && (
-        <PlantCustomizationModal plant={selectedPlant} onClose={() => setSelectedPlant(null)} onSave={(customizedPlant) => {
-        }}/>
+        <PlantCustomizationModal
+          plant={selectedPlant}
+          onClose={() => setSelectedPlant(null)}
+          onSave={(customizedPlant) =>
+            savePlantToFirebase(customizedPlant, user)
+          }
+        />
       )}
       <Button title="Go Back" onPress={() => navigation.goBack()} />
     </ThemedView>
