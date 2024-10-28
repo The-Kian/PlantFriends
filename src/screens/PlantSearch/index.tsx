@@ -13,6 +13,7 @@ import getUserPlantData from "@helpers/getUserPlantData";
 import savePlantToFirebase from "@helpers/savePlantToFirebase";
 import { useFetchPlants } from "@hooks/useFetchPlants";
 import styles from "./index.styles";
+import TextInputField from "@components/ui/Input/TextInputField";
 
 interface PlantSearchScreenProps {
   navigation: any;
@@ -45,7 +46,7 @@ export default function PlantSearchScreen({
 
   return (
     <ThemedView style={styles.container}>
-      <Input
+      <TextInputField
         value={searchQuery}
         onChangeText={setSearchQuery}
         label={"Search for a plant"}

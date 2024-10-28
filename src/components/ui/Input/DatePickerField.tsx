@@ -1,7 +1,7 @@
 // DatePickerField.tsx
 
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Platform } from 'react-native';
+import { TouchableOpacity, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import TextInputField from './TextInputField';
 

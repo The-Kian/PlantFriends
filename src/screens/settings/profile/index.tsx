@@ -1,12 +1,11 @@
 import { ThemedText } from '@components/ui/Text/ThemedText';
 import { ThemedView } from '@components/ui/Views/ThemedView';
 import React, { useContext } from 'react';
-import {StyleSheet, TouchableOpacity, Text } from 'react-native';
 import styles from 'src/common/defaultStyles';
 import ThemedButton from '@components/ui/Buttons/ThemedButton';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '@components/navigation/types';
-import { AuthContext, AuthProvider } from '@context/auth/AuthProvider';
+import { AuthContext } from '@context/auth/AuthProvider';
 
 const ProfileSettingsScreen = () => {
     const {logout} = useContext(AuthContext);
@@ -29,6 +28,3 @@ const ProfileSettingsScreen = () => {
 
 export default ProfileSettingsScreen;
 
-function useAuth(A: any): { logout: any; } {
-    throw new Error('Function not implemented.');
-}
