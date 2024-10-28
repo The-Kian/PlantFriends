@@ -19,7 +19,7 @@ const SearchResultComponent = ({
         console.log(`🚀 ~ plant:`, plant)
       }}
       additionalStyle={[searchResultStyle.container]}
-      title={plant.attributes.name}
+      title={plant.name}
     />
   );
 };
