@@ -15,6 +15,7 @@
         "@common/*": ["src/common/*"],
         "@constants/*": ["./src/constants/*"],
         "@theme/*": ["./src/theme/*"],
+        "@helpers/*": ["./src/helpers/*"],
       }
   },
   "include": [

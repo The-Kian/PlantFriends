@@ -1,35 +1,35 @@
-import { StyleSheet } from 'react-native';
-import { useTheme } from 'src/hooks/useTheme';
+import { StyleSheet } from "react-native";
+
+import { useTheme } from "@hooks/useTheme";
 
 export const useInputStyles = () => {
   const theme = useTheme();
 
   return StyleSheet.create({
-    inputContainer: {
-      marginVertical: theme.spacing.small,
-      padding: theme.spacing.small,
-      borderRadius: 4,
+    textInput: {
       borderWidth: 1,
-      borderColor: theme.colors.text,
-      marginHorizontal: theme.spacing.small,
-    },
-    label: {
-      color: theme.colors.text,
-      marginBottom: theme.spacing.small,
-    },
-    labelInvalid: {
-      color: theme.colors.error,
-    },
-    input: {
-      paddingVertical: theme.spacing.small,
-      paddingHorizontal: theme.spacing.small,
-      backgroundColor: theme.colors.background,
-      borderRadius: 4,
+      borderColor: theme.colors.border,
+      borderRadius: 8,
+      padding: 12,
       fontSize: theme.fonts.sizeMedium,
       color: theme.colors.text,
+      marginBottom: 20,
+      backgroundColor: theme.colors.background,
     },
-    inputInvalid: {
-      backgroundColor: theme.colors.error || 'pink',
+    inputLabel: {
+      fontSize: theme.fonts.sizeSmall,
+      color: theme.colors.text,
+      marginBottom: 8,
+    },
+    picker: {
+      color: theme.colors.text,
+    },
+    pickerContainer: {
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+      borderRadius: 8,
+      marginBottom: 20,
+      backgroundColor: theme.colors.background,
     },
   });
 };
