@@ -12,7 +12,6 @@ import { ThemedView } from "@components/ui/Views/ThemedView";
 const AuthForm = ({
   authScreenType,
   onSubmit,
-  credentialsInvalid,
 }: AuthProps) => {
   const { user } = useContext(AuthContext);
 
@@ -31,13 +30,6 @@ const AuthForm = ({
   const [enteredDateofBirth, setEnteredDateOfBirth] = useState(
     user?.displayName ?? "12/12/1997"
   );
-
-  const {
-    email: emailIsInvalid,
-    confirmEmail: emailsDontMatch,
-    password: passwordIsInvalid,
-    confirmPassword: passwordsDontMatch,
-  } = credentialsInvalid;
 
   function updateInputValueHandler(inputType: string, enteredValue: string) {
     switch (inputType) {
@@ -83,7 +75,7 @@ const AuthForm = ({
             keyboardType="email-address"
           />
         )}
-        {authScreenType == "signUp" && (
+        {authScreenType === "signUp" && (
           <View>
             <Input
               label="Confirm Email Address"
@@ -109,16 +101,18 @@ const AuthForm = ({
         )}
         {authScreenType !== "update" && (
           <Input
-          label="Password"
+            label="Password"
             onChangeText={updateInputValueHandler.bind(this, "password")}
             value={enteredPassword}
+            secureTextEntry={true}
           />
         )}
-        {authScreenType == "signUp" && (
+        {authScreenType === "signUp" && (
           <Input
-          label="Confirm Password"
+            label="Confirm Password"
             onChangeText={updateInputValueHandler.bind(this, "confirmPassword")}
             value={enteredConfirmPassword}
+            secureTextEntry={true}
           />
         )}
         <ThemedView>

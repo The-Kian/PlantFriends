@@ -1,4 +1,4 @@
-import { Alert, View } from "react-native";
+import { Alert } from "react-native";
 import { useState } from "react";
 
 import AuthForm from "./AuthForm";
@@ -19,9 +19,9 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
   });
 
   function switchAuthModeHandler() {
-    if (authScreenType == "login") {
+    if (authScreenType === "login") {
       navigation.navigate("SignUp");
-    } else if (authScreenType == "signUp") {
+    } else if (authScreenType === "signUp") {
       navigation.navigate("Login");
     }
   }
@@ -41,7 +41,7 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
     if (
       !emailIsValid ||
       !passwordIsValid ||
-      (authScreenType == "signUp" && (!emailsAreEqual || !passwordsAreEqual))
+      (authScreenType === "signUp" && (!emailsAreEqual || !passwordsAreEqual))
     ) {
       Alert.alert("Invalid input", "Please check your entered credentials.");
       setCredentialsInvalid({
