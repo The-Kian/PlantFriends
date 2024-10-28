@@ -1,7 +1,7 @@
-import { IPlant, IUserPlant } from "@constants/IPlant";
-import firestore from "@react-native-firebase/firestore";
+import { IUserPlant, IPlant } from "@constants/IPlant";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import uuid from "react-native-uuid";
+import saveBasePlantToFirebase from "./saveToFirebase/saveBasePlantToFirebase";
+import saveUserPlantToFirebase from "./saveToFirebase/saveUserPlantToFirebase";
 
 const savePlantToFirebase = async (
   userPlant: IUserPlant,
@@ -13,46 +13,8 @@ const savePlantToFirebase = async (
     return;
   }
 
-  const plantId = plantData.id;
-  const plantRef = firestore().collection("Plants").doc(plantId);
-  const plantDoc = await plantRef.get();
-
-  // Save the base plant data if it doesn't exist
-  if (!plantDoc.exists) {
-    try {
-      const basePlantData = {
-        ...plantData,
-        contributed_by: user.displayName ?? user.email,
-        isVerified: plantData.isVerified ?? false,
-      };
-      await plantRef.set(basePlantData);
-      console.log("Base plant saved successfully:", basePlantData);
-    } catch (error) {
-      console.error("Error saving base plant data: ", error);
-    }
-  }
-
-  // Prepare the user plant data
-  const userPlantId = userPlant.id ?? uuid.v4().toString();
-  const userPlantData: IUserPlant = {
-    ...userPlant,
-    id: userPlantId,
-    userId: user.uid,
-    plantId: plantId,
-  };
-
-  try {
-    await firestore()
-      .collection("Users")
-      .doc(user.uid)
-      .collection("UserPlants")
-      .doc(userPlantId)
-      .set(userPlantData);
-
-    console.log("User plant saved successfully:", userPlantData);
-  } catch (error) {
-    console.error("Error saving user plant data: ", error);
-  }
+  await saveBasePlantToFirebase(plantData, user);
+  await saveUserPlantToFirebase(userPlant, user);
 };
 
 export default savePlantToFirebase;
