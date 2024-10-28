@@ -15,6 +15,7 @@ config.resolver.alias = {
     "@constants": path.resolve(__dirname, "src/constants"),
     "@hooks": path.resolve(__dirname, "src/hooks"),
     "@theme": path.resolve(__dirname, "src/theme"),
+    "@helpers": path.resolve(__dirname, "src/helpers"),
     "@common": path.resolve(__dirname, "src/common"),
   };
 
