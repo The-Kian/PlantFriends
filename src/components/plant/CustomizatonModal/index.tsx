@@ -65,14 +65,16 @@ const PlantCustomizationModal = ({
     }));
   };
 
-  const handleSave = () => {
-    const updatedUserPlant: IUserPlant = {
-      ...userData,
-      custom_attributes: customizations,
-      id: userData.id || uuid.v4().toString(),
-    };
+  const prepareUserPlantData = (): IUserPlant => ({
+    ...userData,
+    custom_attributes: customizations,
+    id: userData.id || uuid.v4().toString(),
+  });
 
-    onSave(updatedUserPlant, plant); // Pass the plant data
+
+  const handleSave = () => {
+    const updatedUserPlant = prepareUserPlantData();
+    onSave(updatedUserPlant, plant); 
     onClose();
   };
 
