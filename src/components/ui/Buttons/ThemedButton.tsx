@@ -13,15 +13,15 @@ type ThemedButtonProps = {
   additionalStyle?: ViewStyle | ViewStyle[];
 };
 
-function ThemedButton({ title, onPress,additionalStyle, variant: varient = 'default'
+function ThemedButton({ title, onPress,additionalStyle, variant: variant = 'default'
 }: ThemedButtonProps) {
   const { colors } = useTheme();
   const buttonStyles = useThemedButtonStyles()
 
   let varientStyle = {};
-  if (varient === 'accept') {
+  if (variant === 'accept') {
     varientStyle = buttonStyles.acceptButton;
-  } else if (varient === 'decline') {
+  } else if (variant === 'decline') {
     varientStyle = buttonStyles.cancelButton;
   }
 

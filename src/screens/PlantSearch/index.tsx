@@ -1,15 +1,18 @@
-import PlantCustomizationModal from "@components/plant/PlantCustomizationModal";
+import React, { useContext, useState } from "react";
+import { FlatList, Text } from "react-native";
+
+import PlantCustomizationModal from "@components/plant/CustomizatonModal";
+import ThemedButton from "@components/ui/Buttons/ThemedButton";
+import SearchResultComponent from "@components/ui/Buttons/SearchResult";
 import Input from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
-import SearchResultComponent from "@components/ui/Buttons/SearchResult";
-
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { IPlant } from "@constants/IPlant";
-import { useFetchPlants } from "@hooks/useFetchPlants";
-import React, { useContext, useState } from "react";
-import { Button, FlatList, Text } from "react-native";
-import savePlantToFirebase from "src/helpers/savePlantToFirebase";
+import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
+import getUserPlantData from "@helpers/getUserPlantData";
+import savePlantToFirebase from "@helpers/savePlantToFirebase";
+import { useFetchPlants } from "@hooks/useFetchPlants";
+import styles from "./index.styles";
 
 interface PlantSearchScreenProps {
   navigation: any;
@@ -21,11 +24,27 @@ export default function PlantSearchScreen({
   const [searchQuery, setSearchQuery] = useState("");
   const { plants, loading, error } = useFetchPlants(searchQuery);
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
-
+  const [userPlant, setUserPlant] = useState<IUserPlant | undefined>(undefined);
   const { user } = useContext(AuthContext);
 
+  const handleSelectPlant = async (plant: IPlant) => {
+    setSelectedPlant(plant);
+    if (user) {
+      const userPlantData = await getUserPlantData(user.uid, plant.id);
+      setUserPlant(userPlantData);
+    }
+  };
+
+  const handleSave = async (
+    updatedUserPlant: IUserPlant,
+    plantData: IPlant
+  ) => {
+    await savePlantToFirebase(updatedUserPlant, plantData, user);
+    setSelectedPlant(null);
+  };
+
   return (
-    <ThemedView>
+    <ThemedView style={styles.container}>
       <Input
         value={searchQuery}
         onChangeText={setSearchQuery}
@@ -33,26 +52,29 @@ export default function PlantSearchScreen({
       />
       {loading && <LoadingOverlay message={`Searching for ${searchQuery}`} />}
       {error && <Text>Error fetching plants</Text>}
-      <FlatList
-        data={plants}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <SearchResultComponent
-            onSelect={() => setSelectedPlant(item)}
-            plant={item}
-          />
-        )}
-      />
+      <ThemedView style={styles.container}>
+        <FlatList
+          data={plants}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <SearchResultComponent
+              onSelect={() => handleSelectPlant(item)}
+              plant={item}
+            />
+          )}
+        />
+      </ThemedView>
       {selectedPlant && (
         <PlantCustomizationModal
           plant={selectedPlant}
-          onClose={() => setSelectedPlant(null)}
-          onSave={(customizedPlant) =>
-            savePlantToFirebase(customizedPlant, user)
-          }
+          userPlant={userPlant}
+          onClose={() => {
+            setSelectedPlant(null);
+          }}
+          onSave={handleSave}
         />
       )}
-      <Button title="Go Back" onPress={() => navigation.goBack()} />
+      <ThemedButton title="Go Back" onPress={() => navigation.goBack()} additionalStyle={styles.goBackButton}/>
     </ThemedView>
   );
 }

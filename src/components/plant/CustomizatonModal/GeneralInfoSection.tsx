@@ -5,14 +5,21 @@ import { View } from 'react-native';
 import TextInputField from '@components/ui/Input/TextInputField';
 import NumericInputField from '@components/ui/Input/NumbericInputField';
 import PickerField from '@components/ui/Input/PickerField';
-import { generalInfoFields } from '@components/ui/Input/fieldsConfig';
+import { generalInfoFields } from '@components/plant/CustomizatonModal/GeneralInfoFields';
 import { IPlant } from '@constants/IPlant';
 
 interface GeneralInfoSectionProps {
-  attributes: IPlant['attributes'];
-  onAttributeChange: <K extends keyof IPlant['attributes']>(
+  attributes: IPlant;
+
+    /**
+   * Callback function to handle changes to any attribute field.
+   * @param field - The name of the attribute field that changed.
+   * @param value - The new value for the attribute field.
+   */
+
+  onAttributeChange: <K extends keyof IPlant>(
     field: K,
-    value: IPlant['attributes'][K]
+    value: IPlant[K]
   ) => void;
 }
 
@@ -60,7 +67,7 @@ const GeneralInfoSection = ({
                 onValueChange={(itemValue) =>
                   onAttributeChange(
                     fieldConfig.field,
-                    itemValue as IPlant['attributes'][typeof fieldConfig.field]
+                    itemValue as IPlant[typeof fieldConfig.field]
                   )
                 }
                 options={fieldConfig.options || []}

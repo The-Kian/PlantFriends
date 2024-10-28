@@ -4,17 +4,21 @@ import React from "react";
 import { View } from "react-native";
 import TextInputField from "@components/ui/Input/TextInputField";
 import DatePickerField from "@components/ui/Input/DatePickerField";
-import { IPlant } from "@constants/IPlant";
+import { IUserPlant } from "@constants/IPlant";
 import PickerField from "@components/ui/Input/PickerField";
 
-type UserData = NonNullable<IPlant["user_data"]>;
-
 interface UserDataSectionProps {
-  userData: UserData;
-  onUserDataChange: <K extends keyof UserData>(
+
+  userData: IUserPlant;
+
+  onUserDataChange: <K extends keyof IUserPlant>(
+
     field: K,
-    value: UserData[K]
+
+    value: IUserPlant[K]
+
   ) => void;
+
 }
 
 const UserDataSection = ({
