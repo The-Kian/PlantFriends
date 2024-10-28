@@ -22,7 +22,7 @@ jobs:
           cache: "yarn"
 
       - name: 📥 Install deps
-        run: yarn --frozen-lockfile
+        run: yarn install
 
       - name: 🔬 Lint
         run: yarn lint
