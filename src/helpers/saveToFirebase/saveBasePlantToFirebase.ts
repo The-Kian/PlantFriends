@@ -5,12 +5,7 @@ import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 const saveBasePlantToFirebase = async (
   plantData: IPlant,
   user: FirebaseAuthTypes.User
-) => {
-  if (!user) {
-    console.error("User is not authenticated.");
-    return;
-  }
-
+): Promise<boolean> => {
   const plantId = plantData.id;
   const plantRef = firestore().collection("Plants").doc(plantId);
   const plantDoc = await plantRef.get();
@@ -25,10 +20,13 @@ const saveBasePlantToFirebase = async (
       };
       await plantRef.set(basePlantData);
       console.log("Base plant saved successfully:", basePlantData);
+      return true;
     } catch (error) {
       console.error("Error saving base plant data: ", error);
+      return false;
     }
   }
+  return true;
 }
 
 export default saveBasePlantToFirebase;
