@@ -7,7 +7,7 @@ import { IUserPlant } from "@constants/IPlant";
 const saveUserPlantToFirebase = async (
     userPlant: IUserPlant,
     user: FirebaseAuthTypes.User
-  ) => {
+  ): Promise<boolean> => {
 
     const userPlantId = userPlant.id ?? uuid.v4().toString();
     const userPlantData: IUserPlant = {
@@ -26,8 +26,10 @@ const saveUserPlantToFirebase = async (
         .set(userPlantData);
   
       console.log("User plant saved successfully:", userPlantData);
+      return true;
     } catch (error) {
       console.error("Error saving user plant data: ", error);
+      return false;
     }
   };
 
