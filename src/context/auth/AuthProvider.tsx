@@ -1,6 +1,6 @@
 import { useState, createContext, useEffect } from "react";
 import { Alert } from "react-native";
-import auth, { firebase, FirebaseAuthTypes } from "@react-native-firebase/auth";
+import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import { ProviderProps } from "@constants/genericTypes";
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
@@ -11,7 +11,7 @@ export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const AuthProvider = ({ children }: ProviderProps) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [token, setToken] = useState<string>("");
+  // const [token, setToken] = useState<string>("");
   const [initializing, setInitializing] = useState<boolean>(true);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
 
     // Unsubscribe on unmount
     return () => subscriber();
-  }, []);
+  }, [initializing]);
 
   const login = async ({ email, password }: { email: string; password: string }) => {
     try {

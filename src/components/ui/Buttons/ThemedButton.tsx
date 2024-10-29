@@ -1,8 +1,4 @@
-import { ReactNode } from 'react';
-import { Pressable, View, ViewStyle } from 'react-native';
-import { useTheme } from '@react-navigation/native';
-
-import { ThemedView } from '@components/ui/Views/ThemedView';
+import { Pressable, ViewStyle } from 'react-native';
 import { ThemedText } from '@components/ui/Text/ThemedText';
 import { useThemedButtonStyles } from './ThemedButton.styles';
 
@@ -15,7 +11,6 @@ type ThemedButtonProps = {
 
 function ThemedButton({ title, onPress,additionalStyle, variant: variant = 'default'
 }: ThemedButtonProps) {
-  const { colors } = useTheme();
   const buttonStyles = useThemedButtonStyles()
 
   let varientStyle = {};

@@ -1,5 +1,5 @@
 
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator} from 'react-native';
 import { ThemedView } from '@components/ui/Views/ThemedView';
 import { ThemedText } from '../Text/ThemedText';
 

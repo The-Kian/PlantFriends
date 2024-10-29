@@ -19,6 +19,7 @@ const TextInputField = ({ label, ...props }: TextInputFieldProps) => {
         {...props}
         style={styles.textInput}
         placeholder={`Enter ${label}`}
+        placeholderTextColor={styles.inputLabel.color}
       />
     </View>
   );
