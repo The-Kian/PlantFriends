@@ -1,5 +1,5 @@
 import { IPlant } from "@constants/IPlant";
-import { fetchOpenFarmPlants, fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
 import { useState, useEffect } from "react";
 
 export const useFetchPlants = (searchQuery: string) => {
