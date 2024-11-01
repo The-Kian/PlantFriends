@@ -5,7 +5,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     addPlantButton: {
-        backgroundColor: 'blue',
+        backgroundColor: 'light-blue',
     },
     goBackButton: {
         backgroundColor: 'red',

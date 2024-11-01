@@ -15,7 +15,7 @@ const saveBasePlantToFirebase = async (
     try {
       const basePlantData = {
         ...plantData,
-        contributed_by: user.displayName ?? user.email,
+        contributed_by: user.displayName ?? user.email ?? user.uid,
         isVerified: plantData.isVerified ?? false,
       };
       await plantRef.set(basePlantData);
@@ -27,6 +27,6 @@ const saveBasePlantToFirebase = async (
     }
   }
   return true;
-}
+};
 
 export default saveBasePlantToFirebase;
