@@ -40,7 +40,7 @@ const UserDataSection = ({
       <PickerField
         label="Location"
         selectedValue={userData?.houseLocation || ""}
-        onValueChange={(location) => onUserDataChange("location", location)}
+        onValueChange={(location) => onUserDataChange("houseLocation", location)}
         options={[
           "Kitchen",
           "Living Room",
