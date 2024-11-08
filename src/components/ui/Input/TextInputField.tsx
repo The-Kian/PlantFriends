@@ -17,6 +17,7 @@ const TextInputField = ({ label, ...props }: TextInputFieldProps) => {
       <ThemedText style={styles.inputLabel}>{label}</ThemedText>
       <TextInput
         {...props}
+        accessibilityLabel={`${label} input field`}
         style={styles.textInput}
         placeholder={`Enter ${label}`}
         placeholderTextColor={styles.inputLabel.color}
