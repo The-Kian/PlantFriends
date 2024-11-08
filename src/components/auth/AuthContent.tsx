@@ -1,5 +1,4 @@
 import { Alert } from "react-native";
-import { useState } from "react";
 
 import AuthForm from "./AuthForm";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
@@ -7,16 +6,10 @@ import { AuthProps, CredentialsType } from "@context/auth/AuthTypes";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import ThemedButton from "../ui/Buttons/ThemedButton";
 import { RootStackParamList } from "@components/navigation/types";
+import validateCredentials from "@helpers/auth/validateCredentials";
 
 function AuthContent({ authScreenType, onSubmit }: AuthProps) {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
-  const [credentialsInvalid, setCredentialsInvalid] = useState({
-    email: false,
-    password: false,
-    confirmEmail: false,
-    confirmPassword: false,
-  });
 
   function switchAuthModeHandler() {
     if (authScreenType === "login") {
@@ -27,39 +20,19 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
   }
 
   function submitHandler(credentials: CredentialsType) {
-    // eslint-disable-next-line prefer-const
-    let { email, confirmEmail, password, confirmPassword } = credentials;
+    const validationResult = validateCredentials(credentials, authScreenType);
 
-    email = email.trim();
-    password = password.trim();
-
-    const emailIsValid = email.includes("@");
-    const passwordIsValid = password.length > 6;
-    const emailsAreEqual = email === confirmEmail;
-    const passwordsAreEqual = password === confirmPassword;
-
-    if (
-      !emailIsValid ||
-      !passwordIsValid ||
-      (authScreenType === "signUp" && (!emailsAreEqual || !passwordsAreEqual))
-    ) {
-      Alert.alert("Invalid input", "Please check your entered credentials.");
-      setCredentialsInvalid({
-        email: !emailIsValid,
-        confirmEmail: !emailIsValid || !emailsAreEqual,
-        password: !passwordIsValid,
-        confirmPassword: !passwordIsValid || !passwordsAreEqual,
-      });
+    if (!validationResult.isValid) {
+      Alert.alert('Invalid input', 'Please check your entered credentials.');
       return;
     }
     onSubmit(credentials);
   }
 
   return (
-    <ThemedView>
+    <ThemedView testID={"AuthContent-View"}>
       <AuthForm
         onSubmit={submitHandler}
-        credentialsInvalid={credentialsInvalid}
         authScreenType={authScreenType}
       />
       <ThemedView>
