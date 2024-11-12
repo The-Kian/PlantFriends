@@ -1,4 +1,5 @@
 import { IPlant } from "@constants/IPlant";
+
 import { searchResultStyle } from "./SearchResult.styles";
 import ThemedButton from "./ThemedButton";
 
@@ -15,7 +16,6 @@ const SearchResultComponent = ({
     <ThemedButton
       onPress={() => {
         onSelect();
-        console.log(`🚀 ~ plant:`, plant)
       }}
       additionalStyle={[searchResultStyle.container]}
       title={plant.name}

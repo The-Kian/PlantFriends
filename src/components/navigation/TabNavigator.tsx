@@ -1,7 +1,8 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "@screens/tabs/home";
-import ProfileButton from "./ProfileButton";
 import PlantScreen from "@screens/tabs/MyPlants";
+
+import ProfileButton from "./ProfileButton";
 
 export default function TabNavigator() {
   const Tab = createBottomTabNavigator();

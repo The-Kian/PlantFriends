@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { TextInput, TextInputProps, View } from 'react-native';
+
 import { ThemedText } from '@components/ui/Text/ThemedText';
+
 import { useInputStyles } from './Input.styles';
 
 interface TextInputFieldProps extends TextInputProps {

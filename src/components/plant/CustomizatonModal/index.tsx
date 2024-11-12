@@ -3,13 +3,15 @@
 import React, { useContext, useState } from "react";
 import { Modal, View, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
-import { IPlant, IUserPlant } from "@constants/IPlant";
-import { ThemedText } from "@components/ui/Text/ThemedText";
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import { useCustomizationModalStyles } from "./PlantCustomizationModal.styles";
+
 import GeneralInfoSection from "@components/plant/CustomizatonModal/GeneralInfoSection";
 import UserDataSection from "@components/plant/CustomizatonModal/UserDataSection";
+import ThemedButton from "@components/ui/Buttons/ThemedButton";
+import { ThemedText } from "@components/ui/Text/ThemedText";
+import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
+
+import { useCustomizationModalStyles } from "./PlantCustomizationModal.styles";
 
 interface PlantCustomizationModalProps {
   plant: IPlant;

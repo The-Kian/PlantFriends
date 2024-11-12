@@ -2,9 +2,9 @@ import React, { useContext, useState } from "react";
 import { FlatList, Text } from "react-native";
 
 import PlantCustomizationModal from "@components/plant/CustomizatonModal";
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import SearchResultComponent from "@components/ui/Buttons/SearchResult";
-import Input from "@components/ui/Input/TextInputField";
+import ThemedButton from "@components/ui/Buttons/ThemedButton";
+import TextInputField from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant, IUserPlant } from "@constants/IPlant";
@@ -12,8 +12,8 @@ import { AuthContext } from "@context/auth/AuthProvider";
 import getUserPlantData from "@helpers/getUserPlantData";
 import savePlantToFirebase from "@helpers/savePlantToFirebase";
 import { useFetchPlants } from "@hooks/useFetchPlants";
+
 import styles from "./index.styles";
-import TextInputField from "@components/ui/Input/TextInputField";
 
 interface PlantSearchScreenProps {
   navigation: any;

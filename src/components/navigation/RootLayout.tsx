@@ -1,19 +1,28 @@
 import { useContext } from "react";
+
 import { AuthContext } from "@context/auth/AuthProvider";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "@screens/auth/login";
-import TabNavigator from "./TabNavigator";
 import SignupScreen from "@screens/auth/signup";
-import ProfileSettingsScreen from "@screens/settings/profile";
 import PlantSearchScreen from "@screens/PlantSearch";
+import ProfileSettingsScreen from "@screens/settings/profile";
 
-export default function RootLayout() {
+import TabNavigator from "./TabNavigator";
+import React from "react";
+
+
+type RootLayoutProps = {
+  initialRouteName?: string;
+};
+
+
+export default function RootLayout({ initialRouteName }: RootLayoutProps) {
   const { user } = useContext(AuthContext);
 
   const Stack = createStackNavigator();
 
   return (
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName={initialRouteName}>
         {user ? (
           <>
           <Stack.Screen name="Tab" component={TabNavigator} options={{ headerShown: false }} />
@@ -30,3 +39,4 @@ export default function RootLayout() {
       </Stack.Navigator>
   );
 }
+

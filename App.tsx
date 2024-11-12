@@ -1,8 +1,10 @@
-import { AuthProvider } from "@context/auth/AuthProvider";
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import RootLayout from "@components/navigation/RootLayout";
 import { SafeAreaView } from "react-native";
+
+import RootLayout from "@components/navigation/RootLayout";
+import { AuthProvider } from "@context/auth/AuthProvider";
+import { NavigationContainer } from "@react-navigation/native";
+
 
 export default function App() {
   return (
