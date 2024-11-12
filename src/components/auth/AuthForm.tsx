@@ -2,12 +2,14 @@
 
 import { useState, useContext } from 'react';
 import { View, Alert } from 'react-native';
+
+import DatePickerField from '@components/ui/Input/DatePickerField';
+import TextInputField from '@components/ui/Input/TextInputField';
+import { ThemedView } from '@components/ui/Views/ThemedView';
 import { AuthContext } from '@context/auth/AuthProvider';
 import { AuthProps } from '@context/auth/AuthTypes';
+
 import ThemedButton from '../ui/Buttons/ThemedButton';
-import TextInputField from '@components/ui/Input/TextInputField';
-import DatePickerField from '@components/ui/Input/DatePickerField';
-import { ThemedView } from '@components/ui/Views/ThemedView';
 
 const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
   const { user } = useContext(AuthContext);

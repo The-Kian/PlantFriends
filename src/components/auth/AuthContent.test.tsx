@@ -1,9 +1,20 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
-import AuthContent from "./AuthContent";
-import { AuthProps } from "@context/auth/AuthTypes";
 import { Alert } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+
+import { AuthProps } from "@context/auth/AuthTypes";
 import validateCredentials from "@helpers/auth/validateCredentials";
+import { NavigationContainer } from "@react-navigation/native";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
+import AuthContent from "./AuthContent";
+import RootLayout from "@components/navigation/RootLayout";
+import { createStackNavigator } from "@react-navigation/stack";
+import LoginScreen from "@screens/auth/login";
+import SignupScreen from "@screens/auth/signup";
 
 jest.spyOn(Alert, "alert").mockImplementation(() => {});
 
@@ -28,13 +39,30 @@ describe("AuthContent Tests", () => {
       confirmPassword: "password123",
     },
   };
-  
+
   const mockOnSubmit = jest.fn();
 
   const renderComponent = (props: Partial<AuthProps> = {}) => {
     return render(
       <NavigationContainer>
-        <AuthContent {...mockDefaultAuthProps} onSubmit={mockOnSubmit} {...props} />;
+        <AuthContent
+          {...mockDefaultAuthProps}
+          onSubmit={mockOnSubmit}
+          {...props}
+        />
+        ;
+      </NavigationContainer>
+    );
+  };
+
+  const renderComponentWithNavigation = (initialRouteName: string) => {
+    const Stack = createStackNavigator();
+    render(
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName={initialRouteName}>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignUp" component={SignupScreen} />
+        </Stack.Navigator>
       </NavigationContainer>
     );
   };
@@ -55,22 +83,22 @@ describe("AuthContent Tests", () => {
     expect(screen.getByText("Login instead")).toBeVisible();
   });
 
-  it('navigates to SignUp when switch button is pressed on login screen', () => {
-    renderComponent();
+  it("navigates to SignUp when switch button is pressed on login screen", async () => {
+    renderComponentWithNavigation("Login");
 
-    const switchButton = screen.getByText('Create a new user');
+    const switchButton = screen.getByText("Create a new user");
     fireEvent.press(switchButton);
 
-    expect(screen.getByText('Log In')).toBeVisible();
+    expect(await screen.findByText("Sign Up")).toBeVisible();
   });
 
-  it('navigates to Login when switch button is pressed on signUp screen', () => {
-    renderComponent({ authScreenType: 'signUp' });
+  it('navigates to Login when switch button is pressed on Sign Up screen', async() => {
+    renderComponentWithNavigation('SignUp');
 
     const switchButton = screen.getByText('Login instead');
     fireEvent.press(switchButton);
 
-    expect(screen.getByText('Sign Up')).toBeVisible();
+    await waitFor(() => expect(screen.getByText('Log In')).toBeVisible());
   });
 
   it("calls onSubmit with correct credentials", () => {

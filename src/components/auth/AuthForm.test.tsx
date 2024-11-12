@@ -1,7 +1,10 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
-import AuthForm from './AuthForm';
+
 import { AuthProps } from '@context/auth/AuthTypes';
+import { render, fireEvent, screen } from '@testing-library/react-native';
+
+import AuthForm from './AuthForm';
+import { NavigationContainer } from '@react-navigation/native';
 
 describe('AuthForm Component', () => {
   const mockOnSubmit = jest.fn();
@@ -13,7 +16,9 @@ describe('AuthForm Component', () => {
 
   const renderComponent = (props = {}) => {
     return render(
+      <NavigationContainer>
         <AuthForm {...defaultProps} {...props} />
+      </NavigationContainer>
     );
   };
 

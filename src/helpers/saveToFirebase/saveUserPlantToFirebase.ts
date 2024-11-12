@@ -1,8 +1,9 @@
-import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
 import uuid from "react-native-uuid";
 
 import { IUserPlant } from "@constants/IPlant";
+import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import firestore from "@react-native-firebase/firestore";
+
 
 const saveUserPlantToFirebase = async (
     userPlant: IUserPlant,
@@ -24,9 +25,6 @@ const saveUserPlantToFirebase = async (
         .collection("UserPlants")
         .doc(userPlantId)
         .set(userPlantData);
-  
-      console.log("User plant saved successfully:", userPlantData);
-      return true;
     } catch (error) {
       console.error("Error saving user plant data: ", error);
       return false;

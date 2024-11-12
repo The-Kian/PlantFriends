@@ -2,10 +2,11 @@
 
 import React from 'react';
 import { View } from 'react-native';
-import TextInputField from '@components/ui/Input/TextInputField';
+
+import { generalInfoFields } from './GeneralInfoFields';
 import NumericInputField from '@components/ui/Input/NumbericInputField';
 import PickerField from '@components/ui/Input/PickerField';
-import { generalInfoFields } from '@components/plant/customization/PlantForm/GeneralInfoFields';
+import TextInputField from '@components/ui/Input/TextInputField';
 import { IPlant } from '@constants/IPlant';
 
 interface GeneralInfoSectionProps {
