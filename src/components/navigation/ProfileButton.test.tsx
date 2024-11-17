@@ -1,4 +1,5 @@
-import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 import ProfileSettingsScreen from "@screens/settings/profile";
 import {
   fireEvent,
@@ -6,11 +7,9 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import { Text, View } from "react-native";
 
 import ProfileButton from "./ProfileButton";
 
-import { createStackNavigator } from "@react-navigation/stack";
 
 describe("ProfileButton", () => {
   it("renders correctly", () => {
@@ -36,9 +35,6 @@ describe("ProfileButton", () => {
   });
   
   it("navigates to Profile screen when Profile button is pressed", async () => {
-
-
-
     const Stack = createStackNavigator();
 
     render(
@@ -54,7 +50,7 @@ describe("ProfileButton", () => {
     fireEvent.press(screen.getByTestId("profile-button"));
 
     await waitFor(() => {
-      expect(screen.getByText("Profile")).toBeTruthy();
+      expect(screen.getByText("Profile")).toBeOnTheScreen();
     });
   });
 });

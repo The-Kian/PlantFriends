@@ -80,7 +80,7 @@ const PlantCustomizationModal = ({
     onClose();
   };
 
-  return (
+return (
     <Modal
       visible={true}
       transparent={true}

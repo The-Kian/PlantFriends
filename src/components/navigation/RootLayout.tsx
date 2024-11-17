@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import React from "react";
 
 import { AuthContext } from "@context/auth/AuthProvider";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -9,7 +10,6 @@ import SubmitPlantScreen from "@screens/SubmitPlant";
 import ProfileSettingsScreen from "@screens/settings/profile";
 
 import TabNavigator from "./TabNavigator";
-import React from "react";
 
 
 type RootLayoutProps = {

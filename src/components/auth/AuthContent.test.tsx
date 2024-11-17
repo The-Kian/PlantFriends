@@ -3,18 +3,17 @@ import { Alert } from "react-native";
 import { AuthProps } from "@context/auth/AuthTypes";
 import validateCredentials from "@helpers/auth/validateCredentials";
 import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import LoginScreen from "@screens/auth/login";
+import SignupScreen from "@screens/auth/signup";
 import {
-  act,
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
+
 import AuthContent from "./AuthContent";
-import RootLayout from "@components/navigation/RootLayout";
-import { createStackNavigator } from "@react-navigation/stack";
-import LoginScreen from "@screens/auth/login";
-import SignupScreen from "@screens/auth/signup";
 
 jest.spyOn(Alert, "alert").mockImplementation(() => {});
 
@@ -57,6 +56,7 @@ describe("AuthContent Tests", () => {
 
   const renderComponentWithNavigation = (initialRouteName: string) => {
     const Stack = createStackNavigator();
+    
     render(
       <NavigationContainer>
         <Stack.Navigator initialRouteName={initialRouteName}>
@@ -92,13 +92,13 @@ describe("AuthContent Tests", () => {
     expect(await screen.findByText("Sign Up")).toBeVisible();
   });
 
-  it('navigates to Login when switch button is pressed on Sign Up screen', async() => {
-    renderComponentWithNavigation('SignUp');
+  it("navigates to Login when switch button is pressed on Sign Up screen", async () => {
+    renderComponentWithNavigation("SignUp");
 
-    const switchButton = screen.getByText('Login instead');
+    const switchButton = screen.getByText("Login instead");
     fireEvent.press(switchButton);
 
-    await waitFor(() => expect(screen.getByText('Log In')).toBeVisible());
+    await waitFor(() => expect(screen.getByText("Log In")).toBeVisible());
   });
 
   it("calls onSubmit with correct credentials", () => {
