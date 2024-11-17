@@ -1,7 +1,7 @@
 // AuthForm.tsx
 
 import { useState, useContext } from 'react';
-import { View, Alert } from 'react-native';
+import { View } from 'react-native';
 
 import DatePickerField from '@components/ui/Input/DatePickerField';
 import TextInputField from '@components/ui/Input/TextInputField';

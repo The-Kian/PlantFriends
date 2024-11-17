@@ -74,8 +74,6 @@ const GeneralInfoSection = ({
                 options={fieldConfig.options || []}
               />
             );
-          default:
-            return null;
         }
       })}
     </View>

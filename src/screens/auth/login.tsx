@@ -25,12 +25,6 @@ function LoginScreen() {
 			onSubmit={(credentials: CredentialsType) => {
 				loginHandler(credentials.email, credentials.password)
 			}}
-			credentialsInvalid={{
-				email: false,
-				confirmEmail: false,
-				password: false,
-				confirmPassword: false,
-			}}
 		/>
 	)
 }

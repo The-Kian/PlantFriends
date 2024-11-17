@@ -25,6 +25,7 @@ const PickerField = ({ label, selectedValue, onValueChange, options }: PickerFie
           selectedValue={selectedValue}
           onValueChange={onValueChange}
           style={styles.picker}
+          accessibilityLabel={`${label} input field`}
         >
           {options.map((option) => (
             <Picker.Item label={option} value={option} key={option} />
