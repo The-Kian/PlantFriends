@@ -1,10 +1,10 @@
 import React from "react";
 
-import { generalInfoFields } from "@components/plant/CustomizatonModal/GeneralInfoFields";
+import { generalInfoFields } from "@components/plant/customization/PlantForm/GeneralInfoFields";
 import { IPlant } from "@constants/IPlant";
 import { render, fireEvent, screen } from "@testing-library/react-native";
 
-import GeneralInfoSection from "./GeneralInfoSection";
+import GeneralInfoSection from "@components/plant/customization/PlantForm/GeneralInfoSection";
 
 const mockAttributes: IPlant = {
   id: "123",

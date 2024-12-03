@@ -4,14 +4,14 @@ import React, { useContext, useState } from "react";
 import { Modal, View, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
 
-import GeneralInfoSection from "@components/plant/CustomizatonModal/GeneralInfoSection";
-import UserDataSection from "@components/plant/CustomizatonModal/UserDataSection";
+import GeneralInfoSection from "@components/plant/customization/PlantForm/GeneralInfoSection";
+import UserDataSection from "@components/plant/customization/PlantForm/UserDataSection";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@components/ui/Text/ThemedText";
 import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
 
-import { useCustomizationModalStyles } from "./PlantCustomizationModal.styles";
+import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
 
 interface PlantCustomizationModalProps {
   plant: IPlant;
@@ -35,17 +35,17 @@ const PlantCustomizationModal = ({
   const [userData, setUserData] = useState<IUserPlant>(() => {
     if (userPlant) {
       return { ...userPlant, userId: user?.uid || "", plantId: plant.id };
-    } else {
-      return {
-        userId: user?.uid || "",
-        plantId: plant.id,
-        id: uuid.v4().toString(),
-        custom_attributes: {},
-      };
     }
+
+    return {
+      userId: user?.uid || "",
+      plantId: plant.id,
+      id: uuid.v4().toString(),
+      custom_attributes: {},
+    };
   });
 
-  const styles = useCustomizationModalStyles();
+  const styles = useCustomizationStyles();
 
   const handlePlantAttributeChange = <K extends keyof IPlant>(
     field: K,
@@ -73,14 +73,13 @@ const PlantCustomizationModal = ({
     id: userData.id || uuid.v4().toString(),
   });
 
-
   const handleSave = () => {
     const updatedUserPlant = prepareUserPlantData();
-    onSave(updatedUserPlant, plant); 
+    onSave(updatedUserPlant, plant);
     onClose();
   };
 
-return (
+  return (
     <Modal
       visible={true}
       transparent={true}

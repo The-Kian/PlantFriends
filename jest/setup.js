@@ -37,4 +37,3 @@ jest.mock('@components/ui/Views/ThemedView', () => {
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "",
 }));
-

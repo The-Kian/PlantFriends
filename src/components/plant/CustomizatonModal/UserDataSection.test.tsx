@@ -2,7 +2,7 @@ import React from "react";
 
 import { render, fireEvent, screen } from "@testing-library/react-native";
 
-import UserDataSection from "./UserDataSection";
+import UserDataSection from "@components/plant/customization/PlantForm/UserDataSection";
 
 const mockUserData = {
     custom_name: "Test Plant",
@@ -59,7 +59,7 @@ describe("GeneralInfoSection", () => {
     const pickerField = screen.getByLabelText("Location input field");
     fireEvent(pickerField, "onValueChange", "Kitchen");
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
-      "location",
+      "houseLocation",
       "Kitchen"
     );
   });
