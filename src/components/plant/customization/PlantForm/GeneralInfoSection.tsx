@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import TextInputField from '@components/ui/Input/TextInputField';
 import NumericInputField from '@components/ui/Input/NumbericInputField';
 import PickerField from '@components/ui/Input/PickerField';
-import { generalInfoFields } from '@components/plant/CustomizatonModal/GeneralInfoFields';
+import { generalInfoFields } from '@components/plant/customization/PlantForm/GeneralInfoFields';
 import { IPlant } from '@constants/IPlant';
 
 interface GeneralInfoSectionProps {

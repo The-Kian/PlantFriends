@@ -1,10 +1,9 @@
 import React, { useContext, useState } from "react";
 import { FlatList, Text } from "react-native";
 
-import PlantCustomizationModal from "@components/plant/CustomizatonModal";
+import PlantCustomizationModal from "@components/plant/customization/CustomizatonModal";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import SearchResultComponent from "@components/ui/Buttons/SearchResult";
-import Input from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant, IUserPlant } from "@constants/IPlant";
@@ -75,7 +74,16 @@ export default function PlantSearchScreen({
           onSave={handleSave}
         />
       )}
-      <ThemedButton title="Go Back" onPress={() => navigation.goBack()} additionalStyle={styles.goBackButton}/>
+      <ThemedButton
+        title="Submit new plant to database"
+        onPress={() => navigation.navigate("SubmitPlant")}
+        additionalStyle={styles.addPlantButton}
+      />
+      <ThemedButton
+        title="Go Back"
+        onPress={() => navigation.goBack()}
+        additionalStyle={styles.goBackButton}
+      />
     </ThemedView>
   );
 }
