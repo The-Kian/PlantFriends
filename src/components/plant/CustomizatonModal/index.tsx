@@ -35,14 +35,14 @@ const PlantCustomizationModal = ({
   const [userData, setUserData] = useState<IUserPlant>(() => {
     if (userPlant) {
       return { ...userPlant, userId: user?.uid || "", plantId: plant.id };
-    } else {
-      return {
-        userId: user?.uid || "",
-        plantId: plant.id,
-        id: uuid.v4().toString(),
-        custom_attributes: {},
-      };
     }
+
+    return {
+      userId: user?.uid || "",
+      plantId: plant.id,
+      id: uuid.v4().toString(),
+      custom_attributes: {},
+    };
   });
 
   const styles = useCustomizationModalStyles();
@@ -73,14 +73,13 @@ const PlantCustomizationModal = ({
     id: userData.id || uuid.v4().toString(),
   });
 
-
   const handleSave = () => {
     const updatedUserPlant = prepareUserPlantData();
-    onSave(updatedUserPlant, plant); 
+    onSave(updatedUserPlant, plant);
     onClose();
   };
 
-return (
+  return (
     <Modal
       visible={true}
       transparent={true}

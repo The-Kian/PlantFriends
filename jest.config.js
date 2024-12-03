@@ -22,6 +22,7 @@ module.exports = {
       '^@theme/(.*)$': '<rootDir>/src/theme/$1',
       '^@helpers/(.*)$': '<rootDir>/src/helpers/$1',
     },
+    coveragePathIgnorePatterns: ["jest/*"],
     setupFilesAfterEnv: ['<rootDir>/jest/setup.js'],
   };
   

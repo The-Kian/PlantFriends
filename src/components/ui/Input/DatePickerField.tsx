@@ -33,6 +33,7 @@ const DatePickerField = ({ label, date, onDateChange }: DatePickerFieldProps) =>
       />
       {showPicker && (
         <DateTimePicker
+          testID='date-picker'
           value={date}
           mode="date"
           display="default"
