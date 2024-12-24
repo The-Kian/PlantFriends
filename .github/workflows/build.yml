@@ -1,12 +1,10 @@
 name: "Build Android app"
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Lint"]
+    types:
+      - completed
 
 jobs:
   build:
