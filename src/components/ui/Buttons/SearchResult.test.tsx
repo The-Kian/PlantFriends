@@ -1,6 +1,7 @@
 import { IPlant } from "@constants/IPlant";
-import SearchResultComponent from "./SearchResult";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+
+import SearchResultComponent from "./SearchResult";
 
 describe("Search Result Button", () => {
   const mockPlant: IPlant = {
@@ -12,7 +13,7 @@ describe("Search Result Button", () => {
 
   it("renders a search result", () => {
     render(<SearchResultComponent onSelect={onSelect} plant={mockPlant}/>)
-    expect(screen.getByText("Test Plant"))
+    expect(screen.getByText("Test Plant")).toBeOnTheScreen()
   });
 
   it("calls onSelect when pressed", () => {

@@ -1,5 +1,7 @@
 import React from "react";
+
 import { render, fireEvent, screen } from "@testing-library/react-native";
+
 import DatePickerField from "./DatePickerField";
 
 describe("DatePickerField", () => {
@@ -21,7 +23,7 @@ describe("DatePickerField", () => {
 
     // Verify label and initial date value
     expect(screen.getByText("Select Date")).toBeTruthy();
-    expect(screen.getByPlaceholderText("Enter Select Date"));
+    expect(screen.getByPlaceholderText("Enter Select Date")).toBeOnTheScreen();
 
     // Ensure DateTimePicker is not visible initially
     expect(screen.queryByTestId("date-picker")).toBeNull();
@@ -58,7 +60,7 @@ describe("DatePickerField", () => {
         onDateChange={mockOnDateChange}
       />
     );
-    expect(screen.getByDisplayValue(newSelectedDate.toDateString()));
+    expect(screen.getByDisplayValue(newSelectedDate.toDateString())).toBeOnTheScreen();
   });
 
 });

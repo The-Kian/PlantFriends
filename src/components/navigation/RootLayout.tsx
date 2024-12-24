@@ -6,8 +6,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "@screens/auth/login";
 import SignupScreen from "@screens/auth/signup";
 import PlantSearchScreen from "@screens/PlantSearch";
-import SubmitPlantScreen from "@screens/SubmitPlant";
 import ProfileSettingsScreen from "@screens/settings/profile";
+import SubmitPlantScreen from "@screens/SubmitPlant";
 
 import TabNavigator from "./TabNavigator";
 

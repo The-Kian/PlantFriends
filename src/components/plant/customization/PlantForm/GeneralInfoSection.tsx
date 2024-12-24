@@ -3,11 +3,12 @@
 import React from 'react';
 import { View } from 'react-native';
 
-import { generalInfoFields } from './GeneralInfoFields';
 import NumericInputField from '@components/ui/Input/NumericInputField';
 import PickerField from '@components/ui/Input/PickerField';
 import TextInputField from '@components/ui/Input/TextInputField';
 import { IPlant } from '@constants/IPlant';
+
+import { generalInfoFields } from './GeneralInfoFields';
 
 interface GeneralInfoSectionProps {
   attributes: IPlant;

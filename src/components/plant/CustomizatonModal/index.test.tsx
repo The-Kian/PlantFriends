@@ -47,12 +47,12 @@ describe("PlantCustomizationModal", () => {
 
   it("renders", () => {
     renderComponent(mockPlant, mockUserPlant);
-    expect(screen.getByText("Customize Your Plant")).toBeTruthy();
+    expect(screen.getByText("Customize Your Plant")).toBeOnTheScreen();
   });
 
   it("sets userData to default values when there is no userPlant", () => {
     renderComponent(mockPlant);
-    expect(screen.getByPlaceholderText("Enter Custom Name"));
+    expect(screen.getByPlaceholderText("Enter Custom Name")).toBeOnTheScreen();
   });
 
   it("calls onClose when the Cancel button is pressed", () => {
