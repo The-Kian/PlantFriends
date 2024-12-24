@@ -1,6 +1,7 @@
 // NumericInputField.tsx
 
 import React from 'react';
+
 import TextInputField from './TextInputField';
 
 interface NumericInputFieldProps {

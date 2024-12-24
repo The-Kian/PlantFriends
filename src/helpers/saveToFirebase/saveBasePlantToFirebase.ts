@@ -1,6 +1,6 @@
 import { IPlant } from "@constants/IPlant";
-import firestore from "@react-native-firebase/firestore";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import firestore from "@react-native-firebase/firestore";
 
 const saveBasePlantToFirebase = async (
   plantData: IPlant,
@@ -19,8 +19,6 @@ const saveBasePlantToFirebase = async (
         isVerified: plantData.isVerified ?? false,
       };
       await plantRef.set(basePlantData);
-      console.log("Base plant saved successfully:", basePlantData);
-      return true;
     } catch (error) {
       console.error("Error saving base plant data: ", error);
       return false;

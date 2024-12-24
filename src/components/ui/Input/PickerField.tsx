@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { View } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+
 import { ThemedText } from '@components/ui/Text/ThemedText';
+import { Picker } from '@react-native-picker/picker';
+
 import { useInputStyles } from './Input.styles';
 
 interface PickerFieldProps {
@@ -23,6 +25,7 @@ const PickerField = ({ label, selectedValue, onValueChange, options }: PickerFie
           selectedValue={selectedValue}
           onValueChange={onValueChange}
           style={styles.picker}
+          accessibilityLabel={`${label} input field`}
         >
           {options.map((option) => (
             <Picker.Item label={option} value={option} key={option} />

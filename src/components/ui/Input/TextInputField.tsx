@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { TextInput, TextInputProps, View } from 'react-native';
+
 import { ThemedText } from '@components/ui/Text/ThemedText';
+
 import { useInputStyles } from './Input.styles';
 
 interface TextInputFieldProps extends TextInputProps {
@@ -17,6 +19,7 @@ const TextInputField = ({ label, ...props }: TextInputFieldProps) => {
       <ThemedText style={styles.inputLabel}>{label}</ThemedText>
       <TextInput
         {...props}
+        accessibilityLabel={`${label} input field`}
         style={styles.textInput}
         placeholder={`Enter ${label}`}
         placeholderTextColor={styles.inputLabel.color}

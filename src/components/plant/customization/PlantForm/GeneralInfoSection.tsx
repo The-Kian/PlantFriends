@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { View } from 'react-native';
-import TextInputField from '@components/ui/Input/TextInputField';
-import NumericInputField from '@components/ui/Input/NumbericInputField';
+
+import NumericInputField from '@components/ui/Input/NumericInputField';
 import PickerField from '@components/ui/Input/PickerField';
-import { generalInfoFields } from '@components/plant/customization/PlantForm/GeneralInfoFields';
+import TextInputField from '@components/ui/Input/TextInputField';
 import { IPlant } from '@constants/IPlant';
+
+import { generalInfoFields } from './GeneralInfoFields';
 
 interface GeneralInfoSectionProps {
   attributes: IPlant;
@@ -73,8 +75,6 @@ const GeneralInfoSection = ({
                 options={fieldConfig.options || []}
               />
             );
-          default:
-            return null;
         }
       })}
     </View>
