@@ -27,5 +27,5 @@ jobs:
       - name: 🔬 Lint
         run: yarn lint
 
-      - name: :test_tube: Test
+      - name: 🧪 Test
         run: yarn test
