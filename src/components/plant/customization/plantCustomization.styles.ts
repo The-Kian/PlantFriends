@@ -23,6 +23,7 @@ export const useCustomizationStyles = () => {
       shadowRadius: 4,
       // Elevation for Android
       elevation: 5,
+      backgroundColor: theme.colors.background,
     },
     content: {
       backgroundColor: theme.colors.tint,

@@ -1,14 +1,14 @@
 import { useContext, useState } from "react";
+import { ScrollView, View } from "react-native";
 import uuid from "react-native-uuid";
 
-import { IPlant, IUserPlant } from "@constants/IPlant";
-import { ThemedText } from "@components/ui/Text/ThemedText";
-import {AuthContext} from "@context/auth/AuthProvider";
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import { ScrollView, View } from "react-native";
 import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
 import GeneralInfoSection from "@components/plant/customization/PlantForm/GeneralInfoSection";
 import UserDataSection from "@components/plant/customization/PlantForm/UserDataSection";
+import ThemedButton from "@components/ui/Buttons/ThemedButton";
+import { ThemedText } from "@components/ui/Text/ThemedText";
+import { IPlant, IUserPlant } from "@constants/IPlant";
+import {AuthContext} from "@context/auth/AuthProvider";
 
 interface PlantFormProps {
   initialPlantData?: IPlant;

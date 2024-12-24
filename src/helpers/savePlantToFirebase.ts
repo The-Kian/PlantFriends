@@ -1,8 +1,10 @@
+import { Alert } from "react-native";
+
 import { IUserPlant, IPlant } from "@constants/IPlant";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+
 import saveBasePlantToFirebase from "./saveToFirebase/saveBasePlantToFirebase";
 import saveUserPlantToFirebase from "./saveToFirebase/saveUserPlantToFirebase";
-import { Alert } from "react-native";
 
 const savePlantToFirebase = async (
   userPlant: IUserPlant,

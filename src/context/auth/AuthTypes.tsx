@@ -14,12 +14,12 @@ export type CredentialsType = {
   password: string;
   confirmPassword: string;
   displayName: string;
+  dateOfBirth: Date;
 };
 
 export type AuthProps = {
   authScreenType: "login" | "signUp" | "update";
   onSubmit: (credentials: CredentialsType) => void;
-  credentialsInvalid: CredentialsInvalidType;
 };
 
 

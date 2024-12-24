@@ -1,14 +1,14 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet } from "react-native";
 
+import { RootStackParamList } from "@components/navigation/types";
+import ThemedButton from "@components/ui/Buttons/ThemedButton";
+import { ThemedText } from "@components/ui/Text/ThemedText";
 import { Collapsible } from "@components/ui/Views/Collapsible";
 import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
-import { ThemedText } from "@components/ui/Text/ThemedText";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import { RootStackParamList } from "@components/navigation/types";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { Colors } from "src/theme/Colors";
+import { Colors } from "@theme/Colors";
 
 
 export default function PlantScreen() {

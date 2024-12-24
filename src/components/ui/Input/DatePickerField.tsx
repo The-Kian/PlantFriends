@@ -2,7 +2,9 @@
 
 import React, { useState } from 'react';
 import { TouchableOpacity, Platform } from 'react-native';
+
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 import TextInputField from './TextInputField';
 
 interface DatePickerFieldProps {
@@ -31,6 +33,7 @@ const DatePickerField = ({ label, date, onDateChange }: DatePickerFieldProps) =>
       />
       {showPicker && (
         <DateTimePicker
+          testID='date-picker'
           value={date}
           mode="date"
           display="default"
