@@ -45,9 +45,7 @@ describe("ProfileButton", () => {
       </Stack.Navigator>
     </NavigationContainer>
     );
-
-
-    await fireEvent.press(screen.getByTestId("profile-button"));
+ fireEvent.press(screen. findByTestId("profile-button"));
 
     await waitFor(() => {
       expect(screen.getByText("Profile")).toBeOnTheScreen();
