@@ -47,7 +47,7 @@ describe("ProfileButton", () => {
     );
  
 
-const profileButton = screen.findByTestId("profile-button");
+const profileButton = await screen.findByTestId("profile-button");
 
 fireEvent.press(profileButton)
 
