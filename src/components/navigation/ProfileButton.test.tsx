@@ -47,7 +47,7 @@ describe("ProfileButton", () => {
     );
 
 
-    fireEvent.press(screen.getByTestId("profile-button"));
+    await fireEvent.press(screen.getByTestId("profile-button"));
 
     await waitFor(() => {
       expect(screen.getByText("Profile")).toBeOnTheScreen();
