@@ -37,3 +37,28 @@ jest.mock('@components/ui/Views/ThemedView', () => {
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "",
 }));
+
+jest.mock('react-native-screens', () => ({
+  ...jest.requireActual('react-native-screens'),
+  enableScreens: jest.fn(),
+}));
+
+const originalConsoleError = console.error;
+
+// Intercept console.error to filter out the Animated warning
+beforeAll(() => {
+  jest.spyOn(console, 'error').mockImplementation((...args) => {
+    const message = args[0];
+
+    // If the message includes the animated/act() warning, skip logging it
+    if (
+      typeof message === 'string' &&
+      message.includes('Warning: An update to Animated')
+    ) {
+      return;
+    }
+
+    // Otherwise, call the original console.error
+    originalConsoleError(...args);
+  });
+})

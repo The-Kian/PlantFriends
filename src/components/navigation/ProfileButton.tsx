@@ -1,8 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import React from "react";
 import { TouchableOpacity, StyleSheet, useColorScheme } from "react-native";
 
-import { Ionicons } from "@expo/vector-icons";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+
 import { Colors } from "@theme/Colors";
 
 import { RootStackParamList } from "./types";
