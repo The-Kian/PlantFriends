@@ -1,6 +1,5 @@
-import firestore from "@react-native-firebase/firestore";
-
 import { IUserPlant } from "@constants/IPlant";
+import firestore from "@react-native-firebase/firestore";
 
 async function getUserPlantData(
     userId: string,

@@ -11,30 +11,29 @@ module.exports = {
       }
     },
   ],
+  plugins: ['import', "jest"],
   rules: {
+    // Enforce a convention in module import order
     'import/order': [
       'error',
       {
         groups: [
-          // Default groups: built-in, external, parent, sibling, index
-          ['builtin', 'external'],
-          ['internal'],
-          ['parent', 'sibling', 'index'],
+          ['builtin', 'external'], // Node built-ins and external packages
+          ['internal'], // Internal aliases, if you use paths like "@app/"
+          ['parent', 'sibling', 'index'], // Parent imports, sibling imports, and index files
         ],
-        // Add your custom pathGroups
         pathGroups: [
           {
-            pattern: '@screens/**',
-            group: 'internal', // or create a custom group name
-            position: 'after', // or 'before' depending on your preference
+            pattern: '@**/**',
+            group: 'internal',
           },
-          // you can add more aliases here if you like
         ],
         pathGroupsExcludedImportTypes: ['builtin'],
-        // The "newlines-between" enforces an empty line between groups
         'newlines-between': 'always',
-        // Optional: let ESLint automatically fix incorrect import order
-        alphabetize: { order: 'asc', caseInsensitive: true },
+        alphabetize: {
+          order: 'asc', // Order imports alphabetically
+          caseInsensitive: true, // Ignore case when ordering
+        },
       },
     ],
   },

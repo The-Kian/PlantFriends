@@ -1,8 +1,8 @@
-import { render, fireEvent, screen } from "@testing-library/react-native";
 import React from "react";
 
 import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
+import { render, fireEvent, screen } from "@testing-library/react-native";
 
 import PlantCustomizationModal from "./index";
 import mockAuthContextValue from "../../../../jest/MockAuthContextValue";

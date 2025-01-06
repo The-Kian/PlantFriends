@@ -1,8 +1,8 @@
-import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
 import uuid from "react-native-uuid";
 
 import { IUserPlant } from "@constants/IPlant";
+import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import firestore from "@react-native-firebase/firestore";
 
 
 const saveUserPlantToFirebase = async (

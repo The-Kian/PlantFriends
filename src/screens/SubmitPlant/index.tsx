@@ -1,4 +1,3 @@
-import { useNavigation } from "@react-navigation/native";
 import React, { useContext } from "react";
 import { Alert } from "react-native";
 
@@ -9,6 +8,7 @@ import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
 import saveBasePlantToFirebase from "@helpers/saveToFirebase/saveBasePlantToFirebase";
+import { useNavigation } from "@react-navigation/native";
 
 const SubmitPlantScreen = () => {
   const { user } = useContext(AuthContext);

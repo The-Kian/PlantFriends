@@ -1,7 +1,6 @@
+import { IPlant } from "@constants/IPlant";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
-
-import { IPlant } from "@constants/IPlant";
 
 const saveBasePlantToFirebase = async (
   plantData: IPlant,

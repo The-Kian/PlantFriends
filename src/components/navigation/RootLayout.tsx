@@ -1,9 +1,8 @@
-import { createStackNavigator } from "@react-navigation/stack";
 import { useContext } from "react";
 import React from "react";
 
 import { AuthContext } from "@context/auth/AuthProvider";
-
+import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "@screens/auth/login";
 import SignupScreen from "@screens/auth/signup";
 import PlantSearchScreen from "@screens/PlantSearch";
