@@ -14,7 +14,11 @@ const SubmitPlantScreen = () => {
   const { user } = useContext(AuthContext);
   const navigation = useNavigation();
 
-  const handleSave = async (basePlantData: IPlant) => {
+  const handleSave = async (_:any, basePlantData?: IPlant) => {
+    if (!basePlantData) {
+      console.error("Base plant data is undefined.");
+      return;
+    }
     if (user) {
       await saveBasePlantToFirebase(basePlantData, user);
       navigation.goBack();
@@ -26,7 +30,7 @@ const SubmitPlantScreen = () => {
   return (
     <ThemedView>
       <ThemedText>Submit Plant for review!</ThemedText>
-      <PlantForm onSave={handleSave} displayUserPlantData={false}/>
+      <PlantForm onSave={handleSave} displayUserPlantData={false} isSubmission={true}/>
     </ThemedView>
   );
 };

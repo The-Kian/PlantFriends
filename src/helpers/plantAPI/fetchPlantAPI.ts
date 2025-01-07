@@ -1,7 +1,6 @@
 import firestore from "@react-native-firebase/firestore";
 
 import { IPlant } from "@constants/IPlant";
-
 import { mapOpenFarmPlantToIPlant } from "./mapOpenFarmPlantToIPlant";
 import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
 import filterFirebasePlants from "./filterFirebasePlants";
@@ -10,7 +9,7 @@ export const fetchFirebasePlants = async (
   searchQuery: string
 ): Promise<IPlant[]> => {
   const firebasePlants: IPlant[] = [];
-  const snapshot = await firestore()
+  await firestore()
     .collection("Plants")
     .get()
     .then((querySnapshot) => {

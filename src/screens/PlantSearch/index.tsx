@@ -10,7 +10,7 @@ import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
 import getUserPlantData from "@helpers/getUserPlantData";
-import savePlantToFirebase from "@helpers/savePlantToFirebase";
+import savePlantToFirebase from "@helpers/saveToFirebase/savePlantToFirebase";
 import { useFetchPlants } from "@hooks/useFetchPlants";
 
 import styles from "./index.styles";

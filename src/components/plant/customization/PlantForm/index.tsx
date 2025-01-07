@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import { View, ScrollView } from "react-native";
+import { ScrollView } from "react-native";
 import uuid from "react-native-uuid";
 
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
@@ -15,8 +15,9 @@ import UserDataSection from "./UserDataSection";
 interface PlantFormProps {
   initialPlantData?: IPlant;
   initialUserPlantData?: IUserPlant;
-  onSave: (userPlant: IUserPlant, plantData: IPlant) => Promise<void>;
+  onSave: (userPlant?: IUserPlant, plantData?: IPlant) => Promise<void>;
   displayUserPlantData: boolean;
+  isSubmission: boolean
 }
 
 const PlantForm = ({
@@ -24,6 +25,7 @@ const PlantForm = ({
   initialUserPlantData,
   onSave,
   displayUserPlantData,
+  isSubmission
 }: PlantFormProps) => {
   const { user } = useContext(AuthContext);
 
@@ -63,26 +65,26 @@ const PlantForm = ({
   };
 
   const handleSave = async () => {
-    // Generate a new plant ID if it doesn't exist
-    const plantId = customizations.id || uuid.v4().toString();
-
-    const newPlantData: IPlant = {
-      ...customizations,
-      id: plantId,
-      isVerified: customizations.isVerified ?? false,
-      contributedBy: user?.displayName ?? user?.email ?? "Anonymous",
-    };
-
-    const newUserPlantData: IUserPlant = {
-      ...userData,
-      userId: user?.uid || "",
-      plantId: plantId,
-      id: userData.id || uuid.v4().toString(),
-      custom_attributes: customizations,
-    };
-
-    await onSave(newUserPlantData, newPlantData);
+    if (isSubmission) {
+      // Save a new base plant
+      const newPlantData: IPlant = {
+        ...customizations,
+        id: uuid.v4().toString(),
+        isVerified: false,
+        contributedBy: user?.displayName || user?.email || "Anonymous",
+      };
+      await onSave(undefined, newPlantData); // No user data needed
+    } else {
+      // Save customizations for a predefined plant
+      const updatedUserPlant: IUserPlant = {
+        ...userData,
+        custom_attributes: customizations,
+        id: userData.id || uuid.v4().toString(),
+      };
+      await onSave(updatedUserPlant, undefined); // No new base plant
+    }
   };
+
   // FIX DUPLICATE BUTTON
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
