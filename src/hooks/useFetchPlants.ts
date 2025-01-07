@@ -5,6 +5,7 @@ import {
   fetchFirebasePlants,
   fetchOpenFarmPlants,
 } from "@helpers/plantAPI/fetchPlantAPI";
+import deduplicate from "@utils/deduplicate";
 
 export const useFetchPlants = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
@@ -22,7 +23,7 @@ export const useFetchPlants = (searchQuery: string) => {
         const openFarmPlantsData = await fetchOpenFarmPlants(searchQuery);
         const firebasePlantsData = await fetchFirebasePlants(searchQuery);
 
-        const plantsData = [...firebasePlantsData, ...openFarmPlantsData];
+        const plantsData = deduplicate([...firebasePlantsData, ...openFarmPlantsData])
 
         setPlants(plantsData);
       } catch (error: any) {

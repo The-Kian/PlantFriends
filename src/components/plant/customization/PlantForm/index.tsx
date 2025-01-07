@@ -12,7 +12,6 @@ import { useCustomizationStyles } from "src/components/plant/customization/plant
 import GeneralInfoSection from "./GeneralInfoSection";
 import UserDataSection from "./UserDataSection";
 
-
 interface PlantFormProps {
   initialPlantData?: IPlant;
   initialUserPlantData?: IUserPlant;
@@ -84,28 +83,34 @@ const PlantForm = ({
 
     await onSave(newUserPlantData, newPlantData);
   };
+  // FIX DUPLICATE BUTTON
   return (
-    <ScrollView>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <ThemedView style={styles.content}>
         <ThemedText style={styles.title}>Customize Your Plant</ThemedText>
-        {displayUserPlantData &&
-        <UserDataSection
-          userData={userData}
-          onUserDataChange={handleUserDataChange}
-        />
-}
+        {displayUserPlantData && (
+          <UserDataSection
+            userData={userData}
+            onUserDataChange={handleUserDataChange}
+          />
+        )}
         <GeneralInfoSection
           attributes={customizations as IPlant}
           onAttributeChange={handlePlantAttributeChange}
         />
-        <View style={styles.buttonContainer}>
-          <ThemedButton
-            title="Save"
-            onPress={handleSave}
-            additionalStyle={styles.button}
-            variant="accept"
-          />
-        </View>
+        <ThemedButton
+          title="Save"
+          onPress={handleSave}
+          additionalStyle={styles.button}
+          variant="accept"
+        />
+        
+        <ThemedButton
+          title="Save"
+          onPress={handleSave}
+          additionalStyle={styles.button}
+          variant="accept"
+        />
       </ThemedView>
     </ScrollView>
   );
