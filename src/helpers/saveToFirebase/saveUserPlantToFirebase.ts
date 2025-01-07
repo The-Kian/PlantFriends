@@ -25,6 +25,7 @@ const saveUserPlantToFirebase = async (
         .collection("UserPlants")
         .doc(userPlantId)
         .set(userPlantData);
+      return true;
     } catch (error) {
       console.error("Error saving user plant data: ", error);
       return false;

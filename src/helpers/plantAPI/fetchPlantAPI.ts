@@ -1,25 +1,47 @@
+import firestore from "@react-native-firebase/firestore";
+
 import { IPlant } from "@constants/IPlant";
 
 import { mapOpenFarmPlantToIPlant } from "./mapOpenFarmPlantToIPlant";
 import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
+import filterFirebasePlants from "./filterFirebasePlants";
 
-export const fetchOpenFarmPlants = async (searchQuery: string): Promise<IPlant[]> => {
-    const URL = `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`;
-    const response = await fetch(URL);
-    const data = await response.json();
-  
-    if (data.data && Array.isArray(data.data)) {
-      const plantsData: IPlant[] = data.data.map((plant: any) =>
-        mapOpenFarmPlantToIPlant(plant)
-      );
-      return plantsData;
-    } else {
-      throw new Error("No plants found");
-    }
-  };
-  
-  export const fetchPerenualPlants = async (searchQuery: string): Promise<IPlant[]> => {
-    try {
+export const fetchFirebasePlants = async (
+  searchQuery: string
+): Promise<IPlant[]> => {
+  const firebasePlants: IPlant[] = [];
+  const snapshot = await firestore()
+    .collection("Plants")
+    .get()
+    .then((querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        firebasePlants.push(doc.data() as IPlant);
+      });
+    });
+  return filterFirebasePlants(searchQuery, firebasePlants);
+};
+
+export const fetchOpenFarmPlants = async (
+  searchQuery: string
+): Promise<IPlant[]> => {
+  const URL = `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`;
+  const response = await fetch(URL);
+  const data = await response.json();
+
+  if (data.data && Array.isArray(data.data)) {
+    const plantsData: IPlant[] = data.data.map((plant: any) =>
+      mapOpenFarmPlantToIPlant(plant)
+    );
+    return plantsData;
+  } else {
+    throw new Error("No plants found");
+  }
+};
+
+export const fetchPerenualPlants = async (
+  searchQuery: string
+): Promise<IPlant[]> => {
+  try {
     const URL = `https://perenual.com/api/species-list?key=${process.env.PERENUAL_API_KEY}&q=${searchQuery}`;
     const response = await fetch(URL);
     if (!response.ok) {
@@ -40,4 +62,3 @@ export const fetchOpenFarmPlants = async (searchQuery: string): Promise<IPlant[]
     throw error; // Re-throw to be caught by calling function
   }
 };
-  
