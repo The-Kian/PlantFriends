@@ -7,7 +7,7 @@ import { ThemedText } from "@components/ui/Text/ThemedText";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
-import { useCustomizationStyles } from "src/components/plant/customization/plantCustomization.styles";
+import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
 
 import GeneralInfoSection from "./GeneralInfoSection";
 import UserDataSection from "./UserDataSection";

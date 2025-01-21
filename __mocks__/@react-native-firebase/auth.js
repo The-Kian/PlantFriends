@@ -5,9 +5,10 @@ const mockAuthModule = {
   signInWithEmailAndPassword: jest.fn(() => Promise.resolve()),
   createUserWithEmailAndPassword: jest.fn(() => Promise.resolve()),
   signOut: jest.fn(() => Promise.resolve()),
-  onAuthStateChanged: jest.fn(callback => {
-    callback({ uid: '123', email: 'test@example.com' });
-    return () => {};
+  onAuthStateChanged: jest.fn((callback) => {
+    // Simulate an async update with no user
+    setTimeout(() => callback(null), 50); // Short delay to allow test to wait
+    return jest.fn(); // Mock unsubscribe function
   }),
 };
 
