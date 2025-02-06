@@ -11,6 +11,7 @@ import {
   render,
   screen,
   waitFor,
+  waitForElementToBeRemoved,
 } from "@testing-library/react-native";
 
 import AuthContent from "./AuthContent";
@@ -84,21 +85,21 @@ describe("AuthContent Tests", () => {
   });
 
   it("navigates to SignUp when switch button is pressed on login screen", async () => {
-    renderComponentWithNavigation("Login");
+    await waitFor(() => renderComponentWithNavigation("Login"));
 
     const switchButton = screen.getByText("Create a new user");
-    fireEvent.press(switchButton);
+    await waitFor(() => fireEvent.press(switchButton));
 
-    expect(await screen.findByText("Sign Up")).toBeVisible();
+    await waitFor(() => expect(screen.getByText("Sign Up")).toBeVisible());
   });
 
   it("navigates to Login when switch button is pressed on Sign Up screen", async () => {
-    renderComponentWithNavigation("SignUp");
-
+    await waitFor(() => renderComponentWithNavigation("SignUp"));
+  
     const switchButton = screen.getByText("Login instead");
-    fireEvent.press(switchButton);
+    await waitFor(() => fireEvent.press(switchButton));
 
-    await waitFor(() => expect(screen.getByText("Log In")).toBeVisible());
+    await waitFor(() => expect(screen.getByText("Login")).toBeVisible());
   });
 
   it("calls onSubmit with correct credentials", () => {

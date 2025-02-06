@@ -5,23 +5,10 @@ import { AuthContext } from "@context/auth/AuthProvider";
 import { render, fireEvent, screen } from "@testing-library/react-native";
 
 import PlantCustomizationModal from "./index";
-import mockAuthContextValue from "../../../../jest/MockAuthContextValue";
-import mockUser from "../../../../jest/MockFirebaseUser";
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import mockUser from "@test-utils/MockFirebaseUser";
+import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 
-const mockPlant: IPlant = {
-  id: "1",
-  name: "Test Plant",
-};
-
-const mockUserPlant: IUserPlant = {
-  id: "1",
-  userId: "user1",
-  plantId: "1",
-  houseLocation: "Kitchen",
-  custom_attributes: {
-    name: "Custom Plant",
-  },
-};
 
 const mockOnClose = jest.fn();
 const mockOnSave = jest.fn();

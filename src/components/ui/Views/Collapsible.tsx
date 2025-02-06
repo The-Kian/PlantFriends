@@ -20,6 +20,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
           name={isOpen ? 'chevron-down' : 'chevron-forward-outline'}
           size={18}
           color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
+          testID='collapsible-icon'
         />
         <ThemedText type="defaultSemiBold">{title}</ThemedText>
       </TouchableOpacity>

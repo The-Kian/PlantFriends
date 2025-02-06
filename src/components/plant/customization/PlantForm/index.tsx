@@ -12,7 +12,6 @@ import { useCustomizationStyles } from "@components/plant/customization/plantCus
 import GeneralInfoSection from "./GeneralInfoSection";
 import UserDataSection from "./UserDataSection";
 
-
 interface PlantFormProps {
   initialPlantData?: IPlant;
   initialUserPlantData?: IUserPlant;
@@ -87,13 +86,13 @@ const PlantForm = ({
   return (
     <ScrollView>
       <ThemedView style={styles.content}>
-        <ThemedText style={styles.title}>Customize Your Plant</ThemedText>
-        {displayUserPlantData &&
-        <UserDataSection
-          userData={userData}
-          onUserDataChange={handleUserDataChange}
-        />
-}
+        <ThemedText style={styles.title}>Plant Form</ThemedText>
+        {displayUserPlantData && (
+          <UserDataSection
+            userData={userData}
+            onUserDataChange={handleUserDataChange}
+          />
+        )}
         <GeneralInfoSection
           attributes={customizations as IPlant}
           onAttributeChange={handlePlantAttributeChange}

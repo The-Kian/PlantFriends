@@ -1,6 +1,6 @@
 // jest.config.js
 module.exports = {
-  preset: "react-native",
+  preset: "jest-expo",
   transform: {
     "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
   },
@@ -21,6 +21,7 @@ module.exports = {
     "^@constants/(.*)$": "<rootDir>/src/constants/$1",
     "^@theme/(.*)$": "<rootDir>/src/theme/$1",
     "^@helpers/(.*)$": "<rootDir>/src/helpers/$1",
+    "^@test-utils/(.*)$": "<rootDir>/src/test-utils/$1",
   },
   coveragePathIgnorePatterns: ["jest/*"],
   setupFilesAfterEnv: ["<rootDir>/jest/setup.js"],
