@@ -7,6 +7,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "@screens/auth/login";
 import SignupScreen from "@screens/auth/signup";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -60,7 +61,10 @@ describe("AuthContent Tests", () => {
 
     render(
       <NavigationContainer>
-        <Stack.Navigator initialRouteName={initialRouteName}>
+        <Stack.Navigator
+          initialRouteName={initialRouteName}
+          screenOptions={{ animation: "none" }}
+        >
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignupScreen} />
         </Stack.Navigator>
@@ -85,22 +89,26 @@ describe("AuthContent Tests", () => {
   });
 
   it("navigates to SignUp when switch button is pressed on login screen", async () => {
-    await waitFor(() => renderComponentWithNavigation("Login"));
+    renderComponentWithNavigation("Login");
 
-    const switchButton = screen.getByText("Create a new user");
-    await waitFor(() => fireEvent.press(switchButton));
+    const switchButton = await screen.findByText("Create a new user");
 
-    await waitFor(() => expect(screen.getByText("Sign Up")).toBeVisible());
+      fireEvent.press(switchButton)
+
+    await waitFor(() => {
+      expect(screen.getByText("Sign Up")).toBeVisible();
+    });
   });
 
   it("navigates to Login when switch button is pressed on Sign Up screen", async () => {
     renderComponentWithNavigation("SignUp");
 
     const switchButton = await screen.findByText("Login instead");
+      fireEvent.press(switchButton);
 
-    fireEvent.press(switchButton);
-
-    await screen.findByText("Login");
+    await waitFor(() => {
+      expect(screen.getByText("Login")).toBeVisible();
+    });
   });
 
   it("calls onSubmit with correct credentials", () => {
