@@ -57,7 +57,7 @@ describe("AuthContent Tests", () => {
 
   const renderComponentWithNavigation = (initialRouteName: string) => {
     const Stack = createStackNavigator();
-    
+
     render(
       <NavigationContainer>
         <Stack.Navigator initialRouteName={initialRouteName}>
@@ -94,12 +94,13 @@ describe("AuthContent Tests", () => {
   });
 
   it("navigates to Login when switch button is pressed on Sign Up screen", async () => {
-    await waitFor(() => renderComponentWithNavigation("SignUp"));
-  
-    const switchButton = screen.getByText("Login instead");
-    await waitFor(() => fireEvent.press(switchButton));
+    renderComponentWithNavigation("SignUp");
 
-    await waitFor(() => expect(screen.getByText("Login")).toBeVisible());
+    const switchButton = await screen.findByText("Login instead");
+
+    fireEvent.press(switchButton);
+
+    await screen.findByText("Login");
   });
 
   it("calls onSubmit with correct credentials", () => {

@@ -1,39 +1,89 @@
 import { Text } from "react-native";
-import { render, waitFor } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 import { AuthProvider, AuthContext } from "./AuthProvider";
 import React, { useContext } from "react";
 
-jest.mock("@react-native-firebase/auth");
+import auth from "@react-native-firebase/auth";
+import firestore from "@react-native-firebase/firestore";
+import mockUser from "@test-utils/MockFirebaseUser";
+import AuthTestComponent from "./test/AuthTestComponent";
+
 
 // Custom test component to consume the context
-const TestComponent = () => {
-  const { initializing, user } = useContext(AuthContext);
-
-  return (
-    <>
-      <Text testID="initializing">{initializing ? "true" : "false"}</Text>
-      <Text testID="user">{user ? user.email : "null"}</Text>
-    </>
-  );
-};
 
 
 describe("AuthProvider", () => {
   it("handles onAuthStateChanged updates correctly", async () => {
-    const { getByTestId } = render(
+    render(
       <AuthProvider>
-        <TestComponent />
+        <AuthTestComponent />
       </AuthProvider>
     );
 
     // Initial state
-    expect(getByTestId("initializing").children[0]).toBe("true");
-    expect(getByTestId("user").children[0]).toBe("null");
-
+    expect(screen.getByTestId("initializing").props.children).toBe("true");
+    expect(screen.getByTestId("user").props.children).toBe("null");
+ 
     // Wait for state updates
     await waitFor(() => {
-      expect(getByTestId("initializing").children[0]).toBe("false");
-      expect(getByTestId("user").children[0]).toBe("null");
+      expect(screen.getByTestId("initializing").props.children).toBe("false");
+      expect(screen.getByTestId("user").props.children).toBe(mockUser.email);
+    });
+  });
+
+  it("calls firebase signInWithEmailAndPassword when login function is called", async () => {
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>
+    );
+    fireEvent.press(screen.getByTestId("login"));
+    await waitFor(() => {
+      expect(auth().signInWithEmailAndPassword).toHaveBeenCalled();
+    });
+  });
+
+  it("calls firebase createUserWithEmailAndPassword when register function is called", async () => {
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>
+    );
+    fireEvent.press(screen.getByTestId("register"));
+    await waitFor(() => {
+      expect(auth().createUserWithEmailAndPassword).toHaveBeenCalled();
+    });
+  });
+
+  it("calls firebase updateProfile when update function is called", async () => {
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>
+    );
+    fireEvent.press(screen.getByTestId("update"));
+    await waitFor(() => {
+      expect(auth().currentUser?.updateProfile).toHaveBeenCalled();
+    });
+  });
+
+  it("calls firebase signOut when logout function is called", async () => {
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId("user").props.children).toBe(mockUser.email);
+    });
+    fireEvent.press(screen.getByTestId("logout"));
+    await waitFor(() => {
+      expect(auth().signOut).toHaveBeenCalled();
     });
   });
 });
