@@ -6,7 +6,6 @@ describe("getUserPlantData", () => {
     // Default mock from __mocks__ => exists: true, data: () => ({ /* ... */ })
     const result = await getUserPlantData("testUser", "testPlant");
     expect(result).toBeTruthy();
-    // Or do a deeper check on the shape
   });
 
   it("returns undefined if doc does not exist", async () => {

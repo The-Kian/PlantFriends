@@ -95,11 +95,9 @@ export const AuthProvider = ({ children }: ProviderProps) => {
 
   const logout = async () => {
     try {
-      if (user) {
-        // await removeTokenFromDatabase(token, user.uid);
-        // await firebase.messaging().deleteToken();
-        await auth().signOut();
-      }
+      // await removeTokenFromDatabase(token, user.uid);
+      // await firebase.messaging().deleteToken();
+      await auth().signOut();
     } catch (error: any) {
       Alert.alert("Error logging out:", error.message);
     }
