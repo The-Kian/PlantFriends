@@ -108,6 +108,7 @@ describe("fetchPerenualPlants", () => {
   });
 
   it("should throw an error when API returns invalid data", async () => {
+    console.error = jest.fn();
     const searchQuery = "banana";
     const fakeData = {
       data: "invalid data",

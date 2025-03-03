@@ -15,7 +15,7 @@ describe("LoginScreen", () => {
     const renderLoginScreen = () => {
       return render(
         <NavigationContainer>
-          <AuthContext.Provider value={{...mockAuthContextValue, login: mockLogin}}>
+          <AuthContext.Provider value={mockAuthContextValue}>
             <LoginScreen />
           </AuthContext.Provider>
         </NavigationContainer>
@@ -36,7 +36,7 @@ describe("LoginScreen", () => {
   });
 
   it("renders LoadingOverlay when authenticating", async () => {
-    mockLogin.mockImplementation(
+    mockAuthContextValue.login.mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100))
     );
 
@@ -52,7 +52,7 @@ describe("LoginScreen", () => {
   });
 
   it("returns to AuthContent after authentication completes", async () => {
-    mockLogin.mockResolvedValue(undefined);
+    mockAuthContextValue.login.mockResolvedValue(undefined);
 
     renderLoginScreen();
 

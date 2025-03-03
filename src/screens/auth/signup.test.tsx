@@ -8,14 +8,10 @@ import { NavigationContainer } from "@react-navigation/native";
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
 describe("SignupScreen", () => {
-  // Create mock functions we can inspect
-  const registerMock = jest.fn();
-  const updateMock = jest.fn();
-
   const renderSignUpScreen = () => {
     return render(
       <NavigationContainer>
-        <AuthContext.Provider value={{...mockAuthContextValue, register: registerMock}}>
+        <AuthContext.Provider value={mockAuthContextValue}>
           <SignupScreen />
         </AuthContext.Provider>
       </NavigationContainer>
@@ -24,8 +20,6 @@ describe("SignupScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    registerMock.mockReset();
-    updateMock.mockReset();
   });
 
   // Test initial rendering state
@@ -37,7 +31,7 @@ describe("SignupScreen", () => {
   });
 
   it("should show loading overlay when authentication starts", async () => {
-    registerMock.mockImplementation(
+    mockAuthContextValue.register.mockImplementation(
       () => new Promise((resolve) => setTimeout(resolve, 100))
     );
 
@@ -53,8 +47,8 @@ describe("SignupScreen", () => {
   });
 
   it("returns to AuthContent after authentication completes", async () => {
-    registerMock.mockResolvedValue(undefined);
-    updateMock.mockResolvedValue(undefined);
+    mockAuthContextValue.register.mockResolvedValue(undefined);
+    mockAuthContextValue.update.mockResolvedValue(undefined);
 
     renderSignUpScreen();
     

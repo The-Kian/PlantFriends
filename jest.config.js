@@ -23,6 +23,6 @@ module.exports = {
     "^@helpers/(.*)$": "<rootDir>/src/helpers/$1",
     "^@test-utils/(.*)$": "<rootDir>/src/test-utils/$1",
   },
-  coveragePathIgnorePatterns: ["jest/*"],
+  coveragePathIgnorePatterns: ["jest/*, test-utils/*"],
   setupFilesAfterEnv: ["<rootDir>/jest/setup.js"],
 };
