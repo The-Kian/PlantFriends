@@ -23,37 +23,27 @@ const HomeScreen = ({ navigation }: any) => (
 );
 
 describe("ProfileSettingsScreen", () => {
-  const renderWithNavigation = () => {
-    render(
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ animation: "none" }}>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen
-            name="ProfileSettings"
-            component={ProfileSettingsScreen}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  };
-
-  const renderWithAuthContext = () => {
-    render(
+  const renderWithFullContext = (initialRouteName = "ProfileSettings") => {
+    return render(
       <NavigationContainer>
         <AuthContext.Provider value={mockAuthContextValue}>
-          <ProfileSettingsScreen />
+          <Stack.Navigator screenOptions={{ animation: "none" }} initialRouteName={initialRouteName}>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
+            <Stack.Screen name="Signup" component={SignupScreen} />
+          </Stack.Navigator>
         </AuthContext.Provider>
       </NavigationContainer>
     );
   };
 
   it("renders correctly", () => {
-    renderWithAuthContext();
+    renderWithFullContext();
     expect(screen.getByText("Profile")).toBeVisible();
   });
 
   it("renders the Go back button and navigates", async () => {
-    renderWithNavigation();
+    renderWithFullContext("Home");
 
     fireEvent.press(screen.getByText("Go To Profile"));
 
@@ -67,7 +57,7 @@ describe("ProfileSettingsScreen", () => {
   });
 
   it("renders the Logout button and logs out", async () => {
-    renderWithAuthContext();
+    renderWithFullContext();
 
     const logoutButton = await waitFor(() => screen.getByText("Logout"));
     fireEvent.press(logoutButton);

@@ -14,3 +14,8 @@ export const mockUserPlant: IUserPlant = {
       name: "Custom Plant",
     },
   };
+
+  export const mockPlant2: IPlant = {
+    id: "2",
+    name: "Test Plant 2",
+  };

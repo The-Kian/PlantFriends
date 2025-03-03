@@ -1,22 +1,21 @@
-import React, { useContext, useState } from "react";
-import { FlatList, Text } from "react-native";
+import { useState } from "react";
+import {Text } from "react-native";
+import { NavigationProp } from "@react-navigation/native";
 
+import { RootStackParamList } from "@components/navigation/types";
 import PlantCustomizationModal from "@components/plant/CustomizatonModal";
-import SearchResultComponent from "@components/ui/Buttons/SearchResult";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import TextInputField from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { IPlant, IUserPlant } from "@constants/IPlant";
-import { AuthContext } from "@context/auth/AuthProvider";
-import getUserPlantData from "@helpers/getUserPlantData";
-import savePlantToFirebase from "@helpers/savePlantToFirebase";
 import { useFetchPlants } from "@hooks/useFetchPlants";
 
 import styles from "./index.styles";
+import PlantSearchResults from "./Results";
+import usePlantSelection from "@hooks/usePlantSelection";
 
 interface PlantSearchScreenProps {
-  navigation: any;
+  navigation: NavigationProp<RootStackParamList>;
 }
 
 export default function PlantSearchScreen({
@@ -24,25 +23,7 @@ export default function PlantSearchScreen({
 }: PlantSearchScreenProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { plants, loading, error } = useFetchPlants(searchQuery);
-  const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
-  const [userPlant, setUserPlant] = useState<IUserPlant | undefined>(undefined);
-  const { user } = useContext(AuthContext);
-
-  const handleSelectPlant = async (plant: IPlant) => {
-    setSelectedPlant(plant);
-    if (user) {
-      const userPlantData = await getUserPlantData(user.uid, plant.id);
-      setUserPlant(userPlantData);
-    }
-  };
-
-  const handleSave = async (
-    updatedUserPlant: IUserPlant,
-    plantData: IPlant
-  ) => {
-    await savePlantToFirebase(updatedUserPlant, plantData, user);
-    setSelectedPlant(null);
-  };
+  const { selectedPlant, userPlant, handleSelectPlant, handleSave, closeModal } = usePlantSelection();
 
   return (
     <ThemedView style={styles.container}>
@@ -53,25 +34,12 @@ export default function PlantSearchScreen({
       />
       {loading && <LoadingOverlay message={`Searching for ${searchQuery}`} />}
       {error && <Text>Error fetching plants</Text>}
-      <ThemedView style={styles.container}>
-        <FlatList
-          data={plants}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SearchResultComponent
-              onSelect={() => handleSelectPlant(item)}
-              plant={item}
-            />
-          )}
-        />
-      </ThemedView>
+      <PlantSearchResults plants={plants} onSelectPlant={handleSelectPlant} />
       {selectedPlant && (
         <PlantCustomizationModal
           plant={selectedPlant}
           userPlant={userPlant}
-          onClose={() => {
-            setSelectedPlant(null);
-          }}
+          onClose={closeModal}
           onSave={handleSave}
         />
       )}
