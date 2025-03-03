@@ -19,6 +19,7 @@
       "@theme/*": ["./src/theme/*"],
       "@helpers/*": ["./src/helpers/*"],
       "@test-utils/*": ["./src/test-utils/*"],
+      "@mocks/*": ["./src/mocks/*"],
     }
   },
   "include": [

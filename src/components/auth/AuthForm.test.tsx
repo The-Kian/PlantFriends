@@ -48,11 +48,11 @@ describe('AuthForm Component', () => {
   it('updates input values correctly', () => {
     renderComponent({ authScreenType: 'signUp' });
 
-    fireEvent.changeText(screen.getByText('Email Address'), 'new@example.com');
-    fireEvent.changeText(screen.getByText('Confirm Email Address'), 'new@example.com');
-    fireEvent.changeText(screen.getByText('Password'), 'newpassword');
-    fireEvent.changeText(screen.getByText('Confirm Password'), 'newpassword');
-    fireEvent.changeText(screen.getByText('Display Name'), 'New User');
+    fireEvent.changeText(screen.getByLabelText('Email Address input field'), 'new@example.com');
+    fireEvent.changeText(screen.getByLabelText('Confirm Email Address input field'), 'new@example.com');
+    fireEvent.changeText(screen.getByLabelText('Password input field'), 'newpassword');
+    fireEvent.changeText(screen.getByLabelText('Confirm Password input field'), 'newpassword');
+    fireEvent.changeText(screen.getByLabelText('Display Name input field'), 'New User');
 
     // Update dateOfBirth
     const newDate = new Date('2000-01-01');
@@ -75,8 +75,8 @@ describe('AuthForm Component', () => {
 
   it('calls onSubmit with correct credentials for login', () => {
     renderComponent();
-    fireEvent.changeText(screen.getByText('Email Address'), 'test@test.com');
-    fireEvent.changeText(screen.getByText('Password'), 'password');
+    fireEvent.changeText(screen.getByLabelText('Email Address input field'), 'test@test.com');
+    fireEvent.changeText(screen.getByLabelText('Password input field'), 'password');
     fireEvent.press(screen.getByText('Log In'));
 
     expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
