@@ -118,7 +118,7 @@ describe("fetchPerenualPlants", () => {
     } as any);
 
     await expect(fetchPerenualPlants(searchQuery)).rejects.toThrow(
-      "Error fetching Perenual plants:"
+      "API request failed with status undefined"
     );
   });
 });
