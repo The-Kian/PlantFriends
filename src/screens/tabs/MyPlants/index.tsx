@@ -11,7 +11,7 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Colors } from "@theme/Colors";
 
 
-export default function PlantScreen() {
+export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const navigateToPlantSearch = () => {

@@ -13,16 +13,16 @@ import { AuthContext } from "@context/auth/AuthProvider";
 import SignupScreen from "@screens/auth/signup";
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
-const Stack = createStackNavigator();
-
-// Create a component with props instead of using useNavigation hook
-const HomeScreen = ({ navigation }: any) => (
-  <Text onPress={() => navigation.navigate("ProfileSettings")}>
-    Go To Profile
-  </Text>
-);
 
 describe("ProfileSettingsScreen", () => {
+  const Stack = createStackNavigator();
+  
+  // Create a component with props instead of using useNavigation hook
+  const HomeScreen = ({ navigation }: any) => (
+    <Text onPress={() => navigation.navigate("ProfileSettings")}>
+      Go To Profile
+    </Text>
+  );
   const renderWithFullContext = (initialRouteName = "ProfileSettings") => {
     return render(
       <NavigationContainer>
