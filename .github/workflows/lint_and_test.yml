@@ -19,6 +19,9 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
+      - name: Install ESLint Expo Plugin
+        run: yarn add eslint-plugin-expo@latest --dev
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
