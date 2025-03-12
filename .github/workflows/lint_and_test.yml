@@ -20,19 +20,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-          # Remove the yarn cache option as we'll use corepack properly
       
       - name: Enable and prepare Corepack
         run: |
           corepack enable
           corepack prepare yarn@3.6.3 --activate
-          yarn --version # Verify correct version is active
+          yarn --version
 
       - name: 📥 Install deps
         run: yarn install
 
-      - name: Install ESLint Expo Plugin
-        run: yarn add eslint-plugin-expo@latest --dev
+      - name: Install ESLint plugins
+        run: |
+          yarn add --dev eslint-plugin-expo@latest 
+          yarn add --dev eslint-plugin-react@latest 
+          yarn add --dev eslint-plugin-react-hooks@latest
+          yarn add --dev eslint-plugin-react-native@latest
 
       - name: 🔬 Lint
         run: yarn lint
