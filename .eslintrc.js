@@ -1,18 +1,22 @@
-// https://docs.expo.dev/guides/using-eslint/
 module.exports = {
-  "root": true,
-  extends: ['expo', "plugin:jest/recommended"],
+  root: true,
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint', 'import', 'jest'],
+  extends: [
+    'expo',
+    'plugin:jest/recommended',
+    'plugin:@typescript-eslint/recommended'
+  ],
   ignorePatterns: ['**/node_modules/**', 'android/**', 'ios/**', 'metro.config.js', '**/__mocks__/**'],
   overrides: [
     {
       files: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
       extends: ['plugin:testing-library/react'],
       env: {
-        jest: true
-      }
+        jest: true,
+      },
     },
   ],
-  plugins: ['import', "jest"],
   rules: {
     // Enforce a convention in module import order
     'import/order': [

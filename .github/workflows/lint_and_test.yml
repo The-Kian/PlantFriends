@@ -30,13 +30,16 @@ jobs:
       - name: 📥 Install deps
         run: yarn install
 
-      - name: Install ESLint plugins
+      - name: Install ESLint dependencies
         run: |
           yarn add --dev eslint-plugin-expo@latest 
           yarn add --dev eslint-plugin-react@latest 
           yarn add --dev eslint-plugin-react-hooks@latest
           yarn add --dev eslint-plugin-react-native@latest
           yarn add --dev @typescript-eslint/eslint-plugin@latest
+          yarn add --dev @typescript-eslint/parser@latest
+          yarn add --dev eslint-import-resolver-typescript@latest
+          yarn add --dev eslint-plugin-import@latest
 
       - name: 🔬 Lint
         run: yarn lint
