@@ -19,10 +19,14 @@ jobs:
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
-          cache: "yarn"
-
-      - name: Enable Corepack
-        run: corepack enable
+          node-version: 'lts/*'
+          # Remove the yarn cache option as we'll use corepack properly
+      
+      - name: Enable and prepare Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@3.6.3 --activate
+          yarn --version # Verify correct version is active
 
       - name: 📥 Install deps
         run: yarn install

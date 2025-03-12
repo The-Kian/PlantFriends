@@ -1,5 +1,6 @@
 // https://docs.expo.dev/guides/using-eslint/
 module.exports = {
+  "root": true,
   extends: ['expo', "plugin:jest/recommended"],
   ignorePatterns: ['**/node_modules/**', 'android/**', 'ios/**', 'metro.config.js', '**/__mocks__/**'],
   overrides: [
