@@ -6454,7 +6454,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import@npm:^2.29.1":
+"eslint-plugin-import@npm:^2.29.1, eslint-plugin-import@npm:latest":
   version: 2.31.0
   resolution: "eslint-plugin-import@npm:2.31.0"
   dependencies:
@@ -11021,6 +11021,7 @@ __metadata:
     babel-plugin-module-resolver: ^5.0.2
     eslint: ^8.57.0
     eslint-config-expo: ~7.1.2
+    eslint-plugin-import: latest
     eslint-plugin-jest: ^28.9.0
     eslint-plugin-testing-library: ^6.4.0
     expo: ~51.0.28

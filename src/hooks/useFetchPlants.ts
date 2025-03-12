@@ -14,21 +14,20 @@ export const useFetchPlants = (searchQuery: string) => {
     }
 
     const fetchPlants = async () => {
-        setLoading(true);
-        try {
-          const plantsData = await fetchOpenFarmPlants(searchQuery);
+      setLoading(true);
+      try {
+        const plantsData = await fetchOpenFarmPlants(searchQuery);
         // const plantsData = await fetchPerenualPlants(searchQuery);
-          setPlants(plantsData);
-        } catch (error: any) {
-          setError(error);
-          console.error(`🚀 ~ fetchPlants ~ error.message:`, error);
-        } finally {
-          setLoading(false);
-        }
-      };
-  
-      fetchPlants();
-    }, [searchQuery]);
+        setPlants(plantsData);
+      } catch (error: any) {
+        setError(error);
+        console.error(`🚀 ~ fetchPlants ~ error.message:`, error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchPlants();
+  }, [searchQuery]);
   return { plants, loading, error };
 };
