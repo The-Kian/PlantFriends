@@ -16,7 +16,7 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
-      - name: ⎔ Setup node
+      - name: ⎔ Setup node x
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
@@ -36,6 +36,7 @@ jobs:
           yarn add --dev eslint-plugin-react@latest 
           yarn add --dev eslint-plugin-react-hooks@latest
           yarn add --dev eslint-plugin-react-native@latest
+          yarn add --dev @typescript-eslint/eslint-plugin@latest
 
       - name: 🔬 Lint
         run: yarn lint
