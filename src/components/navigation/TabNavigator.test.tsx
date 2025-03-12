@@ -1,7 +1,10 @@
-import React from "react";
-import { render, screen, waitFor } from "@testing-library/react-native";
-import TabNavigator from "./TabNavigator";
+
 import { NavigationContainer } from "@react-navigation/native";
+import { render, screen } from "@testing-library/react-native";
+
+import React from "react";
+
+import TabNavigator from "./TabNavigator";
 
 jest.mock("@screens/tabs/home", () => () => null);
 jest.mock("@screens/tabs/MyPlants", () => () => null);
@@ -14,9 +17,9 @@ describe("TabNavigator", () => {
         <TabNavigator />
       </NavigationContainer>
     );
-    await expect(screen.findByRole("button", { name: "Home" })).toBeTruthy();
-    await expect(
-      screen.findByRole("button", { name: "My Plants" })
+    expect(await screen.findByRole("button", { name: "Home" })).toBeTruthy();
+    expect(
+      await screen.findByRole("button", { name: "My Plants" })
     ).toBeTruthy();
   });
 });

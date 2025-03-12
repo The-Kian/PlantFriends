@@ -6,7 +6,6 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
 } from "@testing-library/react-native";
 
 import ProfileButton from "./ProfileButton";

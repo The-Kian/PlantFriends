@@ -1,13 +1,14 @@
-import React from "react";
 
-import { IPlant, IUserPlant } from "@constants/IPlant";
+import { IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
-import { render, fireEvent, screen } from "@testing-library/react-native";
-
-import PlantCustomizationModal from "./index";
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
+import { render, fireEvent, screen } from "@testing-library/react-native";
+
+import React from "react";
+
+import PlantCustomizationModal from "./index";
 
 
 const mockOnClose = jest.fn();

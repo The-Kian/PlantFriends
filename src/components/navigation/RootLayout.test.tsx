@@ -1,10 +1,14 @@
-import React from "react";
-import { render, screen } from "@testing-library/react-native";
-import { NavigationContainer } from "@react-navigation/native";
-import RootLayout from "./RootLayout";
+
 import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "../../test-utils/MockAuthContextValue";
 import { AuthContextType } from "@context/auth/AuthTypes";
+import { NavigationContainer } from "@react-navigation/native";
+import { render, screen } from "@testing-library/react-native";
+
+import React from "react";
+
+import RootLayout from "./RootLayout";
+import mockAuthContextValue from "../../test-utils/MockAuthContextValue";
+
 
 describe("RootLayout", () => {
     const renderRootLayout = (contextValue: AuthContextType) =>
@@ -18,15 +22,15 @@ describe("RootLayout", () => {
             </AuthContext.Provider>
         );
 
-    it("shows login & signup screens when user is not logged in", () => {
+    it("shows login & signup screens when user is not logged in", async () => {
         const contextValueWithoutUser = {...mockAuthContextValue, user: null};
         renderRootLayout(contextValueWithoutUser);
-        expect(screen.findByText("Create a new user")).toBeTruthy();
+        expect(await screen.findByText("Create a new user")).toBeTruthy();
     });
 
-    it("shows Tab, Profile, PlantSearch & SubmitPlant screens when user is logged in", () => {
+    it("shows Tab, Profile, PlantSearch & SubmitPlant screens when user is logged in", async () => {
         renderRootLayout(mockAuthContextValue);
         expect(screen.getByTestId("profile-button")).toBeTruthy();
-        expect(screen.findByText("Plant Friends!")).toBeTruthy();
+        expect(await screen.findByText("Plant Friends!")).toBeTruthy();
     });
 });

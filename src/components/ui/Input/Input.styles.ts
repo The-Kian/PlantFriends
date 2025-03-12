@@ -1,6 +1,7 @@
+import { useTheme } from "@hooks/useTheme";
+
 import { StyleSheet } from "react-native";
 
-import { useTheme } from "@hooks/useTheme";
 
 export const useInputStyles = () => {
   const theme = useTheme();

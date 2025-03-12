@@ -1,19 +1,17 @@
-import { Alert, Text } from "react-native";
+import auth from "@react-native-firebase/auth";
+import mockUser from "@test-utils/MockFirebaseUser";
 import {
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import { AuthProvider, AuthContext } from "./AuthProvider";
-import React, { useContext } from "react";
 
-import auth from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
-import mockUser from "@test-utils/MockFirebaseUser";
+import React from "react";
+import { Alert } from "react-native";
+
+import { AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
-
-// Custom test component to consume the context
 
 describe("AuthProvider", () => {
   it("handles onAuthStateChanged updates correctly", async () => {
@@ -23,14 +21,16 @@ describe("AuthProvider", () => {
       </AuthProvider>
     );
 
-    // Initial state
-    expect(screen.getByTestId("initializing").props.children).toBe("true");
-    expect(screen.getByTestId("user").props.children).toBe("null");
+    // Check initial state using text content assertions
+    expect(screen.getByTestId("initializing")).toHaveTextContent("true");
+    expect(screen.getByTestId("user")).toHaveTextContent("null");
 
-    // Wait for state updates
+    // Wait for state update on initializing
     await waitFor(() => {
-      expect(screen.getByTestId("initializing").props.children).toBe("false");
-      expect(screen.getByTestId("user").props.children).toBe(mockUser.email);
+      expect(screen.getByTestId("initializing")).toHaveTextContent("false");
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId("user")).toHaveTextContent("user.email");
     });
   });
 
@@ -76,8 +76,9 @@ describe("AuthProvider", () => {
         <AuthTestComponent />
       </AuthProvider>
     );
+    // Wait for the user state to be updated before logout
     await waitFor(() => {
-      expect(screen.getByTestId("user").props.children).toBe(mockUser.email);
+      expect(screen.getByTestId("user")).toHaveTextContent(mockUser.email);
     });
     fireEvent.press(screen.getByTestId("logout"));
     await waitFor(() => {
@@ -86,6 +87,7 @@ describe("AuthProvider", () => {
   });
 });
 
+// Error-handling tests
 describe("AuthProvider error handling", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -164,9 +166,9 @@ describe("AuthProvider error handling", () => {
       expect(alertSpy).toHaveBeenCalledWith("Error updating profile:", "err0r");
     });
   });
+
   it("shows alert for error logging out failed", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-
     (auth().signOut as jest.Mock).mockRejectedValueOnce({
       message: "err0r",
     });

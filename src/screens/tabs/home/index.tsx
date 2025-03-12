@@ -1,10 +1,11 @@
-import { Image, StyleSheet } from 'react-native';
 
 import { HelloWave } from '@components/ui/HelloWave';
 import { ThemedText } from '@components/ui/Text/ThemedText';
 import ParallaxScrollView from '@components/ui/Views/ParallaxScrollView';
 import { ThemedView } from '@components/ui/Views/ThemedView';
 import { Colors } from '@theme/Colors';
+
+import { Image, StyleSheet } from 'react-native';
 
 export default function HomeScreen() {
 

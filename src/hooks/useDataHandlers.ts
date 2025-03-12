@@ -1,7 +1,8 @@
+import { IPlant, IUserPlant } from '@constants/IPlant';
+
 import { useState } from 'react';
 import uuid from 'react-native-uuid';
 
-import { IPlant, IUserPlant } from '@constants/IPlant';
 
 export const useDataHandlers = (initialPlant: IPlant, initialUserData: IUserPlant) => {
   const [customizations, setCustomizations] = useState({});

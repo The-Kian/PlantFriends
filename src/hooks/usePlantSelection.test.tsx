@@ -1,15 +1,15 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
-import usePlantSelection from "./usePlantSelection";
 import { AuthContext } from "@context/auth/AuthProvider";
+import getUserPlantData from "@helpers/getUserPlantData";
+import savePlantToFirebase from "@helpers/savePlantToFirebase";
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import mockUser from "@test-utils/MockFirebaseUser";
+import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
+import { renderHook, waitFor } from "@testing-library/react-native";
+
+import usePlantSelection from "./usePlantSelection";
 
 jest.mock("@helpers/getUserPlantData");
 jest.mock("@helpers/savePlantToFirebase");
-
-import getUserPlantData from "@helpers/getUserPlantData";
-import savePlantToFirebase from "@helpers/savePlantToFirebase";
-import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
-import mockUser from "@test-utils/MockFirebaseUser";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
 describe("usePlantSelection", () => {
   beforeEach(() => {

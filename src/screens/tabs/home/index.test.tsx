@@ -1,15 +1,18 @@
 // First, declare simple mocks without references to external variables
-jest.mock('@components/ui/HelloWave');
-jest.mock('@components/ui/Views/ParallaxScrollView');
 
-
-import React from 'react';
-import { render, screen } from '@testing-library/react-native';
-import HomeScreen from './index';
-import { Colors } from '@theme/Colors';
-import { View } from 'react-native';
 import { HelloWave } from '@components/ui/HelloWave';
 import ParallaxScrollView from '@components/ui/Views/ParallaxScrollView';
+import { render, screen } from '@testing-library/react-native';
+import { Colors } from '@theme/Colors';
+
+import React from 'react';
+import { View } from 'react-native';
+
+import HomeScreen from './index';
+
+
+jest.mock('@components/ui/HelloWave');
+jest.mock('@components/ui/Views/ParallaxScrollView');
 
 // After imports, implement the mocks
 (HelloWave as jest.Mock).mockImplementation(() => (

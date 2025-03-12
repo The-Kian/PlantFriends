@@ -1,7 +1,7 @@
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
-
 import firestore from "@react-native-firebase/firestore";
+import mockUser from "@test-utils/MockFirebaseUser";
+import { mockUserPlant } from "@test-utils/MockPlant";
+
 import saveUserPlantToFirebase from "./saveUserPlantToFirebase";
 
 describe("saveUserPlantToFirebase", () => {
@@ -39,7 +39,6 @@ describe("saveUserPlantToFirebase", () => {
 
   it("Should throw an error if the save fails", async () => {
     console.error = jest.fn();
-    const plantData = mockPlant;
     const user = mockUser;
 
     (firestore as any)._mockGet.mockResolvedValueOnce({ exists: false });

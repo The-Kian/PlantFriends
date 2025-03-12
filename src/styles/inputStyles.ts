@@ -1,7 +1,8 @@
 "use strict";
+import { Colors } from "@theme/Colors";
+
 import { StyleSheet } from "react-native";
 
-import { Colors } from "@theme/Colors";
 
 export const inputStyles = StyleSheet.create({
 	inputContainer: {

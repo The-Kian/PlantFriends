@@ -1,6 +1,7 @@
+import { useTheme } from '@hooks/useTheme';
+
 import { StyleSheet } from 'react-native';
 
-import { useTheme } from '@hooks/useTheme';
 
 export const useThemedButtonStyles = () => {
   const theme = useTheme();

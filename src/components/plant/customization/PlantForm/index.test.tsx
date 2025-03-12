@@ -1,16 +1,18 @@
-import React from "react";
-import { Text } from "react-native";
+
+import { AuthContext } from "@context/auth/AuthProvider";
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import mockUser from "@test-utils/MockFirebaseUser";
+import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 import {
   render,
   fireEvent,
   screen,
   waitFor,
 } from "@testing-library/react-native";
+
+import React from "react";
+
 import PlantForm from "./";
-import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 
 // --- Mocks ---
 
@@ -33,26 +35,30 @@ jest.mock("@components/plant/customization/plantCustomization.styles", () => ({
 jest.mock("./GeneralInfoSection", () => {
   const React = require("react");
   const { Button } = require("react-native");
-  return ({ onAttributeChange }) => (
+  const MockGeneralInfoSection = ({ onAttributeChange }) => (
     <Button
       testID="attribute-button"
       title="Change Attribute"
       onPress={() => onAttributeChange("name", "NewName")}
     />
   );
+  MockGeneralInfoSection.displayName = "MockGeneralInfoSection"
+  return MockGeneralInfoSection;
 });
 
 // Mock UserDataSection to call onUserDataChange
 jest.mock("./UserDataSection", () => {
   const React = require("react");
   const { Button } = require("react-native");
-  return ({ onUserDataChange }) => (
+  const MockUserDataSection = ({ onUserDataChange }) => (
     <Button
       testID="user-data-button"
       title="Change User Data"
       onPress={() => onUserDataChange("customField", "NewValue")}
     />
   );
+  MockUserDataSection.displayName = "MockUserDataSection";
+  return MockUserDataSection;
 });
 
 // --- Test Suite ---

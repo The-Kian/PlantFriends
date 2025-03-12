@@ -1,5 +1,6 @@
-import validateCredentials from './validateCredentials';
 import { CredentialsType } from '@context/auth/AuthTypes';
+
+import validateCredentials from './validateCredentials';
 
 describe('validateCredentials', () => {
     it('should return true for valid login credentials', () => {

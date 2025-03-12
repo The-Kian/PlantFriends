@@ -1,4 +1,3 @@
-import { StyleSheet } from "react-native";
 
 import { RootStackParamList } from "@components/navigation/types";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
@@ -9,6 +8,8 @@ import { ThemedView } from "@components/ui/Views/ThemedView";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Colors } from "@theme/Colors";
+
+import { StyleSheet } from "react-native";
 
 
 export default function MyPlantsScreen() {

@@ -1,10 +1,12 @@
+
+import { IUserPlant, IPlant } from '@constants/IPlant';
+import mockUser from '@test-utils/MockFirebaseUser';
+
 import { Alert } from 'react-native';
+
 import savePlantToFirebase from './savePlantToFirebase';
 import saveBasePlantToFirebase from './saveToFirebase/saveBasePlantToFirebase';
 import saveUserPlantToFirebase from './saveToFirebase/saveUserPlantToFirebase';
-import { IUserPlant, IPlant } from '@constants/IPlant';
-import { FirebaseAuthTypes } from '@react-native-firebase/auth';
-import mockUser from '@test-utils/MockFirebaseUser';
 
 // Mock dependencies
 jest.mock('react-native', () => ({

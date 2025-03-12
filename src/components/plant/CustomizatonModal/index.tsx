@@ -1,8 +1,5 @@
 // PlantCustomizationModal.tsx
 
-import React, { useContext, useState } from "react";
-import { Modal, View, ScrollView } from "react-native";
-import uuid from "react-native-uuid";
 
 import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
 import GeneralInfoSection from "@components/plant/customization/PlantForm/GeneralInfoSection";
@@ -11,6 +8,10 @@ import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@components/ui/Text/ThemedText";
 import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
+
+import React, { useContext, useState } from "react";
+import { Modal, View, ScrollView } from "react-native";
+import uuid from "react-native-uuid";
 
 
 interface PlantCustomizationModalProps {

@@ -1,13 +1,15 @@
+import { AuthContext } from "@context/auth/AuthProvider";
+import { NavigationContainer } from "@react-navigation/native";
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import {
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import { AuthContext } from "@context/auth/AuthProvider";
+
 import LoginScreen from "./login";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-import { NavigationContainer } from "@react-navigation/native";
+
 
 
 describe("LoginScreen", () => {
@@ -61,7 +63,7 @@ describe("LoginScreen", () => {
     fireEvent.press(loginButton);
     await waitFor(() => {
       expect(screen.queryByText("Logging you in...")).not.toBeOnTheScreen();
-      expect(screen.getByTestId("AuthContent-View")).toBeOnTheScreen();
     });
+    expect(screen.getByTestId("AuthContent-View")).toBeOnTheScreen();
   });
 });

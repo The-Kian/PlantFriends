@@ -1,7 +1,7 @@
 // https://docs.expo.dev/guides/using-eslint/
 module.exports = {
   extends: ['expo', "plugin:jest/recommended"],
-  ignorePatterns: ['**/node_modules/**', 'android/**', 'ios/**', 'metro.config.js'],
+  ignorePatterns: ['**/node_modules/**', 'android/**', 'ios/**', 'metro.config.js', '**/__mocks__/**'],
   overrides: [
     {
       files: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)'],
@@ -18,8 +18,8 @@ module.exports = {
       'error',
       {
         groups: [
-          ['builtin', 'external'], // Node built-ins and external packages
           ['internal'], // Internal aliases, if you use paths like "@app/"
+          ['builtin', 'external'], // Node built-ins and external packages
           ['parent', 'sibling', 'index'], // Parent imports, sibling imports, and index files
         ],
         pathGroups: [

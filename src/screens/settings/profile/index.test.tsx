@@ -1,17 +1,19 @@
+
+import { AuthContext } from "@context/auth/AuthProvider";
 import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import SignupScreen from "@screens/auth/signup";
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import {
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
+
 import { Text } from "react-native";
-import { createStackNavigator } from "@react-navigation/stack";
+
 import ProfileSettingsScreen from "./index";
-import { RootStackParamList } from "@components/navigation/types";
-import { AuthContext } from "@context/auth/AuthProvider";
-import SignupScreen from "@screens/auth/signup";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
 
 describe("ProfileSettingsScreen", () => {
@@ -47,19 +49,19 @@ describe("ProfileSettingsScreen", () => {
 
     fireEvent.press(screen.getByText("Go To Profile"));
 
-    const goBackButton = await waitFor(() => screen.getByText("Go back"));
+    const goBackButton = await screen.findByText("Go back");
     fireEvent.press(goBackButton);
 
     await waitFor(() => {
       expect(screen.queryByText("Profile")).toBeNull();
-      expect(screen.getByText("Go To Profile")).toBeVisible();
     });
+    expect(screen.getByText("Go To Profile")).toBeVisible();
   });
 
   it("renders the Logout button and logs out", async () => {
     renderWithFullContext();
 
-    const logoutButton = await waitFor(() => screen.getByText("Logout"));
+    const logoutButton = await screen.findByText("Logout");
     fireEvent.press(logoutButton);
 
     expect(mockAuthContextValue.logout).toHaveBeenCalledTimes(1);

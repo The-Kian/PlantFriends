@@ -1,5 +1,3 @@
-import { useContext } from "react";
-import React from "react";
 
 import { AuthContext } from "@context/auth/AuthProvider";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -8,6 +6,9 @@ import SignupScreen from "@screens/auth/signup";
 import PlantSearchScreen from "@screens/PlantSearch";
 import ProfileSettingsScreen from "@screens/settings/profile";
 import SubmitPlantScreen from "@screens/SubmitPlant";
+
+import React from "react";
+import { useContext } from "react";
 
 import TabNavigator from "./TabNavigator";
 

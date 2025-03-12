@@ -1,7 +1,10 @@
-import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
-import { Collapsible } from './Collapsible';
+
 import { ThemedText } from '@components/ui/Text/ThemedText';
+import { render, fireEvent, screen } from '@testing-library/react-native';
+
+import React from 'react';
+
+import { Collapsible } from './Collapsible';
 
 describe("Collapsible", () => {
     const renderCollapsible = () => {

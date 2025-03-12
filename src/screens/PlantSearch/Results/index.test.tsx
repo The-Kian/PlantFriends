@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
-import PlantSearchResults from "./index";
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+import { fireEvent, render, screen } from "@testing-library/react-native";
+
+import PlantSearchResults from "./index";
 
 describe("PlantSearchResults", () => {
   it("Should render more than one plant", () => {

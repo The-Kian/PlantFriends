@@ -1,9 +1,10 @@
-import { useState, createContext, useEffect } from "react";
-import { Alert } from "react-native";
 
 import { ProviderProps } from "@constants/genericTypes";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
+
+import { useState, createContext, useEffect } from "react";
+import { Alert } from "react-native";
 
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
 // import removeTokenFromDatabase from "@components/messaging/RemoveTokenFromDatabase";

@@ -1,10 +1,11 @@
 // PickerField.tsx
 
+import { ThemedText } from '@components/ui/Text/ThemedText';
+import { Picker } from '@react-native-picker/picker';
+
 import React from 'react';
 import { View } from 'react-native';
 
-import { ThemedText } from '@components/ui/Text/ThemedText';
-import { Picker } from '@react-native-picker/picker';
 
 import { useInputStyles } from './Input.styles';
 

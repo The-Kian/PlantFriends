@@ -1,8 +1,9 @@
-import React from 'react';
 
 import { AuthProps } from '@context/auth/AuthTypes';
 import { NavigationContainer } from '@react-navigation/native';
 import { render, fireEvent, screen } from '@testing-library/react-native';
+
+import React from 'react';
 
 import AuthForm from './AuthForm';
 

@@ -1,4 +1,3 @@
-import { Alert } from "react-native";
 
 import { AuthProps } from "@context/auth/AuthTypes";
 import validateCredentials from "@helpers/auth/validateCredentials";
@@ -7,13 +6,13 @@ import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "@screens/auth/login";
 import SignupScreen from "@screens/auth/signup";
 import {
-  act,
   fireEvent,
   render,
   screen,
   waitFor,
-  waitForElementToBeRemoved,
 } from "@testing-library/react-native";
+
+import { Alert } from "react-native";
 
 import AuthContent from "./AuthContent";
 
@@ -93,7 +92,7 @@ describe("AuthContent Tests", () => {
 
     const switchButton = await screen.findByText("Create a new user");
 
-      fireEvent.press(switchButton)
+    fireEvent.press(switchButton);
 
     await waitFor(() => {
       expect(screen.getByText("Sign Up")).toBeVisible();
@@ -104,7 +103,7 @@ describe("AuthContent Tests", () => {
     renderComponentWithNavigation("SignUp");
 
     const switchButton = await screen.findByText("Login instead");
-      fireEvent.press(switchButton);
+    fireEvent.press(switchButton);
 
     await waitFor(() => {
       expect(screen.getByText("Login")).toBeVisible();

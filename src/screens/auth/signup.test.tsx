@@ -1,11 +1,13 @@
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
-import "@testing-library/jest-native/extend-expect";
-import SignupScreen from "./signup";
+
 import { AuthContext } from "@context/auth/AuthProvider";
-import { View, TouchableOpacity, Text } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import "@testing-library/jest-native/extend-expect";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
+
+import React from "react";
+
+import SignupScreen from "./signup";
 
 describe("SignupScreen", () => {
   const renderSignUpScreen = () => {
@@ -57,7 +59,7 @@ describe("SignupScreen", () => {
 
     await waitFor(() => {
         expect(screen.queryByText("Signing up...")).not.toBeOnTheScreen();
-        expect(screen.getByTestId("AuthContent-View")).toBeOnTheScreen();
       });
+      expect(screen.getByTestId("AuthContent-View")).toBeOnTheScreen();
   });
 });

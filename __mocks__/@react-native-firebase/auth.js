@@ -1,4 +1,5 @@
 // __mocks__/@react-native-firebase/auth.js
+
 import mockUser from "@test-utils/MockFirebaseUser";
 
 const mockAuthModule = {

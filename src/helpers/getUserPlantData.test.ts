@@ -1,5 +1,6 @@
-import getUserPlantData from "./getUserPlantData";
 import firestore from "@react-native-firebase/firestore";
+
+import getUserPlantData from "./getUserPlantData";
 
 describe("getUserPlantData", () => {
   it("returns mock data if doc exists", async () => {

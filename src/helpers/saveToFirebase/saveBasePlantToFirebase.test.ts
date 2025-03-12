@@ -1,8 +1,9 @@
+import firestore from "@react-native-firebase/firestore";
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant } from "@test-utils/MockPlant"
+
 import saveBasePlantToFirebase from "./saveBasePlantToFirebase";
 
-import firestore from "@react-native-firebase/firestore";
 
 describe("saveBasePlantToFirebase", () => {
     beforeEach(() => {

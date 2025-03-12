@@ -1,12 +1,12 @@
-import { screen, render, fireEvent } from "@testing-library/react-native";
-import PlantSearchScreen from "./";
+import { useFetchPlants } from "@hooks/useFetchPlants";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { Text } from "react-native";
-import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-import { useFetchPlants } from "@hooks/useFetchPlants";
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+import { screen, render, fireEvent } from "@testing-library/react-native";
+
+import { Text } from "react-native";
+
+import PlantSearchScreen from "./";
 
 jest.mock("@hooks/useFetchPlants");
 

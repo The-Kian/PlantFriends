@@ -1,7 +1,8 @@
-import { mockPlant } from "@test-utils/MockPlant";
-import { useFetchPlants } from "./useFetchPlants";
 import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import { mockPlant } from "@test-utils/MockPlant";
 import { renderHook, waitFor } from "@testing-library/react-native";
+
+import { useFetchPlants } from "./useFetchPlants";
 
 jest.mock("@helpers/plantAPI/fetchPlantAPI", () => ({
   fetchOpenFarmPlants: jest.fn(),
@@ -31,9 +32,7 @@ describe("useFetchPlants", () => {
     expect(result.current.loading).toBe(true);
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
-      expect(result.current.plants).toEqual(
-        expect.arrayContaining([expect.objectContaining(mockPlant)])
-      );
     });
+    expect(result.current.plants).toEqual(expect.arrayContaining([expect.objectContaining(mockPlant)]));
   });
 });

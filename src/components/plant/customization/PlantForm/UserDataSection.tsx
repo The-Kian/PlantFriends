@@ -1,12 +1,13 @@
 // UserDataSection.tsx
 
-import React from "react";
-import { View } from "react-native";
 
 import DatePickerField from "@components/ui/Input/DatePickerField";
 import PickerField from "@components/ui/Input/PickerField";
 import TextInputField from "@components/ui/Input/TextInputField";
 import { IUserPlant } from "@constants/IPlant";
+
+import React from "react";
+import { View } from "react-native";
 
 interface UserDataSectionProps {
 
