@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import firestore from "@react-native-firebase/firestore";
+
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockUserPlant } from "@test-utils/MockPlant";
 

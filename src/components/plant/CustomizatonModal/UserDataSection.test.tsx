@@ -1,8 +1,10 @@
 
-import UserDataSection from "@components/plant/customization/PlantForm/UserDataSection";
+import React from "react";
+
 import { render, fireEvent, screen } from "@testing-library/react-native";
 
-import React from "react";
+import UserDataSection from "@components/plant/customization/PlantForm/UserDataSection";
+
 
 
 const mockUserData = {

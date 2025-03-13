@@ -1,8 +1,8 @@
 
-import { IUserPlant, IPlant } from "@constants/IPlant";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-
 import { Alert } from "react-native";
+
+import { IUserPlant, IPlant } from "@constants/IPlant";
 
 import saveBasePlantToFirebase from "./saveToFirebase/saveBasePlantToFirebase";
 import saveUserPlantToFirebase from "./saveToFirebase/saveUserPlantToFirebase";

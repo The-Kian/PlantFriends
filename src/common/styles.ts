@@ -1,9 +1,10 @@
 
 // src/common/styles/defaultStyles.ts
 
+import { StyleSheet } from 'react-native';
+
 import { useTheme } from '@hooks/useTheme';
 
-import { StyleSheet } from 'react-native';
 
 
 export const useDefaultStyles = () => {

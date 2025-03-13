@@ -1,12 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import PlantForm from "@components/plant/customization/PlantForm";
-import { AuthContext } from "@context/auth/AuthProvider";
-import saveBasePlantToFirebase from "@helpers/saveToFirebase/saveBasePlantToFirebase";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant } from "@test-utils/MockPlant";
+import { Text } from "react-native";
+import { Alert } from "react-native";
+
 import {
   fireEvent,
   render,
@@ -14,8 +12,18 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { Text } from "react-native";
-import { Alert } from "react-native";
+import { AuthContext } from "@context/auth/AuthProvider";
+
+import PlantForm from "@components/plant/customization/PlantForm";
+
+import saveBasePlantToFirebase from "@helpers/saveToFirebase/saveBasePlantToFirebase";
+
+
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import mockUser from "@test-utils/MockFirebaseUser";
+import { mockPlant } from "@test-utils/MockPlant";
+
+
 
 import SubmitPlantScreen from "./";
 

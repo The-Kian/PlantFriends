@@ -1,13 +1,15 @@
 
-import styles from '@common/defaultStyles';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import React, { useContext } from 'react';
+
+import { AuthContext } from '@context/auth/AuthProvider';
+
 import { RootStackParamList } from '@components/navigation/types';
 import ThemedButton from '@components/ui/Buttons/ThemedButton';
 import { ThemedText } from '@components/ui/Text/ThemedText';
 import { ThemedView } from '@components/ui/Views/ThemedView';
-import { AuthContext } from '@context/auth/AuthProvider';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 
-import React, { useContext } from 'react';
+import styles from '@common/defaultStyles';
 
 const ProfileSettingsScreen = () => {
     const {logout} = useContext(AuthContext);

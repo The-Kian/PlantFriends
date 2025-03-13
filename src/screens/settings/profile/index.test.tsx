@@ -1,9 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { AuthContext } from "@context/auth/AuthProvider";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import SignupScreen from "@screens/auth/signup";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import { Text } from "react-native";
+
 import {
   fireEvent,
   render,
@@ -11,7 +11,13 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { Text } from "react-native";
+import { AuthContext } from "@context/auth/AuthProvider";
+
+import SignupScreen from "@screens/auth/signup";
+
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+
+
 
 import ProfileSettingsScreen from "./index";
 

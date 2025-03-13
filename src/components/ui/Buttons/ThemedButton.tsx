@@ -1,6 +1,7 @@
+import { Pressable, ViewStyle } from 'react-native';
+
 import { ThemedText } from '@components/ui/Text/ThemedText';
 
-import { Pressable, ViewStyle } from 'react-native';
 
 
 import { useThemedButtonStyles } from './ThemedButton.styles';

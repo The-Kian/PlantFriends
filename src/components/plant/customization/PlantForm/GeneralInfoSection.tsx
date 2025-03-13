@@ -1,13 +1,15 @@
 // GeneralInfoSection.tsx
 
 
+import React from 'react';
+import { View } from 'react-native';
+
 import NumericInputField from '@components/ui/Input/NumericInputField';
 import PickerField from '@components/ui/Input/PickerField';
 import TextInputField from '@components/ui/Input/TextInputField';
+
 import { IPlant } from '@constants/IPlant';
 
-import React from 'react';
-import { View } from 'react-native';
 
 import { generalInfoFields } from './GeneralInfoFields';
 

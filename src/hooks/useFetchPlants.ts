@@ -1,8 +1,11 @@
-
-import { IPlant } from "@constants/IPlant";
-import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect } from "react";
+
+import { IPlant } from "@constants/IPlant";
+
+import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
+
 
 export const useFetchPlants = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);

@@ -1,12 +1,17 @@
 
-import { IUserPlant } from "@constants/IPlant";
+import React from "react";
+
+import { render, fireEvent, screen } from "@testing-library/react-native";
+
 import { AuthContext } from "@context/auth/AuthProvider";
+
+import { IUserPlant } from "@constants/IPlant";
+
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
-import { render, fireEvent, screen } from "@testing-library/react-native";
 
-import React from "react";
+
 
 import PlantCustomizationModal from "./index";
 

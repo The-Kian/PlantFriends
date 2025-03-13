@@ -1,12 +1,14 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import ProfileSettingsScreen from "@screens/settings/profile";
+
 import {
   act,
   fireEvent,
   render,
   screen,
 } from "@testing-library/react-native";
+
+import ProfileSettingsScreen from "@screens/settings/profile";
 
 import ProfileButton from "./ProfileButton";
 

@@ -1,5 +1,7 @@
 import auth from "@react-native-firebase/auth";
-import mockUser from "@test-utils/MockFirebaseUser";
+import React from "react";
+import { Alert } from "react-native";
+
 import {
   fireEvent,
   render,
@@ -7,8 +9,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import React from "react";
-import { Alert } from "react-native";
+import mockUser from "@test-utils/MockFirebaseUser";
 
 import { AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";

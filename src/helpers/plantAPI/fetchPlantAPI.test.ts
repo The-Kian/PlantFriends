@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { fetchOpenFarmPlants, fetchPerenualPlants } from "./fetchPlantAPI";
 import { mapOpenFarmPlantToIPlant } from "./mapOpenFarmPlantToIPlant";
 import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";

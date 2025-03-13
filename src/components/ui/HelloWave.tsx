@@ -1,4 +1,3 @@
-import { ThemedText } from '@components/ui/Text/ThemedText';
 
 import { StyleSheet } from 'react-native';
 import Animated, {
@@ -8,6 +7,8 @@ import Animated, {
   withRepeat,
   withSequence,
 } from 'react-native-reanimated';
+
+import { ThemedText } from '@components/ui/Text/ThemedText';
 
 
 export function HelloWave() {

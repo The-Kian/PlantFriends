@@ -1,4 +1,5 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
 import HomeScreen from "@screens/tabs/home";
 import MyPlantsScreen from "@screens/tabs/MyPlants";
 

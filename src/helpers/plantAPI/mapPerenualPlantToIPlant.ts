@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IPlant } from "@constants/IPlant";
 
 export const mapPerenualPlantToIPlant = (plant: any): IPlant => {

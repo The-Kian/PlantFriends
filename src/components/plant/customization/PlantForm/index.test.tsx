@@ -1,8 +1,6 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+import React from "react";
 
-import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 import {
   render,
   fireEvent,
@@ -10,9 +8,15 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import React from "react";
+import { AuthContext } from "@context/auth/AuthProvider";
+
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import mockUser from "@test-utils/MockFirebaseUser";
+import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 
 import PlantForm from "./";
+
+
 
 // --- Mocks ---
 

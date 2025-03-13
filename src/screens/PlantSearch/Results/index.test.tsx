@@ -1,5 +1,6 @@
-import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+
+import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
 
 import PlantSearchResults from "./index";
 

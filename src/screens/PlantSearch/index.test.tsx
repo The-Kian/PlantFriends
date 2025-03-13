@@ -1,10 +1,14 @@
-import { useFetchPlants } from "@hooks/useFetchPlants";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+import { Text } from "react-native";
+
 import { screen, render, fireEvent } from "@testing-library/react-native";
 
-import { Text } from "react-native";
+import { useFetchPlants } from "@hooks/useFetchPlants";
+
+import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
 
 import PlantSearchScreen from "./";
 

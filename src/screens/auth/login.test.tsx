@@ -1,12 +1,16 @@
-import { AuthContext } from "@context/auth/AuthProvider";
 import { NavigationContainer } from "@react-navigation/native";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+
 import {
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
+
+import { AuthContext } from "@context/auth/AuthProvider";
+
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+
 
 import LoginScreen from "./login";
 

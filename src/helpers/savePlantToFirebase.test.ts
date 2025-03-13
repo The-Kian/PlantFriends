@@ -1,8 +1,10 @@
 
+import { Alert } from 'react-native';
+
 import { IUserPlant, IPlant } from '@constants/IPlant';
+
 import mockUser from '@test-utils/MockFirebaseUser';
 
-import { Alert } from 'react-native';
 
 import savePlantToFirebase from './savePlantToFirebase';
 import saveBasePlantToFirebase from './saveToFirebase/saveBasePlantToFirebase';

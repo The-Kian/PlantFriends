@@ -1,11 +1,13 @@
-
-import { AuthContext } from "@context/auth/AuthProvider";
 import { NavigationContainer } from "@react-navigation/native";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import "@testing-library/jest-native/extend-expect";
+import React from "react";
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
 
-import React from "react";
+
+import { AuthContext } from "@context/auth/AuthProvider";
+
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
 import SignupScreen from "./signup";
 

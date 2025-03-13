@@ -26,32 +26,102 @@ module.exports = {
         '**/?(*.)+(spec|test).[jt]s?(x)'
       ],
       extends: ['plugin:testing-library/react'],
-      env: {
-        jest: true,
-      },
+      env: { jest: true },
     },
   ],
   rules: {
-    // Enforce a convention in module import order
     'import/order': [
       'error',
       {
         groups: [
-          ['internal'], // Internal aliases, if you use paths like "@app/"
-          ['builtin', 'external'], // Node built-ins and external packages
-          ['parent', 'sibling', 'index'], // Parent imports, sibling imports, and index files
+          'builtin',
+          'external',
+          'internal',
+          ['parent', 'sibling', 'index']
         ],
         pathGroups: [
           {
-            pattern: '@**/**',
+            pattern: '@context/**',
             group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@navigation/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@screens/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@components/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@utils/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@types/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@assets/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@hooks/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@common/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@constants/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@theme/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@helpers/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@test-utils/**',
+            group: 'internal',
+            position: 'before',
+          },
+          {
+            pattern: '@mocks/**',
+            group: 'internal',
+            position: 'before',
+          },
+          // Ensure external packages like testing libraries remain in the external group
+          {
+            pattern: '@testing-library/**',
+            group: 'external',
+            position: 'after',
           },
         ],
         pathGroupsExcludedImportTypes: ['builtin'],
         'newlines-between': 'always',
         alphabetize: {
-          order: 'asc', // Order imports alphabetically
-          caseInsensitive: true, // Ignore case when ordering
+          order: 'asc',
+          caseInsensitive: true,
         },
       },
     ],

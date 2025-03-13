@@ -1,10 +1,8 @@
 
-import { AuthProps } from "@context/auth/AuthTypes";
-import validateCredentials from "@helpers/auth/validateCredentials";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import LoginScreen from "@screens/auth/login";
-import SignupScreen from "@screens/auth/signup";
+import { Alert } from "react-native";
+
 import {
   fireEvent,
   render,
@@ -12,7 +10,14 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { Alert } from "react-native";
+import { AuthProps } from "@context/auth/AuthTypes";
+
+import LoginScreen from "@screens/auth/login";
+import SignupScreen from "@screens/auth/signup";
+
+
+
+import validateCredentials from "@helpers/auth/validateCredentials";
 
 import AuthContent from "./AuthContent";
 

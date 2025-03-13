@@ -1,10 +1,13 @@
 
-import { IPlant, IUserPlant } from "@constants/IPlant";
+import { useState, useContext } from "react";
+
 import { AuthContext } from "@context/auth/AuthProvider";
+
+import { IPlant, IUserPlant } from "@constants/IPlant";
+
 import getUserPlantData from "@helpers/getUserPlantData";
 import savePlantToFirebase from "@helpers/savePlantToFirebase";
 
-import { useState, useContext } from "react";
 
 // usePlantSelection.ts
 function usePlantSelection() {

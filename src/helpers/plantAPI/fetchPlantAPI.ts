@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IPlant } from "@constants/IPlant";
 
 import { mapOpenFarmPlantToIPlant } from "./mapOpenFarmPlantToIPlant";
