@@ -1,13 +1,13 @@
 // First, declare simple mocks without references to external variables
 
 import React from 'react';
+
 import { View } from 'react-native';
 
 import { render, screen } from '@testing-library/react-native';
 
 import { HelloWave } from '@components/ui/HelloWave';
 import ParallaxScrollView from '@components/ui/Views/ParallaxScrollView';
-
 import { Colors } from '@theme/Colors';
 
 

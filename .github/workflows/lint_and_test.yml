@@ -31,7 +31,7 @@ jobs:
         run: yarn install
 
       - name: 🔬 Lint
-        run: eslint --config ./.eslintrc.js .
+        run: yarn lint --config ./.eslintrc.js .
 
       - name: 🧪 Test
         run: yarn test

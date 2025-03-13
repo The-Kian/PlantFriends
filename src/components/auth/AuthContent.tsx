@@ -1,17 +1,17 @@
 
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+
 import { Alert } from "react-native";
 
-import { AuthProps, CredentialsType } from "@context/auth/AuthTypes";
 
 import { RootStackParamList } from "@components/navigation/types";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-
+import { AuthProps, CredentialsType } from "@context/auth/AuthTypes";
 import validateCredentials from "@helpers/auth/validateCredentials";
-
 
 import AuthForm from "./AuthForm";
 import ThemedButton from "../ui/Buttons/ThemedButton";
+
 
 
 function AuthContent({ authScreenType, onSubmit }: AuthProps) {

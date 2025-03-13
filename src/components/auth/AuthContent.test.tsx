@@ -1,6 +1,7 @@
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+
 import { Alert } from "react-native";
 
 import {
@@ -11,13 +12,9 @@ import {
 } from "@testing-library/react-native";
 
 import { AuthProps } from "@context/auth/AuthTypes";
-
+import validateCredentials from "@helpers/auth/validateCredentials";
 import LoginScreen from "@screens/auth/login";
 import SignupScreen from "@screens/auth/signup";
-
-
-
-import validateCredentials from "@helpers/auth/validateCredentials";
 
 import AuthContent from "./AuthContent";
 

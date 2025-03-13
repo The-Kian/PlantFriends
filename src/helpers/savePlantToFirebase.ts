@@ -1,5 +1,6 @@
 
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+
 import { Alert } from "react-native";
 
 import { IUserPlant, IPlant } from "@constants/IPlant";

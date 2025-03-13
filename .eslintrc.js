@@ -1,126 +1,70 @@
 module.exports = {
   root: true,
-  parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'import', 'jest'],
+  parser: "@typescript-eslint/parser",
+  plugins: ["@typescript-eslint", "import", "jest"],
   extends: [
-    'expo',
-    'plugin:jest/recommended',
-    'plugin:@typescript-eslint/recommended'
+    "expo",
+    "plugin:jest/recommended",
+    "plugin:@typescript-eslint/recommended",
   ],
   ignorePatterns: [
-    '**/node_modules/**', 
-    'android/**', 
-    'ios/**', 
-    'metro.config.js', 
-    '**/__mocks__/**'
+    "**/node_modules/**",
+    "android/**",
+    "ios/**",
+    "metro.config.js",
+    "**/__mocks__/**",
   ],
   settings: {
-    'import/resolver': {
+    "import/resolver": {
       typescript: {},
     },
   },
   overrides: [
     {
-      files: [
-        '**/__tests__/**/*.[jt]s?(x)', 
-        '**/?(*.)+(spec|test).[jt]s?(x)'
-      ],
-      extends: ['plugin:testing-library/react'],
+      files: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
+      extends: ["plugin:testing-library/react"],
       env: { jest: true },
     },
   ],
   rules: {
-    'import/order': [
-      'error',
+    "import/order": [
+      "error",
       {
         groups: [
-          'builtin',
-          'external',
-          'internal',
-          ['parent', 'sibling', 'index']
+          "builtin",
+          "external",
+          "internal",
+          ["parent", "sibling", "index"],
         ],
         pathGroups: [
+          // First ensure our internal module patterns all come before external ones
           {
-            pattern: '@context/**',
-            group: 'internal',
-            position: 'before',
+            pattern:
+              "@+(context|navigation|screens|components|utils|types|assets|hooks|common|constants|theme|helpers|test-utils|mocks)/**",
+            group: "internal",
+            position: "before",
+          },
+          // Explicitly set common problematic external modules
+          {
+            pattern: "react-native*",
+            group: "external",
+            position: "after",
           },
           {
-            pattern: '@navigation/**',
-            group: 'internal',
-            position: 'before',
+            pattern: "@react-+(navigation|native)**",
+            group: "external",
+            position: "after",
           },
           {
-            pattern: '@screens/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@components/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@utils/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@types/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@assets/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@hooks/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@common/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@constants/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@theme/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@helpers/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@test-utils/**',
-            group: 'internal',
-            position: 'before',
-          },
-          {
-            pattern: '@mocks/**',
-            group: 'internal',
-            position: 'before',
-          },
-          // Ensure external packages like testing libraries remain in the external group
-          {
-            pattern: '@testing-library/**',
-            group: 'external',
-            position: 'after',
+            pattern: "@testing-library/**",
+            group: "external",
+            position: "after",
           },
         ],
-        pathGroupsExcludedImportTypes: ['builtin'],
-        'newlines-between': 'always',
+        pathGroupsExcludedImportTypes: ["builtin", "react"],
+        "newlines-between": "always",
         alphabetize: {
-          order: 'asc',
+          order: "asc",
           caseInsensitive: true,
         },
       },

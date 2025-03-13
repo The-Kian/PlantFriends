@@ -1,13 +1,14 @@
-import './gesture-handler';
-
 
 import { NavigationContainer } from "@react-navigation/native";
 import React from "react";
+
 import { SafeAreaView } from "react-native";
 
+import RootLayout from "@components/navigation/RootLayout";
 import { AuthProvider } from "@context/auth/AuthProvider";
 
-import RootLayout from "@components/navigation/RootLayout";
+
+import './gesture-handler';
 
 
 export default function App() {

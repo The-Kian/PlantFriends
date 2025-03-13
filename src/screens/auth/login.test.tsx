@@ -8,7 +8,6 @@ import {
 } from "@testing-library/react-native";
 
 import { AuthContext } from "@context/auth/AuthProvider";
-
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
 

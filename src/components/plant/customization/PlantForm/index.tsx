@@ -1,16 +1,16 @@
 
 import { useContext, useState } from "react";
+
 import { View, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
 
-import { AuthContext } from "@context/auth/AuthProvider";
 
 import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@components/ui/Text/ThemedText";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-
 import { IPlant, IUserPlant } from "@constants/IPlant";
+import { AuthContext } from "@context/auth/AuthProvider";
 
 
 import GeneralInfoSection from "./GeneralInfoSection";

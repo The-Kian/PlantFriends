@@ -5,7 +5,6 @@ import { render, fireEvent, screen } from "@testing-library/react-native";
 
 import { generalInfoFields } from "@components/plant/customization/PlantForm/GeneralInfoFields";
 import GeneralInfoSection from "@components/plant/customization/PlantForm/GeneralInfoSection";
-
 import { IPlant } from "@constants/IPlant";
 
 

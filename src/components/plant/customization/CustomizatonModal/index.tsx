@@ -2,11 +2,11 @@
 
 
 import React from "react";
+
 import { Modal, View } from "react-native";
 
 import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
 import PlantForm from "@components/plant/customization/PlantForm";
-
 import { IPlant, IUserPlant } from "@constants/IPlant";
 
 

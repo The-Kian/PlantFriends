@@ -2,7 +2,6 @@
 import { Alert } from 'react-native';
 
 import { IUserPlant, IPlant } from '@constants/IPlant';
-
 import mockUser from '@test-utils/MockFirebaseUser';
 
 

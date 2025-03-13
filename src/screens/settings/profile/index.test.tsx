@@ -2,6 +2,7 @@
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+
 import { Text } from "react-native";
 
 import {
@@ -12,9 +13,7 @@ import {
 } from "@testing-library/react-native";
 
 import { AuthContext } from "@context/auth/AuthProvider";
-
 import SignupScreen from "@screens/auth/signup";
-
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
 

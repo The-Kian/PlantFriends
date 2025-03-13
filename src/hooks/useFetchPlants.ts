@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 
 import { IPlant } from "@constants/IPlant";
-
 import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
 
 

@@ -2,6 +2,7 @@
 
 
 import React from 'react';
+
 import { TextInput, TextInputProps, View } from 'react-native';
 
 import { ThemedText } from '@components/ui/Text/ThemedText';

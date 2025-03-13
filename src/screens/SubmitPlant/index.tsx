@@ -2,16 +2,15 @@
 
 import { useNavigation } from "@react-navigation/native";
 import React, { useContext } from "react";
+
 import { Alert } from "react-native";
 
-import { AuthContext } from "@context/auth/AuthProvider";
 
 import PlantForm from "@components/plant/customization/PlantForm";
 import { ThemedText } from "@components/ui/Text/ThemedText";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-
 import { IPlant } from "@constants/IPlant";
-
+import { AuthContext } from "@context/auth/AuthProvider";
 import saveBasePlantToFirebase from "@helpers/saveToFirebase/saveBasePlantToFirebase";
 
 

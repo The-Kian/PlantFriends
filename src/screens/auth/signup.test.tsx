@@ -6,7 +6,6 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react-nativ
 
 
 import { AuthContext } from "@context/auth/AuthProvider";
-
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 
 import SignupScreen from "./signup";

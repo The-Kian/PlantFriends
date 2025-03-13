@@ -3,7 +3,6 @@ import { FlatList } from "react-native";
 
 import SearchResultComponent from "@components/ui/Buttons/SearchResult";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-
 import { IPlant } from "@constants/IPlant";
 
 

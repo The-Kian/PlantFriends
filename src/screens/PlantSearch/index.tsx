@@ -2,6 +2,7 @@
 
 import { NavigationProp } from "@react-navigation/native";
 import { useState } from "react";
+
 import {Text } from "react-native";
 
 import { RootStackParamList } from "@components/navigation/types";
@@ -10,7 +11,6 @@ import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import TextInputField from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-
 import { useFetchPlants } from "@hooks/useFetchPlants";
 import usePlantSelection from "@hooks/usePlantSelection";
 

@@ -1,11 +1,11 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { PropsWithChildren, useState } from 'react';
+
 import { StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 
 import { ThemedText } from '@components/ui/Text/ThemedText';
 import { ThemedView } from '@components/ui/Views/ThemedView';
-
 import { Colors } from '@theme/Colors';
 
 

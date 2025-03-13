@@ -5,6 +5,7 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "jsx": "react-native",
     "paths": {
       "@context/*": ["./src/context/*"],
       "@navigation/*": ["./src/navigation/*"],
