@@ -16,10 +16,11 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
-      - name: ⎔ Setup node x
+      - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
+          cache: 'yarn'
       
       - name: Enable and prepare Corepack
         run: |
@@ -28,10 +29,10 @@ jobs:
           yarn --version
 
       - name: 📥 Install deps
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: 🔬 Lint
-        run: yarn lint --config ./.eslintrc.js .
+        run: yarn lint
 
       - name: 🧪 Test
         run: yarn test
