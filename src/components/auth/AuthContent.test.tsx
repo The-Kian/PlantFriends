@@ -1,17 +1,20 @@
-import { Alert } from "react-native";
 
-import { AuthProps } from "@context/auth/AuthTypes";
-import validateCredentials from "@helpers/auth/validateCredentials";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import LoginScreen from "@screens/auth/login";
-import SignupScreen from "@screens/auth/signup";
+
+import { Alert } from "react-native";
+
 import {
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
+
+import { AuthProps } from "@context/auth/AuthTypes";
+import validateCredentials from "@helpers/auth/validateCredentials";
+import LoginScreen from "@screens/auth/login";
+import SignupScreen from "@screens/auth/signup";
 
 import AuthContent from "./AuthContent";
 
@@ -56,10 +59,13 @@ describe("AuthContent Tests", () => {
 
   const renderComponentWithNavigation = (initialRouteName: string) => {
     const Stack = createStackNavigator();
-    
+
     render(
       <NavigationContainer>
-        <Stack.Navigator initialRouteName={initialRouteName}>
+        <Stack.Navigator
+          initialRouteName={initialRouteName}
+          screenOptions={{ animation: "none" }}
+        >
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignupScreen} />
         </Stack.Navigator>
@@ -86,19 +92,24 @@ describe("AuthContent Tests", () => {
   it("navigates to SignUp when switch button is pressed on login screen", async () => {
     renderComponentWithNavigation("Login");
 
-    const switchButton = screen.getByText("Create a new user");
+    const switchButton = await screen.findByText("Create a new user");
+
     fireEvent.press(switchButton);
 
-    expect(await screen.findByText("Sign Up")).toBeVisible();
+    await waitFor(() => {
+      expect(screen.getByText("Sign Up")).toBeVisible();
+    });
   });
 
   it("navigates to Login when switch button is pressed on Sign Up screen", async () => {
     renderComponentWithNavigation("SignUp");
 
-    const switchButton = screen.getByText("Login instead");
+    const switchButton = await screen.findByText("Login instead");
     fireEvent.press(switchButton);
 
-    await waitFor(() => expect(screen.getByText("Log In")).toBeVisible());
+    await waitFor(() => {
+      expect(screen.getByText("Login")).toBeVisible();
+    });
   });
 
   it("calls onSubmit with correct credentials", () => {

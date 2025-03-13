@@ -1,6 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
 import HomeScreen from "@screens/tabs/home";
-import PlantScreen from "@screens/tabs/MyPlants";
+import MyPlantsScreen from "@screens/tabs/MyPlants";
 
 import ProfileButton from "./ProfileButton";
 
@@ -20,7 +21,7 @@ export default function TabNavigator() {
       />
       <Tab.Screen
         name="MyPlants"
-        component={PlantScreen}
+        component={MyPlantsScreen}
         options={{ tabBarLabel: "My Plants" }} 
       />
     </Tab.Navigator>

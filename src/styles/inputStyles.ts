@@ -3,6 +3,8 @@ import { StyleSheet } from "react-native";
 
 import { Colors } from "@theme/Colors";
 
+
+
 export const inputStyles = StyleSheet.create({
 	inputContainer: {
 		marginVertical: 10,

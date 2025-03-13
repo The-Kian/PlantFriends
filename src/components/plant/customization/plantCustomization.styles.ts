@@ -2,6 +2,8 @@ import { StyleSheet } from "react-native";
 
 import { useTheme } from "@hooks/useTheme";
 
+
+
 export const useCustomizationStyles = () => {
   const theme = useTheme();
 

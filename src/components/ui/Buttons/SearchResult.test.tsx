@@ -1,5 +1,6 @@
-import { IPlant } from "@constants/IPlant";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+
+import { IPlant } from "@constants/IPlant";
 
 import SearchResultComponent from "./SearchResult";
 

@@ -1,13 +1,17 @@
 // AuthForm.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useContext } from 'react';
+
 import { View } from 'react-native';
+
 
 import DatePickerField from '@components/ui/Input/DatePickerField';
 import TextInputField from '@components/ui/Input/TextInputField';
 import { ThemedView } from '@components/ui/Views/ThemedView';
 import { AuthContext } from '@context/auth/AuthProvider';
 import { AuthProps } from '@context/auth/AuthTypes';
+
 
 import ThemedButton from '../ui/Buttons/ThemedButton';
 
