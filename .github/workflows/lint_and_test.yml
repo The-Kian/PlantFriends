@@ -15,18 +15,18 @@ jobs:
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
+            
+      - name: Enable and prepare Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@3.6.3 --activate
+          yarn --version
 
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           cache: 'yarn'
-      
-      - name: Enable and prepare Corepack
-        run: |
-          corepack enable
-          corepack prepare yarn@3.6.3 --activate
-          yarn --version
 
       - name: 📥 Install deps
         run: yarn install --frozen-lockfile
