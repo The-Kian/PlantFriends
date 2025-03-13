@@ -4,7 +4,8 @@ function validateCredentials(
     credentials: CredentialsType,
     authScreenType: string
   ) {
-    let { email, confirmEmail, password, confirmPassword } = credentials;
+    let { email, password } = credentials;
+    const {confirmEmail, confirmPassword} = credentials;
   
     email = email.trim();
     password = password.trim();

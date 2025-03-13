@@ -4,4 +4,6 @@ export type RootStackParamList = {
   SignUp: undefined;
   Profile: undefined;
   PlantSearch: undefined;
+  SubmitPlant: undefined;
+  Tab: undefined;
 };

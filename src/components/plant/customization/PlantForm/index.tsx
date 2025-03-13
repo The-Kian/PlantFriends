@@ -1,17 +1,20 @@
+
 import { useContext, useState } from "react";
+
 import { View, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
 
+
+import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@components/ui/Text/ThemedText";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
-import { useCustomizationStyles } from "src/components/plant/customization/plantCustomization.styles";
+
 
 import GeneralInfoSection from "./GeneralInfoSection";
 import UserDataSection from "./UserDataSection";
-
 
 interface PlantFormProps {
   initialPlantData?: IPlant;
@@ -87,13 +90,13 @@ const PlantForm = ({
   return (
     <ScrollView>
       <ThemedView style={styles.content}>
-        <ThemedText style={styles.title}>Customize Your Plant</ThemedText>
-        {displayUserPlantData &&
-        <UserDataSection
-          userData={userData}
-          onUserDataChange={handleUserDataChange}
-        />
-}
+        <ThemedText style={styles.title}>Plant Form</ThemedText>
+        {displayUserPlantData && (
+          <UserDataSection
+            userData={userData}
+            onUserDataChange={handleUserDataChange}
+          />
+        )}
         <GeneralInfoSection
           attributes={customizations as IPlant}
           onAttributeChange={handlePlantAttributeChange}

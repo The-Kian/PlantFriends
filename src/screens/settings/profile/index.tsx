@@ -1,3 +1,5 @@
+
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useContext } from 'react';
 
 import styles from '@common/defaultStyles';
@@ -6,7 +8,6 @@ import ThemedButton from '@components/ui/Buttons/ThemedButton';
 import { ThemedText } from '@components/ui/Text/ThemedText';
 import { ThemedView } from '@components/ui/Views/ThemedView';
 import { AuthContext } from '@context/auth/AuthProvider';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 const ProfileSettingsScreen = () => {
     const {logout} = useContext(AuthContext);

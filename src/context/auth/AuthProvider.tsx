@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import firestore from "@react-native-firebase/firestore";
 import { useState, createContext, useEffect } from "react";
+
 import { Alert } from "react-native";
 
 import { ProviderProps } from "@constants/genericTypes";
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
 
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
 // import removeTokenFromDatabase from "@components/messaging/RemoveTokenFromDatabase";
@@ -95,11 +97,9 @@ export const AuthProvider = ({ children }: ProviderProps) => {
 
   const logout = async () => {
     try {
-      if (user) {
-        // await removeTokenFromDatabase(token, user.uid);
-        // await firebase.messaging().deleteToken();
-        await auth().signOut();
-      }
+      // await removeTokenFromDatabase(token, user.uid);
+      // await firebase.messaging().deleteToken();
+      await auth().signOut();
     } catch (error: any) {
       Alert.alert("Error logging out:", error.message);
     }

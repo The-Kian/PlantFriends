@@ -1,3 +1,7 @@
+
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+
 import { StyleSheet } from "react-native";
 
 import { RootStackParamList } from "@components/navigation/types";
@@ -6,12 +10,11 @@ import { ThemedText } from "@components/ui/Text/ThemedText";
 import { Collapsible } from "@components/ui/Views/Collapsible";
 import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Colors } from "@theme/Colors";
 
 
-export default function PlantScreen() {
+
+export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const navigateToPlantSearch = () => {

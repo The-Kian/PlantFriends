@@ -20,6 +20,7 @@ export type CredentialsType = {
 export type AuthProps = {
   authScreenType: "login" | "signUp" | "update";
   onSubmit: (credentials: CredentialsType) => void;
+  credentialsInvalid?: CredentialsInvalidType;
 };
 
 
