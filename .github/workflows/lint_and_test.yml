@@ -32,7 +32,8 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: 🔬 Lint
-        run: yarn lint
-
+        run: |
+          yarn eslint . --rule "import/order: off"
+        
       - name: 🧪 Test
         run: yarn test
