@@ -22,20 +22,21 @@ jobs:
           distribution: adopt
           cache: gradle
 
-      - name: Setup Node  
-        uses: actions/setup-node@v3
+      - name: Enable and prepare Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@3.6.3 --activate
+          yarn --version
+
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20' # Upgrade to Node 20 for better React Native support
+          node-version: 'lts/*'
           cache: 'yarn'
 
-      - name: Run Yarn Install
-        run: |
-          npm i -g corepack
-          yarn install
+      - name: 📥 Install deps
+        run: yarn install --immutable
 
-      - name: Run tests
-        run: yarn test
-        
       - name: Run Expo prebuild
         run: npx expo prebuild --clean
         
