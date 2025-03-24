@@ -2,20 +2,15 @@ name: "Build Android app"
 
 on:
   workflow_run:
-    workflows: ["Lint"]  # This should match exactly the name in lint_and_test.yml
+    workflows: ["Lint"]  # This matches the name in lint_and_test.yml
     types:
       - completed
-    branches: [main]  # Optional: specify which branches to run on
-  pull_request:
-    types:
-      - labeled
+    branches: [main]  # This means the Lint workflow ran on the main branch or PRs to main
   workflow_dispatch:
 
 jobs:
   build:
-    if: |
-      (github.event.workflow_run.conclusion == 'success') || 
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-android'))
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
