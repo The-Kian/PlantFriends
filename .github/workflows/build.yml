@@ -5,13 +5,15 @@ on:
     workflows: ["Lint"]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if lint passed
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Java
         uses: actions/setup-java@v3
@@ -19,29 +21,33 @@ jobs:
           java-version: 17
           distribution: adopt
           cache: gradle
-
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: Setup Node  
+          
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 18
           cache: 'yarn'
 
       - name: Run Yarn Install
         run: |
-             npm i -g corepack
-             yarn install
+          npm i -g corepack
+          corepack enable
+          corepack prepare yarn@3.6.3 --activate
+          yarn install
 
+      - name: Run Expo prebuild
+        run: npx expo prebuild --clean
+        
       - name: Build application
         run: |
-             cd android
-             ./gradlew assembleRelease
+          cd android
+          ./gradlew assembleRelease
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false"
 
       - name: Upload application
         uses: actions/upload-artifact@v4
         with:
           name: app
           path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 3
+          retention-days: 7 # Increased from 3
