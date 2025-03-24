@@ -21,13 +21,16 @@ jobs:
           java-version: 17
           distribution: adopt
           cache: gradle
-          
+      
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+                
       - name: Enable and prepare Corepack
         run: |
           corepack enable
           corepack prepare yarn@3.6.3 --activate
           yarn --version
-  
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
@@ -36,7 +39,7 @@ jobs:
 
       - name: 📥 Install deps
         run: yarn install --immutable
-        
+
       - name: Run Expo prebuild
         run: npx expo prebuild --clean
         
