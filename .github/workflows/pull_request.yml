@@ -1,15 +1,38 @@
-name: "Build Android app"
+name: "Pull Request CI"
 
 on:
-  workflow_run:
-    workflows: ["Lint"]  # This matches the name in lint_and_test.yml
-    types:
-      - completed
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 jobs:
+  lint_and_test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Enable and prepare Corepack
+        run: |
+          corepack enable
+          corepack prepare yarn@3.6.3 --activate
+          yarn --version
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn'
+      - name: Install deps
+        run: yarn install --immutable
+      - name: Lint
+        run: |
+          yarn eslint . --rule "import/order: off"
+      - name: Test
+        run: yarn test
+
   build:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request'
+    name: Build Android App
+    needs: lint_and_test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -44,4 +67,4 @@ jobs:
         with:
           name: app
           path: android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 7 # Increased from 3
+          retention-days: 7
