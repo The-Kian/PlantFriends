@@ -5,7 +5,6 @@ on:
     workflows: ["Lint"]  # This matches the name in lint_and_test.yml
     types:
       - completed
-    branches: [main]  # This means the Lint workflow ran on the main branch or PRs to main
   workflow_dispatch:
 
 jobs:
