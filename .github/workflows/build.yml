@@ -22,19 +22,21 @@ jobs:
           distribution: adopt
           cache: gradle
           
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          cache: 'yarn'
-
-      - name: Run Yarn Install
+      - name: Enable and prepare Corepack
         run: |
-          npm i -g corepack
           corepack enable
           corepack prepare yarn@3.6.3 --activate
-          yarn install
+          yarn --version
+  
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn'
 
+      - name: 📥 Install deps
+        run: yarn install --immutable
+        
       - name: Run Expo prebuild
         run: npx expo prebuild --clean
         
