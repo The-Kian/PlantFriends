@@ -5,7 +5,7 @@ on:
     workflows: ["Lint"]
     types:
       - completed
-  workflow_dispatch: # Allow manual triggering
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # Upgrade to v4
+        uses: actions/checkout@v4
 
       - name: Install Java
         uses: actions/setup-java@v3
