@@ -15,10 +15,11 @@ export default function HomeScreen() {
       headerBackgroundColor={{ light: Colors['light'].headerBackground, dark: Colors['dark'].headerBackground }}
       headerImage={
         <Image
-          source={require('../../../assets/images/partial-react-logo.png')}
+          source={require('../../../../.assets/images/partial-react-logo.png')}
           style={styles.reactLogo}
         />
       }>
+        
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Plant Friends!</ThemedText>
         <HelloWave />
