@@ -2,14 +2,20 @@ name: "Build Android app"
 
 on:
   workflow_run:
-    workflows: ["Lint"]
+    workflows: ["Lint"]  # This should match exactly the name in lint_and_test.yml
     types:
       - completed
+    branches: [main]  # Optional: specify which branches to run on
+  pull_request:
+    types:
+      - labeled
   workflow_dispatch:
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} # Only run if lint passed
+    if: |
+      (github.event.workflow_run.conclusion == 'success') || 
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'build-android'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,24 +27,13 @@ jobs:
           java-version: 17
           distribution: adopt
           cache: gradle
-      
-      - name: ⬇️ Checkout repo
-        uses: actions/checkout@v4
-                
-      - name: Enable and prepare Corepack
+
+      - name: Run Yarn Install
         run: |
+          npm i -g corepack
           corepack enable
           corepack prepare yarn@3.6.3 --activate
-          yarn --version
-
-      - name: ⎔ Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-          cache: 'yarn'
-
-      - name: 📥 Install deps
-        run: yarn install --immutable
+          yarn install
 
       - name: Run Expo prebuild
         run: npx expo prebuild --clean
