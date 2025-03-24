@@ -1,8 +1,11 @@
 import { NavigationContainer } from "@react-navigation/native";
 import React from "react";
+
 import { render, screen } from "@testing-library/react-native";
+
 import { AuthContext } from "@context/auth/AuthProvider";
 import { AuthContextType } from "@context/auth/AuthTypes";
+
 import RootLayout from "./RootLayout";
 import mockAuthContextValue from "../../test-utils/MockAuthContextValue";
 
