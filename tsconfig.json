@@ -21,6 +21,7 @@
       "@helpers/*": ["./src/helpers/*"],
       "@test-utils/*": ["./src/test-utils/*"],
       "@mocks/*": ["./src/mocks/*"],
+      "@store/*": ["./src/store/*"],
     }
   },
   "include": [
@@ -29,5 +30,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "jest.config.js"
-, "jest/androidUtils.js"  ]
+, "jest/androidUtils.js", "src/store/testRedux.js"  ]
 }

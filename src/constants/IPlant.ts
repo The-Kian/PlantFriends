@@ -50,7 +50,7 @@ export interface IPlant {
  * Contains customization and tracking information for a user's plant.
  */
 export interface IUserPlant {
-  /** Unique identifier for the user plant instance */
+  /** @string Unique identifier for the user plant instance */
   id: string;
   /** Identifier for the user who owns the plant */
   userId: string;
