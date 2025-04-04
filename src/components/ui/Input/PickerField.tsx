@@ -2,7 +2,7 @@
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { Touchable, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@components/ui/Text/ThemedText';
 
