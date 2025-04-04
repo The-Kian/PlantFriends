@@ -2,7 +2,7 @@
   "project_info": {
     "project_number": "28232372332",
     "project_id": "plantfriends-31bcc",
-    "storage_bucket": "plantfriends-31bcc.appspot.com"
+    "storage_bucket": "plantfriends-31bcc.firebasestorage.app"
   },
   "client": [
     {

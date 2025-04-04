@@ -1,41 +1,52 @@
 // PickerField.tsx
 
-import { Picker } from '@react-native-picker/picker';
-import React from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { View } from 'react-native';
+import { Touchable, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@components/ui/Text/ThemedText';
+
+import { useState } from 'react';
 
 
 import { useInputStyles } from './Input.styles';
 
-interface PickerFieldProps {
+interface DatePickerFieldProps {
   label: string;
-  selectedValue: string;
-  onValueChange: (value: string) => void;
-  options: string[];
+  value: Date;
+  onChange: (date: Date) => void;
 }
 
-const PickerField = ({ label, selectedValue, onValueChange, options }: PickerFieldProps) => {
+const DatePickerField = ({ label, value, onChange }: DatePickerFieldProps) => {
+  const [show, setShow] = useState(false);
+
   const styles = useInputStyles();
   return (
     <View>
       <ThemedText style={styles.inputLabel}>{label}</ThemedText>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedValue}
-          onValueChange={onValueChange}
-          style={styles.picker}
-          accessibilityLabel={`${label} input field`}
-        >
-          {options.map((option) => (
-            <Picker.Item label={option} value={option} key={option} />
-          ))}
-        </Picker>
-      </View>
+      <TouchableOpacity 
+        style={styles.pickerContainer}
+        onPress={() => setShow(true)}
+        accessibilityLabel={`${label} input field`}
+    />
+    {show && (
+        
+        <DateTimePicker
+          value={value}
+          mode="date"
+          display="default"
+          onChange={(event, selectedDate) => {
+            setShow(false);
+            if (selectedDate) {
+              onChange(selectedDate);
+            }
+          }}
+        />
+      )}
     </View>
+
+
   );
 };
 
-export default PickerField;
+export default DatePickerField;
