@@ -29,7 +29,7 @@ export const useInputStyles = () => {
       marginBottom: 8,
     },
     picker: {
-      color: theme.colors.text,
+      // color: theme.colors.text,
     },
     pickerContainer: {
       borderWidth: 1,
