@@ -17,12 +17,13 @@ import TestComponent from "@store/testRedux";
 export default function App() {
   return (
     <Provider store={store}>
-    <AuthProvider>
+    {/* <AuthProvider>
       <NavigationContainer>
         <SafeAreaView />
         <RootLayout />
       </NavigationContainer>
-    </AuthProvider>
+    </AuthProvider> */}
+      <TestComponent />
     </Provider>
   );
 }
