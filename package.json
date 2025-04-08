@@ -45,12 +45,14 @@
     "react-native-uuid": "^2.0.2",
     "react-native-web": "~0.19.13",
     "react-native-webview": "~13.13.1",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "redux-devtools-expo-dev-plugin": "^1.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/generator": "^7.26.10",
     "@babel/types": "^7.26.10",
+    "@react-native-community/cli": "^18.0.0",
     "@react-native/metro-config": "^0.74.0",
     "@rnx-kit/align-deps": "^3.0.2",
     "@testing-library/jest-native": "^5.4.3",
