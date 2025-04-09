@@ -1,52 +1,45 @@
-// PickerField.tsx
-
-import DateTimePicker from '@react-native-community/datetimepicker';
-
-import { TouchableOpacity, View } from 'react-native';
-
+import React, { useState } from 'react';
+import { View, Platform } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { ThemedText } from '@components/ui/Text/ThemedText';
-
-import { useState } from 'react';
-
-
 import { useInputStyles } from './Input.styles';
 
-interface DatePickerFieldProps {
+interface PickerFieldProps {
   label: string;
-  value: Date;
-  onChange: (date: Date) => void;
+  value: string;
+  onValueChange: (value: string) => void;
+  options: string[];
+  placeholder?: string;
 }
 
-const DatePickerField = ({ label, value, onChange }: DatePickerFieldProps) => {
-  const [show, setShow] = useState(false);
-
+const PickerField = ({ 
+  label, 
+  value, 
+  onValueChange, 
+  options,
+  placeholder
+}: PickerFieldProps) => {
   const styles = useInputStyles();
+
+
   return (
     <View>
       <ThemedText style={styles.inputLabel}>{label}</ThemedText>
-      <TouchableOpacity 
-        style={styles.pickerContainer}
-        onPress={() => setShow(true)}
-        accessibilityLabel={`${label} input field`}
-    />
-    {show && (
-        
-        <DateTimePicker
-          value={value}
-          mode="date"
-          display="default"
-          onChange={(event, selectedDate) => {
-            setShow(false);
-            if (selectedDate) {
-              onChange(selectedDate);
-            }
-          }}
-        />
-      )}
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={value}
+          onValueChange={onValueChange}
+          style={styles.picker}
+          accessibilityLabel={`${label} selection field`}
+        >
+          <Picker.Item label={placeholder} value="" />
+          {options.map((option) => (
+            <Picker.Item key={option} label={option} value={option} />
+          ))}
+        </Picker>
+      </View>
     </View>
-
-
   );
 };
 
-export default DatePickerField;
+export default PickerField;

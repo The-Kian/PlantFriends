@@ -5,8 +5,7 @@ import { useState, useEffect } from "react";
 import { IPlant } from "@constants/IPlant";
 import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
 
-
-export const useFetchPlants = (searchQuery: string) => {
+export const useFetchAPIPlants = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

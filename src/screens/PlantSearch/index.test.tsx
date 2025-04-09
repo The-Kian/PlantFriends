@@ -7,7 +7,7 @@ import { Text } from "react-native";
 
 import { screen, render, fireEvent } from "@testing-library/react-native";
 
-import { useFetchPlants } from "@hooks/useFetchPlants";
+import { useFetchAPIPlants } from "@hooks/useFetchPlants";
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
 
 import PlantSearchScreen from "./";
@@ -41,7 +41,7 @@ describe("PlantSearchScreen", () => {
   };
 
   it("renders correctly", () => {
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [],
       loading: false,
       error: null,
@@ -52,7 +52,7 @@ describe("PlantSearchScreen", () => {
   it("Shows loading overlay when loading", () => {
     const searchQuery = "test";
 
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [],
       loading: true,
       error: null,
@@ -68,7 +68,7 @@ describe("PlantSearchScreen", () => {
   });
 
   it("Shows error message when error", () => {
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [],
       loading: false,
       error: "Error fetching plants",
@@ -80,7 +80,7 @@ describe("PlantSearchScreen", () => {
   });
 
   it("Should navigate to submit plant screen when submit plant button is selected", async () => {
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [mockPlant, mockPlant2],
       loading: false,
       error: null,

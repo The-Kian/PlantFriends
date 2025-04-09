@@ -1,4 +1,3 @@
-
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 
@@ -11,14 +10,47 @@ import { Collapsible } from "@components/ui/Views/Collapsible";
 import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { Colors } from "@theme/Colors";
-
-
+import { useEffect } from "react";
+import useFetchPlants from "@hooks/useFetchUserPlants";
+import { useSelector } from "react-redux";
+import { RootState } from "@store/store";
+import { FlatList } from "react-native-gesture-handler";
+import { userPlantDataHandlers } from "@hooks/userPlantDataHandlers";
+import { render } from "@testing-library/react-native";
 
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
+  const userPlants = useSelector((state: RootState) => state.userPlants);
+  const { getPlants } = useFetchPlants();
+  const { handleDeletePlant } = userPlantDataHandlers();
+
+  useEffect(() => {
+    getPlants();
+  }, [getPlants]);
+
   const navigateToPlantSearch = () => {
     navigation.navigate("PlantSearch");
+  };
+
+  const renderPlantsByLocation = (location: string) => {
+    const plantsInLocation = userPlants.filter(
+      (plant) => plant.houseLocation === location
+    );
+
+    return (
+      <ThemedView>
+        {plantsInLocation.map((item) => (
+          <ThemedView key={item.id}>
+            <ThemedText>{item.custom_name || "Unnamed Plant"}</ThemedText>
+            <ThemedButton
+              title="Delete"
+              onPress={() => handleDeletePlant(item)}
+            />
+          </ThemedView>
+        ))}
+      </ThemedView>
+    );
   };
 
   return (
@@ -36,9 +68,13 @@ export default function MyPlantsScreen() {
       </ThemedView>
       <ThemedButton onPress={navigateToPlantSearch} title="Add plant" />
 
-      <Collapsible title="Living Room"></Collapsible>
+      <Collapsible title="Living Room">
+        {renderPlantsByLocation("Living Room")}
+      </Collapsible>
 
-      <Collapsible title="Kitchen"></Collapsible>
+      <Collapsible title="Kitchen">
+        {renderPlantsByLocation("Kitchen")}
+      </Collapsible>
     </ParallaxScrollView>
   );
 }

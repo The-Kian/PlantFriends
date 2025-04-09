@@ -29,6 +29,8 @@ const savePlantToFirebase = async (
   if (!userPlantSaved) {
     console.error("Failed to save user plant.");
   }
+
+  return userPlant
 };
 
 export default savePlantToFirebase;

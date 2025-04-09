@@ -21,11 +21,14 @@ function usePlantSelection() {
     }
   };
 
-  const handleSave = async (
+  const handleSaveToFirebase = async (
     updatedUserPlant: IUserPlant,
     plantData: IPlant
   ) => {
-    await savePlantToFirebase(updatedUserPlant, plantData, user);
+    const savedPlant = await savePlantToFirebase(updatedUserPlant, plantData, user);
+    if (savedPlant) {
+      setUserPlant(savedPlant);
+    }
     setSelectedPlant(null);
   };
 
@@ -33,7 +36,7 @@ function usePlantSelection() {
     selectedPlant,
     userPlant,
     handleSelectPlant,
-    handleSave,
+    handleSaveToFirebase,
     closeModal: () => setSelectedPlant(null),
   };
 }

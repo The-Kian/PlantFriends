@@ -18,11 +18,20 @@ export const userPlantDataHandlers = (): DataHandlersProps => {
   const handlePlantSubmit = async (userPlant: IUserPlant, plant: IPlant) => {
     try {
       if (user) {
-        await savePlantToFirebase(userPlant, plant, user);
+        console.log(`🚀 - KP -  ~ handlePlantSubmit ~ Starting plant submission in handler:`, user)
+        const savedPlant = await savePlantToFirebase(userPlant, plant, user);
+        console.log(`🚀 - KP -  ~ handlePlantSubmit ~ Firebase save complete`, user)
+        if (savedPlant) {
+          console.log(`🚀 - KP -  ~ handlePlantSubmit ~ Dispatching addPlant action:`)
+          dispatch(addPlant(savedPlant));
+          console.log(`🚀 - KP -  ~ handlePlantSubmit ~ Dispatching addPlant action complete`)
+          return true
+        }
       }
-      dispatch(addPlant(userPlant));
+      return false
     } catch (error) {
       console.error("Error submitting plant data:", error);
+      return false
     }
   };
 
