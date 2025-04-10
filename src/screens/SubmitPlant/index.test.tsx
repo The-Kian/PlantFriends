@@ -3,8 +3,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import { Text } from "react-native";
-import { Alert } from "react-native";
+import { Text, Alert } from "react-native";
 
 import {
   fireEvent,
@@ -20,9 +19,9 @@ import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant } from "@test-utils/MockPlant";
 
-
-
 import SubmitPlantScreen from "./";
+import { Provider } from "react-redux";
+import { store } from "@store/store";
 
 
 jest.mock("@helpers/saveToFirebase/saveBasePlantToFirebase", () => jest.fn());
@@ -53,6 +52,7 @@ describe("SubmitPlantScreen", () => {
 
   const renderWithFullContext = (initialRouteName = "SubmitPlantScreen") => {
     return render(
+      <Provider store={store}>
       <NavigationContainer>
         <AuthContext.Provider value={mockAuthContextValue}>
           <Stack.Navigator
@@ -67,6 +67,7 @@ describe("SubmitPlantScreen", () => {
           </Stack.Navigator>
         </AuthContext.Provider>
       </NavigationContainer>
+      </Provider>
     );
   };
 
@@ -89,11 +90,13 @@ describe("SubmitPlantScreen", () => {
     const mockAlert = jest.spyOn(Alert, "alert");
 
     render(
-      <NavigationContainer>
-        <AuthContext.Provider value={{ ...mockAuthContextValue, user: null }}>
-          <SubmitPlantScreen />
-        </AuthContext.Provider>
-      </NavigationContainer>
+      <Provider store={store}>
+        <NavigationContainer>
+          <AuthContext.Provider value={{ ...mockAuthContextValue, user: null }}>
+            <SubmitPlantScreen />
+          </AuthContext.Provider>
+        </NavigationContainer>
+      </Provider>
     );
 
     fireEvent.press(screen.getByText("Save"));

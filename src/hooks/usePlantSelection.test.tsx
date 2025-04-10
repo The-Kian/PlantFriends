@@ -45,7 +45,7 @@ describe("usePlantSelection", () => {
     expect(getUserPlantData).toHaveBeenCalledWith(mockUser.uid, mockPlant.id);
   });
 
-  it("should save plant and reset selectedPlant when handleSave is called", async () => {
+  it("should save plant and reset selectedPlant when handleSaveToFirebase is called", async () => {
     const { result } = renderHook(() => usePlantSelection(), {
       wrapper: authWrapper,
     });
@@ -56,7 +56,7 @@ describe("usePlantSelection", () => {
 
     // Then save it
     await waitFor(() => {
-      result.current.handleSave(mockUserPlant, mockPlant);
+      result.current.handleSaveToFirebase(mockUserPlant, mockPlant);
     });
 
     expect(savePlantToFirebase).toHaveBeenCalledWith(

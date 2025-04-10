@@ -4,7 +4,9 @@ import { NavigationProp } from "@react-navigation/native";
 import { useState } from "react";
 
 import {Text } from "react-native";
+import { useDispatch } from "react-redux";
 
+import { IUserPlant, IPlant } from "@constants/IPlant";
 import { RootStackParamList } from "@components/navigation/types";
 import PlantCustomizationModal from "@components/plant/CustomizatonModal";
 import ThemedButton from "@components/ui/Buttons/ThemedButton";
@@ -13,13 +15,11 @@ import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { useFetchAPIPlants } from "@hooks/useFetchPlants";
 import usePlantSelection from "@hooks/usePlantSelection";
+import { addPlant } from "@store/userPlantsSlice";
 
 
 import styles from "./index.styles";
 import PlantSearchResults from "./Results";
-import { useDispatch } from "react-redux";
-import { IUserPlant, IPlant } from "@constants/IPlant";
-import { addPlant } from "@store/userPlantsSlice";
 
 interface PlantSearchScreenProps {
   navigation: NavigationProp<RootStackParamList>;

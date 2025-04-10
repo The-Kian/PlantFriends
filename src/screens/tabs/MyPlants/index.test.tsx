@@ -8,11 +8,14 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 
 
 import MyPlantsScreen from "./";
+import { Provider } from "react-redux";
+import { store } from "@store/store";
 
 describe("MyPlantsScreen", () => {
     const Stack = createStackNavigator();
     const renderWithNavigaton = () => {
         render(
+          <Provider store={store}>
             <NavigationContainer>
               <Stack.Navigator
                 screenOptions={{ animation: "none", headerShown: false }}
@@ -24,7 +27,8 @@ describe("MyPlantsScreen", () => {
                 <Stack.Screen name="PlantSearch" component={MockScreen} />
               </Stack.Navigator>
             </NavigationContainer>
-        )
+          </Provider>
+        );
     }
 
       const MockScreen = ({ navigation }: any) => (

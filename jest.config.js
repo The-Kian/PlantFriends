@@ -5,7 +5,7 @@ module.exports = {
     "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
   },
   transformIgnorePatterns: [
-    "node_modules/(?!(jest-)?react-native|@react-native|@react-native-firebase|@react-navigation|expo(nent)?|@expo(nent)?/.*|react-native|@react-native|@unimodules/.*|unimodules|sentry-expo|native-base)",
+    "node_modules/(?!(jest-)?react-native|@react-native|@react-native-firebase|@react-navigation|react-redux|redux-devtools-expo-dev-plugin|@redux-devtools/utils|expo(nent)?|@expo(nent)?/.*|react-native|@react-native|@unimodules/.*|unimodules|sentry-expo|native-base)",
   ],
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   moduleNameMapper: {

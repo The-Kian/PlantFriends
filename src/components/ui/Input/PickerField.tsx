@@ -30,7 +30,7 @@ const PickerField = ({
           selectedValue={value}
           onValueChange={onValueChange}
           style={styles.picker}
-          accessibilityLabel={`${label} selection field`}
+          accessibilityLabel={`${label} input field`}
         >
           <Picker.Item label={placeholder} value="" />
           {options.map((option) => (

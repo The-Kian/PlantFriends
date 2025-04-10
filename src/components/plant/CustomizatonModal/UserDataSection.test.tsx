@@ -34,7 +34,7 @@ describe("GeneralInfoSection", () => {
     renderComponent();
     expect(screen.getByLabelText(`Custom Name input field`)).toBeVisible();
     expect(screen.getByLabelText(`Date Added input field`)).toBeVisible();
-    expect(screen.getByLabelText(`Location selection field`)).toBeVisible();
+    expect(screen.getByLabelText(`Location input field`)).toBeVisible();
   });
 
   it("updates the text input and calls onChangeText when the user types", () => {

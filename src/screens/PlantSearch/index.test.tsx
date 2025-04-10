@@ -11,6 +11,8 @@ import { useFetchAPIPlants } from "@hooks/useFetchPlants";
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
 
 import PlantSearchScreen from "./";
+import { Provider } from "react-redux";
+import { store } from "@store/store";
 
 jest.mock("@hooks/useFetchPlants");
 
@@ -18,13 +20,16 @@ describe("PlantSearchScreen", () => {
   const Stack = createStackNavigator();
 
   const MockScreen = ({ navigation }: any) => (
+    <Provider store={store}>
     <Text onPress={() => navigation.navigate("PlantSearchScreen")}>
       Go To PlantSearchScreen
     </Text>
+  </Provider>
   );
 
   const renderWithNavigation = (initialRouteName = "PlantSearchScreen") => {
     return render(
+      <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{ animation: "none" }}
@@ -37,6 +42,7 @@ describe("PlantSearchScreen", () => {
           <Stack.Screen name="SubmitPlant" component={MockScreen} />
         </Stack.Navigator>
       </NavigationContainer>
+      </Provider>
     );
   };
 
