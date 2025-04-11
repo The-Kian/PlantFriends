@@ -3,13 +3,13 @@ import { renderHook, waitFor } from "@testing-library/react-native";
 import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
 import { mockPlant } from "@test-utils/MockPlant";
 
-import { useFetchAPIPlants } from "./useFetchPlants";
+import { useFetchAPIPlants } from "./useFetchAPIPlants";
 
 jest.mock("@helpers/plantAPI/fetchPlantAPI", () => ({
   fetchOpenFarmPlants: jest.fn(),
 }));
 
-describe("useFetchPlants", () => {
+describe("useFetchAPIPlants", () => {
   it("should set loading to true when searchQuery is not empty", async () => {
     const searchQuery = "test";
     const { result } = renderHook(() => useFetchAPIPlants(searchQuery));

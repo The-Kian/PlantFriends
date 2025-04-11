@@ -7,14 +7,14 @@ import { Text } from "react-native";
 
 import { screen, render, fireEvent } from "@testing-library/react-native";
 
-import { useFetchAPIPlants } from "@hooks/useFetchPlants";
+import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
 
 import PlantSearchScreen from "./";
 import { Provider } from "react-redux";
 import { store } from "@store/store";
 
-jest.mock("@hooks/useFetchPlants");
+jest.mock("@hooks/useFetchAPIPlants");
 
 describe("PlantSearchScreen", () => {
   const Stack = createStackNavigator();

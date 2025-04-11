@@ -5,13 +5,13 @@ import { IUserPlant } from "@constants/IPlant";
 import { useDispatch } from "react-redux";
 import { setUserPlants } from "@store/userPlantsSlice";
 import { AuthContext } from "@context/auth/AuthProvider";
-import getUserPlants from "@helpers/getUserPlants";
+import fetchUserPlants from "@helpers/fetchUserPlants";
 
-export interface UseFetchPlantsProps {
+export interface useUserPlantsProps {
   getPlants: () => Promise<IUserPlant[]>;
 }
 
-const useFetchPlants = (): UseFetchPlantsProps => {
+const useUserPlants = (): useUserPlantsProps => {
   const { user } = useContext(AuthContext);
   const dispatch = useDispatch();
 
@@ -20,7 +20,7 @@ const useFetchPlants = (): UseFetchPlantsProps => {
       return [];
     }
 
-    const plants = await getUserPlants(user.uid);
+    const plants = await fetchUserPlants(user.uid);
     dispatch(setUserPlants(plants));
     return plants;
   }, [user, dispatch]);
@@ -28,4 +28,4 @@ const useFetchPlants = (): UseFetchPlantsProps => {
   return { getPlants };
 };
 
-export default useFetchPlants;
+export default useUserPlants;

@@ -1,7 +1,7 @@
 import firestore from "@react-native-firebase/firestore";
 import { IUserPlant } from "@constants/IPlant";
 
-async function getUserPlants(userId: string): Promise<IUserPlant[]> {
+async function fetchUserPlants(userId: string): Promise<IUserPlant[]> {
   const userPlantsRef = firestore()
     .collection("Users")
     .doc(userId)
@@ -15,4 +15,4 @@ async function getUserPlants(userId: string): Promise<IUserPlant[]> {
   return [];
 }
 
-export default getUserPlants;
+export default fetchUserPlants;

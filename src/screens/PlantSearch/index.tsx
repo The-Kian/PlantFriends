@@ -13,8 +13,8 @@ import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import TextInputField from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { useFetchAPIPlants } from "@hooks/useFetchPlants";
-import usePlantSelection from "@hooks/usePlantSelection";
+import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
+import usePlantDetails from "@hooks/usePlantDetails";
 import { addPlant } from "@store/userPlantsSlice";
 
 
@@ -30,7 +30,7 @@ export default function PlantSearchScreen({
 }: PlantSearchScreenProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { plants, loading, error } = useFetchAPIPlants(searchQuery);
-  const { selectedPlant, userPlant, handleSelectPlant, handleSaveToFirebase, closeModal } = usePlantSelection();
+  const { selectedPlant, userPlant, handleSelectPlant, handleSaveToFirebase, closeModal } = usePlantDetails();
   const dispatch = useDispatch();
 
   const handleSavePlant = async (userPlant: IUserPlant, plant: IPlant) => {

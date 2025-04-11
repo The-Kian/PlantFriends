@@ -11,7 +11,7 @@ import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { Colors } from "@theme/Colors";
 import { useEffect } from "react";
-import useFetchPlants from "@hooks/useFetchUserPlants";
+import useUserPlants from "@hooks/useUserPlants";
 import { useSelector } from "react-redux";
 import { RootState } from "@store/store";
 import { FlatList } from "react-native-gesture-handler";
@@ -22,7 +22,7 @@ export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
-  const { getPlants } = useFetchPlants();
+  const { getPlants } = useUserPlants();
   const { handleDeletePlant } = userPlantDataHandlers();
 
   useEffect(() => {
