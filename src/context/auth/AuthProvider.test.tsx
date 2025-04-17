@@ -12,6 +12,8 @@ import {
 
 import mockUser from "@test-utils/MockFirebaseUser";
 
+import firestore from "@react-native-firebase/firestore";
+
 import { AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
 
@@ -80,7 +82,7 @@ describe("AuthProvider", () => {
     );
     // Wait for the user state to be updated before logout
     await waitFor(() => {
-      expect(screen.getByTestId("user")).toHaveTextContent(mockUser.email);
+      expect(screen.getByTestId("user")).toHaveTextContent(mockUser.email as string);
     });
     fireEvent.press(screen.getByTestId("logout"));
     await waitFor(() => {
@@ -93,10 +95,11 @@ describe("AuthProvider", () => {
 describe("AuthProvider error handling", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    console.error = jest.fn();
   });
 
   it("shows alert for email already in use on registration", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
     (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/email-already-in-use",
     });
@@ -116,7 +119,7 @@ describe("AuthProvider error handling", () => {
   });
 
   it("shows alert for invalid email on registration", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
     (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/invalid-email",
     });
@@ -134,7 +137,7 @@ describe("AuthProvider error handling", () => {
   });
 
   it("shows alert for user not found on login", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
     (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/user-not-found",
     });
@@ -151,8 +154,42 @@ describe("AuthProvider error handling", () => {
     });
   });
 
+  it("shows console error for signIn", async () => {
+    (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+      code: "auth/sad",
+    });
+
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>
+    );
+    fireEvent.press(screen.getByTestId("login"));
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalled();
+    });
+  });
+
+    it("shows console error for signIn", async () => {
+      (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+        code: "auth/sad",
+      });
+  
+      render(
+        <AuthProvider>
+          <AuthTestComponent />
+        </AuthProvider>
+      );
+      fireEvent.press(screen.getByTestId("register"));
+  
+      await waitFor(() => {
+        expect(console.error).toHaveBeenCalled();
+      });
+    });
+
   it("shows alert for update failed", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
     (auth().currentUser?.updateProfile as jest.Mock).mockRejectedValueOnce({
       message: "err0r",
     });
@@ -169,8 +206,26 @@ describe("AuthProvider error handling", () => {
     });
   });
 
+    it("shows alert for update Firestore failed", async () => {
+      const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+      (firestore as any)._mockSet.mockRejectedValueOnce({
+        message: "err0r"
+      });
+  
+      render(
+        <AuthProvider>
+          <AuthTestComponent />
+        </AuthProvider>
+      );
+      fireEvent.press(screen.getByTestId("update"));
+  
+      await waitFor(() => {
+        expect(alertSpy).toHaveBeenCalledWith("Error updating Firestore:", "err0r");
+      });
+    });
+
   it("shows alert for error logging out failed", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
     (auth().signOut as jest.Mock).mockRejectedValueOnce({
       message: "err0r",
     });

@@ -14,9 +14,7 @@ import { useEffect } from "react";
 import useUserPlants from "@hooks/useUserPlants";
 import { useSelector } from "react-redux";
 import { RootState } from "@store/store";
-import { FlatList } from "react-native-gesture-handler";
 import { userPlantDataHandlers } from "@hooks/userPlantDataHandlers";
-import { render } from "@testing-library/react-native";
 
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();

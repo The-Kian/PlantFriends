@@ -36,4 +36,17 @@ describe("useFetchAPIPlants", () => {
     });
     expect(result.current.plants).toEqual(expect.arrayContaining([expect.objectContaining(mockPlant)]));
   });
+
+  it("sets error when fetchOpenFarmPlants fails", async () => {
+    const searchQuery = "test";
+    const errorMessage = "Error fetching plants";
+    const error = new Error(errorMessage);
+    (fetchOpenFarmPlants as jest.Mock).mockRejectedValue(error);
+    const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
+    expect(result.current.loading).toBe(true);
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBe(error);
+    });
+  })
 });

@@ -122,4 +122,21 @@ describe("fetchPerenualPlants", () => {
       "API request failed with status undefined"
     );
   });
+
+  it("should throw an error when API returns valid response but invalid data structure", async () => {
+    console.error = jest.fn();
+    const searchQuery = "banana";
+    const fakeData = {
+      data: "invalid data",
+    };
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue(fakeData),
+    } as any);
+
+    await expect(fetchPerenualPlants(searchQuery)).rejects.toThrow(
+      "No plants found in API response"
+    );
+  });
 });

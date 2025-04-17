@@ -46,6 +46,13 @@ describe("usePlantDetails", () => {
   });
 
   it("should save plant and reset selectedPlant when handleSaveToFirebase is called", async () => {
+    const updatedUserPlant = {
+      ...mockUserPlant,
+      lastWatered: "2025-04-17T12:00:00Z" // This makes it different from mockUserPlant
+    };
+
+    (savePlantToFirebase as jest.Mock).mockResolvedValue(updatedUserPlant);
+
     const { result } = renderHook(() => usePlantDetails(), {
       wrapper: authWrapper,
     });
@@ -64,6 +71,7 @@ describe("usePlantDetails", () => {
       mockPlant,
       mockUser
     );
+    expect(result.current.userPlant).toEqual(updatedUserPlant);
     expect(result.current.selectedPlant).toBeNull();
   });
 
