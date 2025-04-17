@@ -1,21 +1,22 @@
 
-/* eslint-disable @typescript-eslint/no-explicit-any */import { NavigationContainer } from "@react-navigation/native";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { Text } from "react-native";
 
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import { fireEvent, screen } from "@testing-library/react-native";
 
 
 import MyPlantsScreen from "./";
-import { Provider } from "react-redux";
-import { store } from "@store/store";
+import { renderWithProviders } from "@test-utils/renderWithProviders";
+import { mockUserPlant } from "@test-utils/MockPlant";
 
 describe("MyPlantsScreen", () => {
     const Stack = createStackNavigator();
-    const renderWithNavigaton = () => {
-        render(
-          <Provider store={store}>
+    const renderWithNavigation = () => {
+        return renderWithProviders(
             <NavigationContainer>
               <Stack.Navigator
                 screenOptions={{ animation: "none", headerShown: false }}
@@ -26,8 +27,11 @@ describe("MyPlantsScreen", () => {
                 />
                 <Stack.Screen name="PlantSearch" component={MockScreen} />
               </Stack.Navigator>
-            </NavigationContainer>
-          </Provider>
+            </NavigationContainer>, {
+              preloadedState: {
+                    userPlants: [mockUserPlant],
+              },
+            }
         );
     }
 
@@ -38,7 +42,7 @@ describe("MyPlantsScreen", () => {
       );
 
     it("Should render correctly", () => {
-        renderWithNavigaton();
+        renderWithNavigation();
         const title = screen.getByText("Manage Your Plants");
         const navigationButton = screen.getByText("Add plant");
         const livingRoomCollapsible = screen.getByText("Living Room");
@@ -51,14 +55,12 @@ describe("MyPlantsScreen", () => {
     });
 
     it("Should navigate to PlantSearch", async() => {
-        renderWithNavigaton();
+        renderWithNavigation();
         const navigationButton = screen.getByText("Add plant");
 
         fireEvent.press(navigationButton);
 
         const mockScreen = await screen.findByText("Go To SubmitPlantScreen");
         expect(mockScreen).toBeVisible();
-
-
     })
 });

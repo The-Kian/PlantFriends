@@ -20,8 +20,7 @@ import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant } from "@test-utils/MockPlant";
 
 import SubmitPlantScreen from "./";
-import { Provider } from "react-redux";
-import { store } from "@store/store";
+import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 
 jest.mock("@helpers/saveToFirebase/saveBasePlantToFirebase", () => jest.fn());
@@ -51,8 +50,7 @@ describe("SubmitPlantScreen", () => {
   );
 
   const renderWithFullContext = (initialRouteName = "SubmitPlantScreen") => {
-    return render(
-      <Provider store={store}>
+    return renderWithProviders(
       <NavigationContainer>
         <AuthContext.Provider value={mockAuthContextValue}>
           <Stack.Navigator
@@ -67,7 +65,6 @@ describe("SubmitPlantScreen", () => {
           </Stack.Navigator>
         </AuthContext.Provider>
       </NavigationContainer>
-      </Provider>
     );
   };
 
@@ -89,19 +86,17 @@ describe("SubmitPlantScreen", () => {
   it("shows alert when trying to submit without being logged in", async () => {
     const mockAlert = jest.spyOn(Alert, "alert");
 
-    render(
-      <Provider store={store}>
+    renderWithProviders(
         <NavigationContainer>
           <AuthContext.Provider value={{ ...mockAuthContextValue, user: null }}>
             <SubmitPlantScreen />
           </AuthContext.Provider>
         </NavigationContainer>
-      </Provider>
     );
 
     fireEvent.press(screen.getByText("Save"));
     expect(mockAlert).toHaveBeenCalledWith(
       "You must be logged in to submit a plant"
     );
-  });
+  }); 
 });

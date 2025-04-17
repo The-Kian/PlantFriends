@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 
 import RootLayout from "@components/navigation/RootLayout";
 import { AuthProvider } from "@context/auth/AuthProvider";
-import { store } from "@store/store";
+import { setupStore } from "@store/store";
 
 import './gesture-handler';
 
@@ -14,7 +14,7 @@ import './gesture-handler';
 
 export default function App() {
   return (
-    <Provider store={store}>
+    <Provider store={setupStore()}>
     <AuthProvider>
       <NavigationContainer>
         <SafeAreaView />

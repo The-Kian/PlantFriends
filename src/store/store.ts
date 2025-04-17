@@ -1,15 +1,21 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers, configureStore } from "@reduxjs/toolkit";
 // import devToolsEnhancer from "redux-devtools-expo-dev-plugin";
 import userPlantsReducer from "./userPlantsSlice";
 
-export const store = configureStore({
-  devTools: false,
-  // enhancers: (getDefaultEnhancers) =>
-  //   getDefaultEnhancers().concat(devToolsEnhancer()),
-  reducer: {
-    userPlants: userPlantsReducer,
-  },
+const rootReducer = combineReducers({
+  userPlants: userPlantsReducer,
 });
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export function setupStore(preloadedState?: Partial<RootState>) {
+  return configureStore({
+    devTools: true,
+    // enhancers: (getDefaultEnhancers) =>
+    //   getDefaultEnhancers().concat(devToolsEnhancer()),
+    reducer: 
+      rootReducer,
+  });
+}
+
+export type RootState = ReturnType<typeof rootReducer>;
+export type AppStore = ReturnType<typeof setupStore>;
+export type AppDispatch = AppStore["dispatch"];
