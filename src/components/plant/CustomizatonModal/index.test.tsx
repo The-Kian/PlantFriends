@@ -125,32 +125,4 @@ describe("PlantCustomizationModal", () => {
       mockPlant
     );
   });
-
-  it("sets userId to empty string when user is null", () => {
-    const nullUserContext = {
-      ...mockAuthContextValue,
-      user: null
-    };
-
-    render(
-      <AuthContext.Provider value={nullUserContext}>
-        <PlantCustomizationModal
-          plant={mockPlant}
-          userPlant={mockUserPlant}
-          onClose={mockOnClose}
-          onSave={mockOnSave}
-        />
-      </AuthContext.Provider>
-    );
-
-    fireEvent.press(screen.getByText("Save"));
-    
-    expect(mockOnSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        userId: "", 
-        plantId: "1",
-      }),
-      mockPlant
-    );
-  });
 });

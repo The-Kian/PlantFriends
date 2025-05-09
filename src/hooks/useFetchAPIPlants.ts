@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 import { IPlant } from "@constants/IPlant";
-import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import { fetchOpenFarmPlants, fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
 
 export const useFetchAPIPlants = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
@@ -18,8 +18,8 @@ export const useFetchAPIPlants = (searchQuery: string) => {
     const fetchPlants = async () => {
       setLoading(true);
       try {
-        const plantsData = await fetchOpenFarmPlants(searchQuery);
-        // const plantsData = await fetchPerenualPlants(searchQuery);
+        // const plantsData = await fetchOpenFarmPlants(searchQuery);
+        const plantsData = await fetchPerenualPlants(searchQuery);
         setPlants(plantsData);
       } catch (error: any) {
         setError(error);

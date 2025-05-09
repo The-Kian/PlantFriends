@@ -24,13 +24,9 @@ const SubmitPlantScreen = () => {
         custom_name: basePlantData.name,
         location: "Unspecified",
       };
-      
-      try {
-        await handlePlantSubmit(userPlant, basePlantData);
-        navigation.goBack();
-      } catch (error) {
-        Alert.alert("Error", "Failed to submit plant");
-      }
+
+      await handlePlantSubmit(userPlant, basePlantData);
+      navigation.goBack();
     } else {
       Alert.alert("You must be logged in to submit a plant");
     }
@@ -39,7 +35,7 @@ const SubmitPlantScreen = () => {
   return (
     <ThemedView>
       <ThemedText>Submit Plant for review!</ThemedText>
-      <PlantForm onSave={handleSave} displayUserPlantData={false}/>
+      <PlantForm onSave={handleSave} displayUserPlantData={false} />
     </ThemedView>
   );
 };

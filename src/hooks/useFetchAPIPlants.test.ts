@@ -1,12 +1,13 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
-import { fetchOpenFarmPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import { fetchOpenFarmPlants, fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
 import { mockPlant } from "@test-utils/MockPlant";
 
 import { useFetchAPIPlants } from "./useFetchAPIPlants";
 
 jest.mock("@helpers/plantAPI/fetchPlantAPI", () => ({
   fetchOpenFarmPlants: jest.fn(),
+  fetchPerenualPlants: jest.fn(),
 }));
 
 describe("useFetchAPIPlants", () => {
@@ -26,8 +27,8 @@ describe("useFetchAPIPlants", () => {
     });
   });
 
-  it("sets plants fetched from openfarm API", async () => {
-    (fetchOpenFarmPlants as jest.Mock).mockResolvedValue([mockPlant]);
+  it("sets plants fetched from Perenual API", async () => {
+    (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant]);
     const searchQuery = "test";
     const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
     expect(result.current.loading).toBe(true);
@@ -37,11 +38,11 @@ describe("useFetchAPIPlants", () => {
     expect(result.current.plants).toEqual(expect.arrayContaining([expect.objectContaining(mockPlant)]));
   });
 
-  it("sets error when fetchOpenFarmPlants fails", async () => {
+  it("sets error when fetchPerenualPlants fails", async () => {
     const searchQuery = "test";
     const errorMessage = "Error fetching plants";
     const error = new Error(errorMessage);
-    (fetchOpenFarmPlants as jest.Mock).mockRejectedValue(error);
+    (fetchPerenualPlants as jest.Mock).mockRejectedValue(error);
     const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
     expect(result.current.loading).toBe(true);
     await waitFor(() => {

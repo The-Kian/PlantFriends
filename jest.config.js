@@ -22,6 +22,7 @@ module.exports = {
     "^@theme/(.*)$": "<rootDir>/src/theme/$1",
     "^@helpers/(.*)$": "<rootDir>/src/helpers/$1",
     "^@test-utils/(.*)$": "<rootDir>/src/test-utils/$1",
+    "^@env$": "<rootDir>/src/__mocks__/@env.ts",
   },
   coveragePathIgnorePatterns: ["jest/*", "src/test-utils/*", "src/context/auth/AuthTypes.tsx"],
   setupFilesAfterEnv: ["<rootDir>/jest/setup.js"],

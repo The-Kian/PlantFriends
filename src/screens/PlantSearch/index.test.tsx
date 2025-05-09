@@ -5,15 +5,21 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 import { Text } from "react-native";
 
-import { screen, render, fireEvent } from "@testing-library/react-native";
+import { screen, waitFor, fireEvent } from "@testing-library/react-native";
 
 import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
-import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
-
+import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
+import usePlantDetails from "@hooks/usePlantDetails";
 import PlantSearchScreen from "./";
 import { renderWithProviders } from "@test-utils/renderWithProviders";
+import { AuthProvider } from "@context/auth/AuthProvider";
 
 jest.mock("@hooks/useFetchAPIPlants");
+
+jest.mock("@hooks/usePlantDetails", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 describe("PlantSearchScreen", () => {
   const Stack = createStackNavigator();
@@ -40,6 +46,19 @@ describe("PlantSearchScreen", () => {
       </NavigationContainer>
     );
   };
+
+  const mockHandleSaveToFirebase = jest.fn().mockResolvedValueOnce(true);
+  const mockCloseModal = jest.fn();
+  beforeEach(() => {
+    (usePlantDetails as jest.Mock).mockReturnValue({
+      selectedPlant: mockPlant,
+      userPlant: mockUserPlant, // Explicitly set userId here
+      handleSelectPlant: jest.fn(),
+      handleSaveToFirebase: mockHandleSaveToFirebase,
+      closeModal: mockCloseModal,
+    });
+  });
+
 
   it("renders correctly", () => {
     (useFetchAPIPlants as jest.Mock).mockReturnValue({
@@ -99,4 +118,22 @@ describe("PlantSearchScreen", () => {
     fireEvent.press(screen.getByText("Go Back"));
     expect(screen.getByText("Go To PlantSearchScreen")).toBeVisible();
   });
+
+  it("calls handleSaveToFirebase, dispatches addPlant and navigates back when save button is pressed", async () => {
+    const mockDispatch = jest.fn();
+    jest.spyOn(require("react-redux"), "useDispatch").mockReturnValue(mockDispatch);
+
+    renderWithNavigation();
+    const saveButton = screen.getByText("Save");
+    fireEvent.press(saveButton);
+    await waitFor(() => {
+      expect(mockHandleSaveToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: "userPlants/addPlant",
+        payload: mockUserPlant,
+      });
+      expect(mockCloseModal).toHaveBeenCalled();
+    });
+  })
+
 });

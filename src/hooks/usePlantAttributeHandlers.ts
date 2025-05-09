@@ -2,9 +2,9 @@
 import { useState } from 'react';
 
 import uuid from 'react-native-uuid';
+import { useDispatch } from 'react-redux';
 
 import { IPlant, IUserPlant } from '@constants/IPlant';
-import { useDispatch } from 'react-redux';
 import { updatePlant } from '@store/userPlantsSlice';
 
 

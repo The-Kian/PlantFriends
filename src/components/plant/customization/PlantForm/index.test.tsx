@@ -16,15 +16,6 @@ import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";`  
 import PlantForm from "./";
 import { IPlant } from "@constants/IPlant";
 
-
-
-// --- Mocks ---
-
-// Always return 'test-uuid' for uuid.v4()
-jest.mock("react-native-uuid", () => ({
-  v4: jest.fn(() => "test-uuid"),
-}));
-
 // Mock useCustomizationStyles to return dummy style objects
 jest.mock("@components/plant/customization/plantCustomization.styles", () => ({
   useCustomizationStyles: () => ({

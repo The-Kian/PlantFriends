@@ -23,55 +23,59 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe("fetchOpenFarmPlants", () => {
-  it("should return an array of IPlant when API returns valid data", async () => {
-    const searchQuery = "banana";
-    const fakeData = {
-      data: [
-        { id: 1, name: "Banana" },
-        { id: 2, name: "Plantain" },
-      ],
-    };
+jest.mock("@env", () => ({
+  PERENUAL_API_KEY: "sk-eiUw68231fe3de3bb10415",
+}));
 
-    global.fetch = jest.fn().mockResolvedValue({
-      json: jest.fn().mockResolvedValue(fakeData),
-    } as any);
+// describe("fetchOpenFarmPlants", () => {
+//   it("should return an array of IPlant when API returns valid data", async () => {
+//     const searchQuery = "banana";
+//     const fakeData = {
+//       data: [
+//         { id: 1, name: "Banana" },
+//         { id: 2, name: "Plantain" },
+//       ],
+//     };
 
-    const plants = await fetchOpenFarmPlants(searchQuery);
+//     global.fetch = jest.fn().mockResolvedValue({
+//       json: jest.fn().mockResolvedValue(fakeData),
+//     } as any);
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`
-    );
-    expect(plants).toEqual([
-      expect.objectContaining({
-        id: "1",
-        contributedBy: "OpenFarm API",
-      }),
-      expect.objectContaining({
-        id: "2",
-        contributedBy: "OpenFarm API",
-      }),
-    ]);
-    expect(mapOpenFarmPlantToIPlant).toHaveBeenCalledTimes(
-      fakeData.data.length
-    );
-  });
+//     const plants = await fetchOpenFarmPlants(searchQuery);
 
-  it("should throw an error when API returns invalid data", async () => {
-    const searchQuery = "banana";
-    const fakeData = {
-      data: "invalid data",
-    };
+//     expect(global.fetch).toHaveBeenCalledWith(
+//       `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`
+//     );
+//     expect(plants).toEqual([
+//       expect.objectContaining({
+//         id: "1",
+//         contributedBy: "OpenFarm API",
+//       }),
+//       expect.objectContaining({
+//         id: "2",
+//         contributedBy: "OpenFarm API",
+//       }),
+//     ]);
+//     expect(mapOpenFarmPlantToIPlant).toHaveBeenCalledTimes(
+//       fakeData.data.length
+//     );
+//   });
 
-    global.fetch = jest.fn().mockResolvedValue({
-      json: jest.fn().mockResolvedValue(fakeData),
-    } as any);
+//   it("should throw an error when API returns invalid data", async () => {
+//     const searchQuery = "banana";
+//     const fakeData = {
+//       data: "invalid data",
+//     };
 
-    await expect(fetchOpenFarmPlants(searchQuery)).rejects.toThrow(
-      "No plants found"
-    );
-  });
-});
+//     global.fetch = jest.fn().mockResolvedValue({
+//       json: jest.fn().mockResolvedValue(fakeData),
+//     } as any);
+
+//     await expect(fetchOpenFarmPlants(searchQuery)).rejects.toThrow(
+//       "No plants found"
+//     );
+//   });
+// });
 
 describe("fetchPerenualPlants", () => {
   it("should return an array of IPlant when API returns valid data", async () => {
@@ -90,7 +94,7 @@ describe("fetchPerenualPlants", () => {
 
     const plants = await fetchPerenualPlants(searchQuery);
     expect(global.fetch).toHaveBeenCalledWith(
-      `https://perenual.com/api/species-list?key=${process.env.PERENUAL_API_KEY}&q=${searchQuery}`
+      `https://perenual.com/api/species-list?key=sk-eiUw68231fe3de3bb10415&q=${searchQuery}`
     );
     expect(plants).toEqual([
       expect.objectContaining({

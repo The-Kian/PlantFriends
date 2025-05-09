@@ -1,0 +1,1 @@
+export const PERENUAL_API_KEY = "sk-eiUw68231fe3de3bb10415";

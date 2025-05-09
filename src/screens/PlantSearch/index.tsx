@@ -36,6 +36,7 @@ export default function PlantSearchScreen({
   const handleSavePlant = async (userPlant: IUserPlant, plant: IPlant) => {
     await handleSaveToFirebase(userPlant, plant);
     dispatch(addPlant(userPlant));
+    closeModal();
     navigation.goBack();
   };
 

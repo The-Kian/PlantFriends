@@ -32,6 +32,10 @@ jest.mock("@expo/vector-icons", () => ({
   Ionicons: "",
 }));
 
+jest.mock("react-native-uuid", () => ({
+  v4: jest.fn(() => "test-uuid"),
+}));
+
 // const CONSOLE_FAIL_TYPES = ['error', 'warn']
 
 // // Throw errors when a `console.error` or `console.warn` happens
