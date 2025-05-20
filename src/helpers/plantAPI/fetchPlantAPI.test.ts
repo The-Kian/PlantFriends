@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { fetchOpenFarmPlants, fetchPerenualPlants } from "./fetchPlantAPI";
-import { mapOpenFarmPlantToIPlant } from "./mapOpenFarmPlantToIPlant";
+import { fetchPerenualPlants } from "./fetchPlantAPI";
 import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
 
 jest.mock("./mapOpenFarmPlantToIPlant", () => ({
@@ -12,20 +11,20 @@ jest.mock("./mapOpenFarmPlantToIPlant", () => ({
 }));
 
 jest.mock("./mapPerenualPlantToIPlant", () => ({
+  __esModule: true,
   mapPerenualPlantToIPlant: jest.fn((plant: any) => ({
     id: plant.id.toString(),
-    name: plant.name,
     contributedBy: "Perenual API",
   })),
+}));
+
+jest.mock("../../../.env", () => ({
+  PERENUAL_API_KEY: "test-key",
 }));
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
-
-jest.mock("@env", () => ({
-  PERENUAL_API_KEY: "sk-eiUw68231fe3de3bb10415",
-}));
 
 // describe("fetchOpenFarmPlants", () => {
 //   it("should return an array of IPlant when API returns valid data", async () => {

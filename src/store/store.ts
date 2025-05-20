@@ -13,6 +13,7 @@ export function setupStore(preloadedState?: Partial<RootState>) {
     //   getDefaultEnhancers().concat(devToolsEnhancer()),
     reducer: 
       rootReducer,
+    preloadedState,
   });
 }
 

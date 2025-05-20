@@ -10,6 +10,8 @@ import "react-native-gesture-handler/jestSetup";
 import { setUpTests } from "react-native-reanimated";
 setUpTests();
 
+require("dotenv").config();                 // load .env into process.env
+
 jest.mock('@components/ui/Text/ThemedText', () => {
   const { Text } = require('react-native');
   return {

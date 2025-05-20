@@ -12,6 +12,15 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 import MyPlantsScreen from "./";
 import { renderWithProviders } from "@test-utils/renderWithProviders";
 import { mockUserPlant } from "@test-utils/MockPlant";
+import { Collapsible } from "@components/ui/Views/Collapsible";
+
+jest.mock('@hooks/useUserPlants', () => ({
+  __esModule: true,
+  default: () => ({
+    // getPlants is now a do-nothing jest.fn
+    getPlants: jest.fn(() => Promise.resolve([])),
+  }),
+}));
 
 describe("MyPlantsScreen", () => {
   const Stack = createStackNavigator();
@@ -27,16 +36,17 @@ describe("MyPlantsScreen", () => {
           />
           <Stack.Screen name="PlantSearch" component={MockScreen} />
         </Stack.Navigator>
-      </NavigationContainer>, {
-      preloadedState: {
-        userPlants: [
-          { ...mockUserPlant, houseLocation: "Living Room", custom_name: "Living Room Plant" },
-          { ...mockUserPlant, houseLocation: "Kitchen", custom_name: "Kitchen Plant" },
-        ]
-      },
-    }
+      </NavigationContainer>,
+      {
+        preloadedState: {
+          userPlants: [
+            { ...mockUserPlant, houseLocation: "Living Room", custom_name: "Living Room Plant" },
+            { ...mockUserPlant, houseLocation: "Kitchen", custom_name: "Kitchen Plant" },
+          ],
+        },
+      }
     );
-  }
+  };
 
   const MockScreen = ({ navigation }: any) => (
     <Text onPress={() => navigation.navigate("SubmitPlantScreen")}>
@@ -79,14 +89,8 @@ describe("MyPlantsScreen", () => {
   it("should delete a plant", async () => {
     renderWithNavigation();
   
-    // Expand the "Living Room" collapsible
-    const livingRoomCollapsible = screen.getByText("Living Room");
-    fireEvent.press(livingRoomCollapsible);
-  
-    // Wait for the plant to appear
-    await waitFor(() => {
-      expect(screen.getByText("Living Room Plant")).toBeVisible();
-    });
+    fireEvent.press(screen.getByText("Living Room"));
+      expect(await screen.findByText("Living Room Plant")).toBeVisible();
   
     // Simulate deleting the plant
     const deleteButton = screen.getByText("Delete");
