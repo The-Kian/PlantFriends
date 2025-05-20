@@ -50,6 +50,7 @@ describe("AuthContent Tests", () => {
         <AuthContent
           {...mockDefaultAuthProps}
           onSubmit={mockOnSubmit}
+          credentialsInvalid={mockDefaultAuthProps.credentialsInvalid}
           {...props}
         />
         ;
@@ -73,9 +74,11 @@ describe("AuthContent Tests", () => {
     );
   };
 
-  it("renders correctly", () => {
-    renderComponent();
-    expect(screen.getByTestId("AuthContent-View")).toBeVisible();
+  it("renders AuthForm without navigation button when in update mode", () => {
+    renderComponent({ authScreenType: "update" });
+    expect(screen.getByTestId("AuthForm-View")).toBeVisible();
+    expect(screen.queryByText("Create a new user")).toBeNull();
+    expect(screen.queryByText("Login instead")).toBeNull();
   });
 
   it("renders AuthForm and switch to SignUp button correctly", () => {

@@ -38,7 +38,7 @@ const PlantCustomizationModal = ({
 
   const [userData, setUserData] = useState<IUserPlant>(() => {
     if (userPlant) {
-      return { ...userPlant, userId: user?.uid || "", plantId: plant.id };
+      return { ...userPlant, plantId: plant.id };
     }
 
     return {

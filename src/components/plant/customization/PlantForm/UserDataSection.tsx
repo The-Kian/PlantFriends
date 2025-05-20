@@ -1,6 +1,3 @@
-// UserDataSection.tsx
-
-
 import React from "react";
 
 import { View } from "react-native";
@@ -10,19 +7,12 @@ import PickerField from "@components/ui/Input/PickerField";
 import TextInputField from "@components/ui/Input/TextInputField";
 import { IUserPlant } from "@constants/IPlant";
 
-
 interface UserDataSectionProps {
-
   userData: IUserPlant;
-
   onUserDataChange: <K extends keyof IUserPlant>(
-
     field: K,
-
     value: IUserPlant[K]
-
   ) => void;
-
 }
 
 const UserDataSection = ({
@@ -43,7 +33,7 @@ const UserDataSection = ({
       />
       <PickerField
         label="Location"
-        selectedValue={userData?.houseLocation || ""}
+        value={userData?.houseLocation || ""}
         onValueChange={(location) => onUserDataChange("houseLocation", location)}
         options={[
           "Kitchen",
@@ -54,6 +44,22 @@ const UserDataSection = ({
           "Balcony",
           "Garden",
         ]}
+        placeholder="Select a location"
+
+      />
+      <PickerField
+        label="Watering Schedule"
+        value={userData?.custom_watering_schedule || ""}
+        onValueChange={(schedule) => onUserDataChange("custom_watering_schedule", schedule)}
+        options={[
+          "Daily",
+          "Every 2-3 days",
+          "Weekly",
+          "Bi-weekly",
+          "Monthly",
+          "As needed (check soil)",
+        ]}
+        placeholder="Select a watering schedule"
       />
     </View>
   );

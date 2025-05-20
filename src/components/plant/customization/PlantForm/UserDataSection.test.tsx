@@ -35,6 +35,7 @@ describe("GeneralInfoSection", () => {
     expect(screen.getByLabelText(`Custom Name input field`)).toBeVisible();
     expect(screen.getByLabelText(`Date Added input field`)).toBeVisible();
     expect(screen.getByLabelText(`Location input field`)).toBeVisible();
+    expect(screen.getByLabelText(`Watering Schedule input field`)).toBeVisible();
   });
 
   it("updates the text input and calls onChangeText when the user types", () => {
@@ -64,6 +65,18 @@ describe("GeneralInfoSection", () => {
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "houseLocation",
       "Kitchen"
+    );
+  });
+
+  it("calls onAttributeChange with correct arguments for watering schedule picker", () => {
+    renderComponent();
+
+    const wateringScheduleField = screen.getByLabelText("Watering Schedule input field");
+    fireEvent(wateringScheduleField, "onValueChange", "Weekly");
+    
+    expect(mockOnUserDataChange).toHaveBeenCalledWith(
+      "custom_watering_schedule",
+      "Weekly"
     );
   });
 });

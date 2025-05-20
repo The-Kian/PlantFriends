@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React from "react";
+
+import uuid from "react-native-uuid";
 
 import {
   render,
@@ -8,21 +12,13 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
+import { IPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
+import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
 
 import PlantForm from "./";
-
-
-
-// --- Mocks ---
-
-// Always return 'test-uuid' for uuid.v4()
-jest.mock("react-native-uuid", () => ({
-  v4: jest.fn(() => "test-uuid"),
-}));
 
 // Mock useCustomizationStyles to return dummy style objects
 jest.mock("@components/plant/customization/plantCustomization.styles", () => ({
@@ -38,7 +34,7 @@ jest.mock("@components/plant/customization/plantCustomization.styles", () => ({
 jest.mock("./GeneralInfoSection", () => {
   const React = require("react");
   const { Button } = require("react-native");
-  const MockGeneralInfoSection = ({ onAttributeChange }) => (
+  const MockGeneralInfoSection = ({ onAttributeChange }: any) => (
     <Button
       testID="attribute-button"
       title="Change Attribute"
@@ -53,7 +49,7 @@ jest.mock("./GeneralInfoSection", () => {
 jest.mock("./UserDataSection", () => {
   const React = require("react");
   const { Button } = require("react-native");
-  const MockUserDataSection = ({ onUserDataChange }) => (
+  const MockUserDataSection = ({ onUserDataChange }: any) => (
     <Button
       testID="user-data-button"
       title="Change User Data"
@@ -132,19 +128,50 @@ describe("PlantForm", () => {
       );
     });
   });
+  it("generates a new UUID when customizations.id is undefined", async () => {
+    // Reset the mock counter
+    (uuid.v4 as jest.Mock).mockClear();
+    
+    // Create a plant data without ID - use type assertion to avoid TS error
+    const plantWithoutId = { ...mockPlant2, id: undefined } as unknown as IPlant;
+    
+    renderPlantForm(true, plantWithoutId, mockUserPlant);
+    
+    // Save the form
+    fireEvent.press(screen.getByText("Save"));
+    
+    // Verify uuid.v4 was called to generate the missing ID
+    expect(uuid.v4).toHaveBeenCalled();
+    await waitFor(() => {
+      
+      // Verify the generated ID ("test-uuid") was used for the plant
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plantId: "test-uuid",
+        }),
+        expect.objectContaining({
+          id: "test-uuid",
+        })
+      );
+    });
+  });
 
   it("updates userData when UserDataSection triggers onUserDataChange", async () => {
     renderPlantForm(true);
-
-    // Simulate pressing the button in UserDataSection
+    
+    // Trigger the user data change by clicking the mock button
     fireEvent.press(screen.getByTestId("user-data-button"));
-
-    // Check if the userData state is updated
+    
+    // Save the form to see the changes reflected in the onSave call
     fireEvent.press(screen.getByText("Save"));
+    
     await waitFor(() => {
+      // Verify the userData contains the updated field value
       expect(mockOnSave).toHaveBeenCalledWith(
         expect.objectContaining({
-          customField: "NewValue",
+          // The mock UserDataSection calls onUserDataChange with 
+          // field: "customField", value: "NewValue"
+          customField: "NewValue"
         }),
         expect.any(Object)
       );

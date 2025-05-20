@@ -3,12 +3,10 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import { Text } from "react-native";
-import { Alert } from "react-native";
+import { Text, Alert } from "react-native";
 
 import {
   fireEvent,
-  render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
@@ -19,8 +17,7 @@ import saveBasePlantToFirebase from "@helpers/saveToFirebase/saveBasePlantToFire
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant } from "@test-utils/MockPlant";
-
-
+import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 import SubmitPlantScreen from "./";
 
@@ -52,7 +49,7 @@ describe("SubmitPlantScreen", () => {
   );
 
   const renderWithFullContext = (initialRouteName = "SubmitPlantScreen") => {
-    return render(
+    return renderWithProviders(
       <NavigationContainer>
         <AuthContext.Provider value={mockAuthContextValue}>
           <Stack.Navigator
@@ -88,17 +85,17 @@ describe("SubmitPlantScreen", () => {
   it("shows alert when trying to submit without being logged in", async () => {
     const mockAlert = jest.spyOn(Alert, "alert");
 
-    render(
-      <NavigationContainer>
-        <AuthContext.Provider value={{ ...mockAuthContextValue, user: null }}>
-          <SubmitPlantScreen />
-        </AuthContext.Provider>
-      </NavigationContainer>
+    renderWithProviders(
+        <NavigationContainer>
+          <AuthContext.Provider value={{ ...mockAuthContextValue, user: null }}>
+            <SubmitPlantScreen />
+          </AuthContext.Provider>
+        </NavigationContainer>
     );
 
     fireEvent.press(screen.getByText("Save"));
     expect(mockAlert).toHaveBeenCalledWith(
       "You must be logged in to submit a plant"
     );
-  });
+  }); 
 });

@@ -40,7 +40,7 @@ module.exports = {
           // First ensure our internal module patterns all come before external ones
           {
             pattern:
-              "@+(context|navigation|screens|components|utils|types|assets|hooks|common|constants|theme|helpers|test-utils|mocks)/**",
+              "@+(env|context|navigation|screens|components|utils|types|assets|hooks|common|constants|theme|helpers|store|test-utils|mocks)/**",
             group: "internal",
             position: "before",
           },

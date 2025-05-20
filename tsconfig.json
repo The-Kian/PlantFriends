@@ -21,6 +21,7 @@
       "@helpers/*": ["./src/helpers/*"],
       "@test-utils/*": ["./src/test-utils/*"],
       "@mocks/*": ["./src/mocks/*"],
+      "@store/*": ["./src/store/*"],
     }
   },
   "include": [
@@ -28,6 +29,7 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "jest.config.js"
-, "jest/androidUtils.js"  ]
+    "jest.config.js",
+    "src/constants/react-native-dotenv.d.ts"
+, "jest/androidUtils.js", "src/store/testRedux.js", "__mocks__/@env.js"  ]
 }

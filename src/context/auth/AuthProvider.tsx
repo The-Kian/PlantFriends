@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged((userState) => {
       setUser(userState);
-      
+
       if (initializing) {
         setInitializing(false);
       }
@@ -31,7 +31,13 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     return () => subscriber();
   }, [initializing]);
 
-  const login = async ({ email, password }: { email: string; password: string }) => {
+  const login = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
     try {
       await auth().signInWithEmailAndPassword(email, password);
     } catch (error: any) {
@@ -43,9 +49,18 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     }
   };
 
-  const register = async ({ email, password }: { email: string; password: string }): Promise<void> => {
+  const register = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<void> => {
     try {
-      const userCredential = await auth().createUserWithEmailAndPassword(email, password);
+      const userCredential = await auth().createUserWithEmailAndPassword(
+        email,
+        password
+      );
       const user = userCredential.user;
 
       await firestore()
@@ -85,7 +100,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
               displayName: displayName ?? user?.email,
               email: user.email,
             },
-            { merge: true },
+            { merge: true }
           );
       } catch (error: any) {
         Alert.alert("Error updating Firestore:", error.message);
@@ -116,4 +131,4 @@ export const AuthProvider = ({ children }: ProviderProps) => {
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};

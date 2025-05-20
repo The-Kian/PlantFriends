@@ -68,7 +68,7 @@ const GeneralInfoSection = ({
               <PickerField
                 key={fieldConfig.field}
                 label={fieldConfig.label}
-                selectedValue={(value as string) || ''}
+                value={(value as string) || ''}
                 onValueChange={(itemValue) =>
                   onAttributeChange(
                     fieldConfig.field,

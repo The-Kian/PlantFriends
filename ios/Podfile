@@ -12,10 +12,7 @@ install! 'cocoapods',
   :deterministic_uuids => false
 
 prepare_react_native_project!
-
-use_frameworks! :linkage => :static
-
-$RNFirebaseAsStaticFramework = true
+use_modular_headers!
 
 target 'PlantFriends' do
   use_expo_modules!
@@ -40,6 +37,11 @@ target 'PlantFriends' do
   use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']
   use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']
 
+  config = use_native_modules!
+
+  use_frameworks! :linkage => :static
+  $RNFirebaseAsStaticFramework = true
+
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => podfile_properties['expo.jsEngine'] == nil || podfile_properties['expo.jsEngine'] == 'hermes',
@@ -56,18 +58,6 @@ target 'PlantFriends' do
       :ccache_enabled => podfile_properties['apple.ccacheEnabled'] == 'true',
     )
 
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
-        
-        # Fix for gRPC-Core
-        if target.name == 'gRPC-Core'
-          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'GRPC_CFSTREAM=1'
-        end
-      end
-    end
-    
     # This is necessary for Xcode 14, because it signs resource bundles by default
     # when building for devices.
     installer.target_installation_results.pod_target_installation_results
