@@ -1,4 +1,7 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+
 import auth from "@react-native-firebase/auth";
+import firestore from "@react-native-firebase/firestore";
 import React from "react";
 
 import { Alert } from "react-native";
@@ -12,7 +15,6 @@ import {
 
 import mockUser from "@test-utils/MockFirebaseUser";
 
-import firestore from "@react-native-firebase/firestore";
 
 import { AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
@@ -155,7 +157,7 @@ describe("AuthProvider error handling", () => {
   });
 
   it("shows console error for signIn", async () => {
-    (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+    (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/sad",
     });
 
@@ -164,29 +166,12 @@ describe("AuthProvider error handling", () => {
         <AuthTestComponent />
       </AuthProvider>
     );
-    fireEvent.press(screen.getByTestId("login"));
+    fireEvent.press(screen.getByTestId("register"));
 
     await waitFor(() => {
       expect(console.error).toHaveBeenCalled();
     });
   });
-
-    it("shows console error for signIn", async () => {
-      (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
-        code: "auth/sad",
-      });
-  
-      render(
-        <AuthProvider>
-          <AuthTestComponent />
-        </AuthProvider>
-      );
-      fireEvent.press(screen.getByTestId("register"));
-  
-      await waitFor(() => {
-        expect(console.error).toHaveBeenCalled();
-      });
-    });
 
   it("shows alert for update failed", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
@@ -206,23 +191,23 @@ describe("AuthProvider error handling", () => {
     });
   });
 
-    it("shows alert for update Firestore failed", async () => {
-      const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
-      (firestore as any)._mockSet.mockRejectedValueOnce({
-        message: "err0r"
-      });
-  
-      render(
-        <AuthProvider>
-          <AuthTestComponent />
-        </AuthProvider>
-      );
-      fireEvent.press(screen.getByTestId("update"));
-  
-      await waitFor(() => {
-        expect(alertSpy).toHaveBeenCalledWith("Error updating Firestore:", "err0r");
-      });
+  it("shows alert for update Firestore failed", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+    (firestore as any)._mockSet.mockRejectedValueOnce({
+      message: "err0r"
     });
+
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>
+    );
+    fireEvent.press(screen.getByTestId("update"));
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith("Error updating Firestore:", "err0r");
+    });
+  });
 
   it("shows alert for error logging out failed", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });

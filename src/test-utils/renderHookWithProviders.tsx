@@ -1,9 +1,12 @@
-import React, { PropsWithChildren } from 'react'
-import { render } from '@testing-library/react-native'
-import type { RenderOptions } from '@testing-library/react-native'
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+
 import { configureStore } from '@reduxjs/toolkit'
+import React, { PropsWithChildren } from 'react'
 import { Provider } from 'react-redux';
+
+import type { RenderOptions } from '@testing-library/react-native'
 import { renderHook } from '@testing-library/react-native';
+
 import userPlantsReducer from '@store/userPlantsSlice';
 
 interface ExtendedRenderOptions extends RenderOptions {
@@ -24,7 +27,7 @@ export function renderHookWithProviders<
       ...renderOptions
     }: ExtendedRenderOptions = {}
   ) {
-  function Wrapper({ children }: PropsWithChildren<{}>): JSX.Element {
+  function Wrapper({ children }: PropsWithChildren<object>): JSX.Element {
     return <Provider store={store}>{children}</Provider>
   }
 

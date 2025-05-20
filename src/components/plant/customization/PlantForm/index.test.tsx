@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React from "react";
+
+import uuid from "react-native-uuid";
 
 import {
   render,
@@ -7,14 +11,14 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
-import uuid from "react-native-uuid";
 
+import { IPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";`  `
+import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
+
 import PlantForm from "./";
-import { IPlant } from "@constants/IPlant";
 
 // Mock useCustomizationStyles to return dummy style objects
 jest.mock("@components/plant/customization/plantCustomization.styles", () => ({
@@ -136,9 +140,9 @@ describe("PlantForm", () => {
     // Save the form
     fireEvent.press(screen.getByText("Save"));
     
+    // Verify uuid.v4 was called to generate the missing ID
+    expect(uuid.v4).toHaveBeenCalled();
     await waitFor(() => {
-      // Verify uuid.v4 was called to generate the missing ID
-      expect(uuid.v4).toHaveBeenCalled();
       
       // Verify the generated ID ("test-uuid") was used for the plant
       expect(mockOnSave).toHaveBeenCalledWith(

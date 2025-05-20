@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 import { IPlant } from "@constants/IPlant";
-import { fetchOpenFarmPlants, fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
 
 export const useFetchAPIPlants = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);

@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 
 import { StyleSheet } from "react-native";
 
@@ -9,19 +11,20 @@ import { ThemedText } from "@components/ui/Text/ThemedText";
 import { Collapsible } from "@components/ui/Views/Collapsible";
 import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { Colors } from "@theme/Colors";
-import { useEffect } from "react";
+import { useUserPlantDataHandlers } from "@hooks/userPlantDataHandlers";
 import useUserPlants from "@hooks/useUserPlants";
-import { useSelector } from "react-redux";
 import { RootState } from "@store/store";
-import { userPlantDataHandlers } from "@hooks/userPlantDataHandlers";
+import { Colors } from "@theme/Colors";
+
+
+
 
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
   const { getPlants } = useUserPlants();
-  const { handleDeletePlant } = userPlantDataHandlers();
+  const { handleDeletePlant } = useUserPlantDataHandlers();
 
   useEffect(() => {
     getPlants();

@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IPlant } from "@constants/IPlant";
+    /* eslint-disable import/no-unresolved */
 
 import { PERENUAL_API_KEY } from "@env";
+
+import { IPlant } from "@constants/IPlant";
+
 
 import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
 

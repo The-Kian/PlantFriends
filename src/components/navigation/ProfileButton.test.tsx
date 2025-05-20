@@ -1,6 +1,8 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
+import { useColorScheme } from "react-native";
+
 import {
   act,
   fireEvent,
@@ -9,10 +11,9 @@ import {
 } from "@testing-library/react-native";
 
 import ProfileSettingsScreen from "@screens/settings/profile";
+import { Colors } from "@theme/Colors";
 
 import ProfileButton from "./ProfileButton";
-import { useColorScheme } from "react-native";
-import { Colors } from "@theme/Colors";
 
 describe("ProfileButton", () => {
   it("renders correctly", async () => {

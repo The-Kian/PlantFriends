@@ -1,9 +1,10 @@
+import { useContext } from "react";
+import { useDispatch } from "react-redux";
+
 import { IPlant, IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
 import savePlantToFirebase from "@helpers/savePlantToFirebase";
 import { addPlant, deletePlant, updatePlant } from "@store/userPlantsSlice";
-import { useContext } from "react";
-import { useDispatch } from "react-redux";
 
 export interface DataHandlersProps {
   handlePlantSubmit: (userPlant: IUserPlant, plant: IPlant) => void;
@@ -11,7 +12,7 @@ export interface DataHandlersProps {
   handleUpdatePlant: (plant: IUserPlant) => void;
 }
 
-export const userPlantDataHandlers = (): DataHandlersProps => {
+export const useUserPlantDataHandlers = (): DataHandlersProps => {
   const dispatch = useDispatch();
   const { user } = useContext(AuthContext);
 

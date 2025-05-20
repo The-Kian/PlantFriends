@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable jest/no-commented-out-tests */
 import { fetchPerenualPlants } from "./fetchPlantAPI";
 import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
 

@@ -1,6 +1,9 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 import firestore from "@react-native-firebase/firestore";
-import fetchUserPlants from "./fetchUserPlants";
+
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+
+import fetchUserPlants from "./fetchUserPlants";
 
 describe("fetchUserPlants", () => {
 

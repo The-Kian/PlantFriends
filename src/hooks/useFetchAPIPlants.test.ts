@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
-import { fetchOpenFarmPlants, fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
 import { mockPlant } from "@test-utils/MockPlant";
 
 import { useFetchAPIPlants } from "./useFetchAPIPlants";
@@ -47,7 +47,7 @@ describe("useFetchAPIPlants", () => {
     expect(result.current.loading).toBe(true);
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBe(error);
     });
+    expect(result.current.error).toBe(error);
   })
 });

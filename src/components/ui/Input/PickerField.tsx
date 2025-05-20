@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { View, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+
+import { View } from 'react-native';
+
 import { ThemedText } from '@components/ui/Text/ThemedText';
+
 import { useInputStyles } from './Input.styles';
 
 interface PickerFieldProps {
@@ -12,10 +14,10 @@ interface PickerFieldProps {
   placeholder?: string;
 }
 
-const PickerField = ({ 
-  label, 
-  value, 
-  onValueChange, 
+const PickerField = ({
+  label,
+  value,
+  onValueChange,
   options,
   placeholder
 }: PickerFieldProps) => {

@@ -1,12 +1,17 @@
 import React from "react";
 import * as reactRedux from "react-redux";
 
-import savePlantToFirebase from "@helpers/savePlantToFirebase";
-import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 import { renderHook, waitFor } from "@testing-library/react-native";
-import { userPlantDataHandlers } from "./userPlantDataHandlers";
-import { addPlant, deletePlant, updatePlant } from "@store/userPlantsSlice";
+
 import { AuthContext } from "@context/auth/AuthProvider";
+import savePlantToFirebase from "@helpers/savePlantToFirebase";
+import { addPlant, deletePlant, updatePlant } from "@store/userPlantsSlice";
+import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
+
+
+import { useUserPlantDataHandlers } from "./userPlantDataHandlers";
+
+
 
 jest.mock("@helpers/savePlantToFirebase");
 
@@ -31,7 +36,7 @@ describe("userPlantDataHandlers", () => {
             id: "newPlantId",
         });
 
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
 
         const success = await result.current.handlePlantSubmit(mockUserPlant, mockPlant);
 
@@ -45,7 +50,7 @@ describe("userPlantDataHandlers", () => {
     it("should handle plant submission failure", async () => {
         (savePlantToFirebase as jest.Mock).mockRejectedValue(new Error("Firebase error"));
 
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
 
         const success = await result.current.handlePlantSubmit(mockUserPlant, mockPlant);
 
@@ -55,7 +60,7 @@ describe("userPlantDataHandlers", () => {
     });
 
     it("should handle plant deletion", async () => {
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
 
         await waitFor(() => {
             result.current.handleDeletePlant(mockPlant);
@@ -65,7 +70,7 @@ describe("userPlantDataHandlers", () => {
     });
 
     it("should handle plant update", async () => {
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
 
         await waitFor(() => {
             result.current.handleUpdatePlant(mockUserPlant);
@@ -78,7 +83,7 @@ describe("userPlantDataHandlers", () => {
         const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
         (savePlantToFirebase as jest.Mock).mockRejectedValue(new Error("Submission error"));
 
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
 
         const success = await result.current.handlePlantSubmit(mockUserPlant, mockPlant);
 
@@ -95,7 +100,7 @@ describe("userPlantDataHandlers", () => {
             throw new Error("Deletion error");
         });
 
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
 
         await result.current.handleDeletePlant(mockPlant);
 
@@ -110,7 +115,7 @@ describe("userPlantDataHandlers", () => {
             throw new Error("Update error");
         });
 
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
 
         await result.current.handleUpdatePlant(mockUserPlant);
 
@@ -127,7 +132,7 @@ describe("userPlantDataHandlers", () => {
             return null;
         });
     
-        const { result } = renderHook(() => userPlantDataHandlers());
+        const { result } = renderHook(() => useUserPlantDataHandlers());
     
         const success = await result.current.handlePlantSubmit(mockUserPlant, mockPlant);
     

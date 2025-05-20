@@ -1,7 +1,8 @@
 import React, { PropsWithChildren } from 'react'
+import { Provider } from 'react-redux'
+
 import { render } from '@testing-library/react-native'
 import type { RenderOptions } from '@testing-library/react-native'
-import { Provider } from 'react-redux'
 
 import { setupStore, type AppStore, type RootState} from '@store/store'
 

@@ -8041,13 +8041,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dotenv@npm:^16.5.0":
-  version: 16.5.0
-  resolution: "dotenv@npm:16.5.0"
-  checksum: 6543fe87b5ddf2d60dd42df6616eec99148a5fc150cb4530fef5bda655db5204a3afa0e6f25f7cd64b20657ace4d79c0ef974bec32fdb462cad18754191e7a90
-  languageName: node
-  linkType: hard
-
 "dunder-proto@npm:^1.0.0, dunder-proto@npm:^1.0.1":
   version: 1.0.1
   resolution: "dunder-proto@npm:1.0.1"
@@ -13958,7 +13951,6 @@ __metadata:
     "@typescript-eslint/parser": ^7.18.0
     babel-jest: ^29.7.0
     babel-plugin-module-resolver: ^5.0.2
-    dotenv: ^16.5.0
     eslint: ^8.57.0
     eslint-config-expo: ~8.0.1
     eslint-import-resolver-typescript: latest

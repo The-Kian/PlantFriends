@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -8,11 +9,12 @@ import { Text } from "react-native";
 import { screen, waitFor, fireEvent } from "@testing-library/react-native";
 
 import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
-import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
 import usePlantDetails from "@hooks/usePlantDetails";
-import PlantSearchScreen from "./";
+import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
 import { renderWithProviders } from "@test-utils/renderWithProviders";
-import { AuthProvider } from "@context/auth/AuthProvider";
+
+import PlantSearchScreen from "./";
+
 
 jest.mock("@hooks/useFetchAPIPlants");
 
@@ -128,11 +130,11 @@ describe("PlantSearchScreen", () => {
     fireEvent.press(saveButton);
     await waitFor(() => {
       expect(mockHandleSaveToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant);
-      expect(mockDispatch).toHaveBeenCalledWith({
-        type: "userPlants/addPlant",
-        payload: mockUserPlant,
-      });
-      expect(mockCloseModal).toHaveBeenCalled();
+    });
+    expect(mockCloseModal).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: "userPlants/addPlant",
+      payload: mockUserPlant,
     });
   })
 

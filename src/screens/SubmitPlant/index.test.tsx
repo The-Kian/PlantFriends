@@ -7,7 +7,6 @@ import { Text, Alert } from "react-native";
 
 import {
   fireEvent,
-  render,
   screen,
   waitFor,
 } from "@testing-library/react-native";
@@ -18,9 +17,9 @@ import saveBasePlantToFirebase from "@helpers/saveToFirebase/saveBasePlantToFire
 import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant } from "@test-utils/MockPlant";
+import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 import SubmitPlantScreen from "./";
-import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 
 jest.mock("@helpers/saveToFirebase/saveBasePlantToFirebase", () => jest.fn());

@@ -1,8 +1,8 @@
 
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import uuid from 'react-native-uuid';
-import { useDispatch } from 'react-redux';
 
 import { IPlant, IUserPlant } from '@constants/IPlant';
 import { updatePlant } from '@store/userPlantsSlice';

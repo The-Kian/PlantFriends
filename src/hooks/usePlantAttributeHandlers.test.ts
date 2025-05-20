@@ -1,9 +1,14 @@
-import { act, renderHook, waitFor } from "@testing-library/react-native";
 import * as reactRedux from "react-redux";
-import { usePlantAttributeHandlers } from "./usePlantAttributeHandlers";
+
+import { waitFor } from "@testing-library/react-native";
+
+
+import { updatePlant } from "@store/userPlantsSlice";
 import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 import { renderHookWithProviders } from "@test-utils/renderHookWithProviders";
-import { updatePlant } from "@store/userPlantsSlice";
+
+
+import { usePlantAttributeHandlers } from "./usePlantAttributeHandlers";
 
 describe("usePlantAttributeHandlers", () => {
   it("should initialize with default values", () => {
