@@ -18,10 +18,6 @@ jest.mock("./mapPerenualPlantToIPlant", () => ({
   })),
 }));
 
-jest.mock("../../../.env", () => ({
-  PERENUAL_API_KEY: "test-key",
-}));
-
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -93,7 +89,7 @@ describe("fetchPerenualPlants", () => {
 
     const plants = await fetchPerenualPlants(searchQuery);
     expect(global.fetch).toHaveBeenCalledWith(
-      `https://perenual.com/api/species-list?key=sk-eiUw68231fe3de3bb10415&q=${searchQuery}`
+      `https://perenual.com/api/species-list?key=API_KEY&q=${searchQuery}`
     );
     expect(plants).toEqual([
       expect.objectContaining({

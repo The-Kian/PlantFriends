@@ -31,5 +31,5 @@
     "expo-env.d.ts",
     "jest.config.js",
     "src/constants/react-native-dotenv.d.ts"
-, "jest/androidUtils.js", "src/store/testRedux.js"  ]
+, "jest/androidUtils.js", "src/store/testRedux.js", "__mocks__/@env.js"  ]
 }
