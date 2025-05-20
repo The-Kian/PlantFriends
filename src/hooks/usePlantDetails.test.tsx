@@ -7,12 +7,12 @@ import mockAuthContextValue from "@test-utils/MockAuthContextValue";
 import mockUser from "@test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 
-import usePlantSelection from "./usePlantSelection";
+import usePlantDetails from "./usePlantDetails";
 
 jest.mock("@helpers/getUserPlantData");
 jest.mock("@helpers/savePlantToFirebase");
 
-describe("usePlantSelection", () => {
+describe("usePlantDetails", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -24,7 +24,7 @@ describe("usePlantSelection", () => {
   );
 
   it("should initialize with null selectedPlant and undefined userPlant", () => {
-    const { result } = renderHook(() => usePlantSelection());
+    const { result } = renderHook(() => usePlantDetails());
 
     expect(result.current.selectedPlant).toBeNull();
     expect(result.current.userPlant).toBeUndefined();
@@ -32,7 +32,7 @@ describe("usePlantSelection", () => {
 
   it("should update selectedPlant when handleSelectPlant is called and a user is logged in", async () => {
     (getUserPlantData as jest.Mock).mockResolvedValue(mockUserPlant);
-    const { result } = renderHook(() => usePlantSelection(), {
+    const { result } = renderHook(() => usePlantDetails(), {
       wrapper: authWrapper,
     });
 
@@ -45,8 +45,15 @@ describe("usePlantSelection", () => {
     expect(getUserPlantData).toHaveBeenCalledWith(mockUser.uid, mockPlant.id);
   });
 
-  it("should save plant and reset selectedPlant when handleSave is called", async () => {
-    const { result } = renderHook(() => usePlantSelection(), {
+  it("should save plant and reset selectedPlant when handleSaveToFirebase is called", async () => {
+    const updatedUserPlant = {
+      ...mockUserPlant,
+      lastWatered: "2025-04-17T12:00:00Z" // This makes it different from mockUserPlant
+    };
+
+    (savePlantToFirebase as jest.Mock).mockResolvedValue(updatedUserPlant);
+
+    const { result } = renderHook(() => usePlantDetails(), {
       wrapper: authWrapper,
     });
 
@@ -56,7 +63,7 @@ describe("usePlantSelection", () => {
 
     // Then save it
     await waitFor(() => {
-      result.current.handleSave(mockUserPlant, mockPlant);
+      result.current.handleSaveToFirebase(mockUserPlant, mockPlant);
     });
 
     expect(savePlantToFirebase).toHaveBeenCalledWith(
@@ -64,11 +71,12 @@ describe("usePlantSelection", () => {
       mockPlant,
       mockUser
     );
+    expect(result.current.userPlant).toEqual(updatedUserPlant);
     expect(result.current.selectedPlant).toBeNull();
   });
 
   it("should reset selectedPlant when closeModal is called", async () => {
-    const { result } = renderHook(() => usePlantSelection());
+    const { result } = renderHook(() => usePlantDetails());
 
     await waitFor(() => {
       result.current.handleSelectPlant(mockPlant);

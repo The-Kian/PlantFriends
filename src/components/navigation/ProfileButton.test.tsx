@@ -1,6 +1,8 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
+import { useColorScheme } from "react-native";
+
 import {
   act,
   fireEvent,
@@ -9,6 +11,7 @@ import {
 } from "@testing-library/react-native";
 
 import ProfileSettingsScreen from "@screens/settings/profile";
+import { Colors } from "@theme/Colors";
 
 import ProfileButton from "./ProfileButton";
 
@@ -24,7 +27,8 @@ describe("ProfileButton", () => {
     expect(button).toBeVisible();
   });
 
-  it("renders the correct icon", async () => {
+  it("renders the correct icon in light mode", async () => {
+    (useColorScheme as jest.Mock).mockReturnValue('light');
     render(
       <NavigationContainer>
         <ProfileButton />
@@ -33,6 +37,20 @@ describe("ProfileButton", () => {
 
     const icon = await screen.findByTestId("profile-icon");
     expect(icon.props.name).toBe("person-circle-outline");
+    expect(icon.props.color).toBe(Colors.light.text);
+  });
+
+  it("renders the correct icon in dark mode", async () => {
+    (useColorScheme as jest.Mock).mockReturnValue('dark');
+    render(
+      <NavigationContainer>
+        <ProfileButton />
+      </NavigationContainer>
+    );
+
+    const icon = await screen.findByTestId("profile-icon");
+    expect(icon.props.name).toBe("person-circle-outline");
+    expect(icon.props.color).toBe(Colors.dark.text);
   });
 
   it("navigates to Profile screen when Profile button is pressed", async () => {

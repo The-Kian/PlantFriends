@@ -7,8 +7,8 @@ import getUserPlantData from "@helpers/getUserPlantData";
 import savePlantToFirebase from "@helpers/savePlantToFirebase";
 
 
-// usePlantSelection.ts
-function usePlantSelection() {
+// usePlantDetails.ts
+function usePlantDetails() {
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
   const [userPlant, setUserPlant] = useState<IUserPlant | undefined>(undefined);
   const { user } = useContext(AuthContext);
@@ -21,11 +21,14 @@ function usePlantSelection() {
     }
   };
 
-  const handleSave = async (
+  const handleSaveToFirebase = async (
     updatedUserPlant: IUserPlant,
     plantData: IPlant
   ) => {
-    await savePlantToFirebase(updatedUserPlant, plantData, user);
+    const savedPlant = await savePlantToFirebase(updatedUserPlant, plantData, user);
+    if (savedPlant) {
+      setUserPlant(savedPlant);
+    }
     setSelectedPlant(null);
   };
 
@@ -33,8 +36,8 @@ function usePlantSelection() {
     selectedPlant,
     userPlant,
     handleSelectPlant,
-    handleSave,
+    handleSaveToFirebase,
     closeModal: () => setSelectedPlant(null),
   };
 }
-export default usePlantSelection;
+export default usePlantDetails;

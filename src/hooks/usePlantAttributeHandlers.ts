@@ -1,12 +1,14 @@
 
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 
 import uuid from 'react-native-uuid';
 
 import { IPlant, IUserPlant } from '@constants/IPlant';
+import { updatePlant } from '@store/userPlantsSlice';
 
 
-export const useDataHandlers = (initialPlant: IPlant, initialUserData: IUserPlant) => {
+export const usePlantAttributeHandlers = (initialPlant: IPlant, initialUserData: IUserPlant) => {
   const [customizations, setCustomizations] = useState({});
   const [userData, setUserData] = useState({
     ...initialUserData,
@@ -14,6 +16,8 @@ export const useDataHandlers = (initialPlant: IPlant, initialUserData: IUserPlan
     id: initialUserData.id || uuid.v4().toString(),
     custom_attributes: {},
   });
+
+  const dispatch = useDispatch();
 
   const handlePlantAttributeChange = <K extends keyof IPlant>(
     field: K,
@@ -42,7 +46,8 @@ export const useDataHandlers = (initialPlant: IPlant, initialUserData: IUserPlan
       id: userData.id || uuid.v4().toString(),
     };
 
-    onSave(updatedUserPlant, plant); // Pass the plant data
+    onSave(updatedUserPlant, plant);
+    dispatch(updatePlant(updatedUserPlant));
     onClose();
   };
 

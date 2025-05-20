@@ -2,6 +2,7 @@
 
 import { NavigationProp } from "@react-navigation/native";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 
 import {Text } from "react-native";
 
@@ -11,8 +12,10 @@ import ThemedButton from "@components/ui/Buttons/ThemedButton";
 import TextInputField from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { useFetchPlants } from "@hooks/useFetchPlants";
-import usePlantSelection from "@hooks/usePlantSelection";
+import { IUserPlant, IPlant } from "@constants/IPlant";
+import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
+import usePlantDetails from "@hooks/usePlantDetails";
+import { addPlant } from "@store/userPlantsSlice";
 
 
 import styles from "./index.styles";
@@ -26,8 +29,16 @@ export default function PlantSearchScreen({
   navigation,
 }: PlantSearchScreenProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const { plants, loading, error } = useFetchPlants(searchQuery);
-  const { selectedPlant, userPlant, handleSelectPlant, handleSave, closeModal } = usePlantSelection();
+  const { plants, loading, error } = useFetchAPIPlants(searchQuery);
+  const { selectedPlant, userPlant, handleSelectPlant, handleSaveToFirebase, closeModal } = usePlantDetails();
+  const dispatch = useDispatch();
+
+  const handleSavePlant = async (userPlant: IUserPlant, plant: IPlant) => {
+    await handleSaveToFirebase(userPlant, plant);
+    dispatch(addPlant(userPlant));
+    closeModal();
+    navigation.goBack();
+  };
 
   return (
     <ThemedView style={styles.container}>
@@ -44,7 +55,7 @@ export default function PlantSearchScreen({
           plant={selectedPlant}
           userPlant={userPlant}
           onClose={closeModal}
-          onSave={handleSave}
+          onSave={handleSavePlant}
         />
       )}
       <ThemedButton

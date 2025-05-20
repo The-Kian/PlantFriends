@@ -1,18 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-var-requires */
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { Text } from "react-native";
 
-import { screen, render, fireEvent } from "@testing-library/react-native";
+import { screen, waitFor, fireEvent } from "@testing-library/react-native";
 
-import { useFetchPlants } from "@hooks/useFetchPlants";
-import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
+import usePlantDetails from "@hooks/usePlantDetails";
+import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
+import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 import PlantSearchScreen from "./";
 
-jest.mock("@hooks/useFetchPlants");
+
+jest.mock("@hooks/useFetchAPIPlants");
+
+jest.mock("@hooks/usePlantDetails", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 describe("PlantSearchScreen", () => {
   const Stack = createStackNavigator();
@@ -24,7 +33,7 @@ describe("PlantSearchScreen", () => {
   );
 
   const renderWithNavigation = (initialRouteName = "PlantSearchScreen") => {
-    return render(
+    return renderWithProviders(
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{ animation: "none" }}
@@ -40,8 +49,21 @@ describe("PlantSearchScreen", () => {
     );
   };
 
+  const mockHandleSaveToFirebase = jest.fn().mockResolvedValueOnce(true);
+  const mockCloseModal = jest.fn();
+  beforeEach(() => {
+    (usePlantDetails as jest.Mock).mockReturnValue({
+      selectedPlant: mockPlant,
+      userPlant: mockUserPlant, // Explicitly set userId here
+      handleSelectPlant: jest.fn(),
+      handleSaveToFirebase: mockHandleSaveToFirebase,
+      closeModal: mockCloseModal,
+    });
+  });
+
+
   it("renders correctly", () => {
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [],
       loading: false,
       error: null,
@@ -52,7 +74,7 @@ describe("PlantSearchScreen", () => {
   it("Shows loading overlay when loading", () => {
     const searchQuery = "test";
 
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [],
       loading: true,
       error: null,
@@ -68,7 +90,7 @@ describe("PlantSearchScreen", () => {
   });
 
   it("Shows error message when error", () => {
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [],
       loading: false,
       error: "Error fetching plants",
@@ -80,7 +102,7 @@ describe("PlantSearchScreen", () => {
   });
 
   it("Should navigate to submit plant screen when submit plant button is selected", async () => {
-    (useFetchPlants as jest.Mock).mockReturnValue({
+    (useFetchAPIPlants as jest.Mock).mockReturnValue({
       plants: [mockPlant, mockPlant2],
       loading: false,
       error: null,
@@ -98,4 +120,22 @@ describe("PlantSearchScreen", () => {
     fireEvent.press(screen.getByText("Go Back"));
     expect(screen.getByText("Go To PlantSearchScreen")).toBeVisible();
   });
+
+  it("calls handleSaveToFirebase, dispatches addPlant and navigates back when save button is pressed", async () => {
+    const mockDispatch = jest.fn();
+    jest.spyOn(require("react-redux"), "useDispatch").mockReturnValue(mockDispatch);
+
+    renderWithNavigation();
+    const saveButton = screen.getByText("Save");
+    fireEvent.press(saveButton);
+    await waitFor(() => {
+      expect(mockHandleSaveToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant);
+    });
+    expect(mockCloseModal).toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: "userPlants/addPlant",
+      payload: mockUserPlant,
+    });
+  })
+
 });

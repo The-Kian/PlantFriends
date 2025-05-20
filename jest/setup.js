@@ -10,6 +10,8 @@ import "react-native-gesture-handler/jestSetup";
 import { setUpTests } from "react-native-reanimated";
 setUpTests();
 
+require("dotenv").config();                 // load .env into process.env
+
 jest.mock('@components/ui/Text/ThemedText', () => {
   const { Text } = require('react-native');
   return {
@@ -30,6 +32,10 @@ jest.mock('@components/ui/Views/ThemedView', () => {
 
 jest.mock("@expo/vector-icons", () => ({
   Ionicons: "",
+}));
+
+jest.mock("react-native-uuid", () => ({
+  v4: jest.fn(() => "test-uuid"),
 }));
 
 // const CONSOLE_FAIL_TYPES = ['error', 'warn']

@@ -50,7 +50,7 @@ export interface IPlant {
  * Contains customization and tracking information for a user's plant.
  */
 export interface IUserPlant {
-  /** Unique identifier for the user plant instance */
+  /** @string Unique identifier for the user plant instance */
   id: string;
   /** Identifier for the user who owns the plant */
   userId: string;
@@ -69,7 +69,7 @@ export interface IUserPlant {
   /** Whether reminders are enabled */
   reminders_enabled?: boolean;
   /** Custom watering schedule in days */
-  custom_watering_schedule?: number;
+  custom_watering_schedule?: string;
   /** Custom notes added by the user */
   custom_notes?: string;
   /** Physical location or notes on where the plant is kept */
