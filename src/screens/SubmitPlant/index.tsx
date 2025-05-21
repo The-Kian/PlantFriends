@@ -34,7 +34,7 @@ const SubmitPlantScreen = () => {
   };
 
   return (
-    <ThemedView>
+    <ThemedView style={{ flex: 1 }}>
       <ThemedText>Submit Plant for review!</ThemedText>
       <PlantForm onSave={handleSave} displayUserPlantData={false} />
     </ThemedView>
