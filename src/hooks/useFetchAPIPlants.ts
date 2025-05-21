@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 
 import { IPlant } from "@constants/IPlant";
 import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import fetchFirebasePlants from "@helpers/fetchFirebasePlants";
 
 export const useFetchAPIPlants = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
@@ -19,8 +20,9 @@ export const useFetchAPIPlants = (searchQuery: string) => {
       setLoading(true);
       try {
         // const plantsData = await fetchOpenFarmPlants(searchQuery);
-        const plantsData = await fetchPerenualPlants(searchQuery);
-        setPlants(plantsData);
+        const firebasePlants = await fetchFirebasePlants(searchQuery);
+        const apiPlants = await fetchPerenualPlants(searchQuery);
+        setPlants([...firebasePlants, ...apiPlants]);
       } catch (error: any) {
         setError(error);
         console.error(`🚀 ~ fetchPlants ~ error.message:`, error);
