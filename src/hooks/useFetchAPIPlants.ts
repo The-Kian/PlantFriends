@@ -20,9 +20,14 @@ export const useFetchAPIPlants = (searchQuery: string) => {
       setLoading(true);
       try {
         // const plantsData = await fetchOpenFarmPlants(searchQuery);
-        const firebasePlants = await fetchFirebasePlants(searchQuery);
-        const apiPlants = await fetchPerenualPlants(searchQuery);
-        setPlants([...firebasePlants, ...apiPlants]);
+        const firebasePlants = (await fetchFirebasePlants(searchQuery)) || [];
+        const apiPlants = (await fetchPerenualPlants(searchQuery)) || [];
+        const combinedPlants = [...firebasePlants, ...apiPlants]
+        const uniquePlants = combinedPlants.filter(
+          (plant, index, self) =>
+            index === self.findIndex((p) => p.id === plant.id || p.name === plant.name)
+        );
+        setPlants(uniquePlants);
       } catch (error: any) {
         setError(error);
         console.error(`🚀 ~ fetchPlants ~ error.message:`, error);

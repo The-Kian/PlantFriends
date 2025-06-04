@@ -21,13 +21,9 @@ import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
     
     const data = await response.json();
     
-    console.log(`🚀 - KP -  ~ fetchPerenualPlants ~ data:`, data)
-
     if (data.data && Array.isArray(data.data)) {
       const plantsData: IPlant[] = data.data.map((plant: any) => {
-        console.log(`🚀 - KP -  ~ fetchPerenualPlants ~ Mapping plant:`, plant)
         const mapped = mapPerenualPlantToIPlant(plant)
-        console.log(`🚀 - KP -  ~ constplantsData:IPlant[]=data.data.map ~ mapped:`, mapped)
         return mapped
       })
       return plantsData;
@@ -44,7 +40,6 @@ import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
 // export const fetchOpenFarmPlants = async (searchQuery: string): Promise<IPlant[]> => {
 //     const URL = `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`;
 //     const response = await fetch(URL);
-//     console.log(`🚀 - KP -  ~ fetchOpenFarmPlants ~ response:`, response)
 //     if (!response.ok) {
 //       throw new Error(`API request failed with status ${response.status}`);
 //     }

@@ -1,14 +1,17 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
 import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
-import { mockPlant } from "@test-utils/MockPlant";
+import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
 
 import { useFetchAPIPlants } from "./useFetchAPIPlants";
+import fetchFirebasePlants from "@helpers/fetchFirebasePlants";
 
 jest.mock("@helpers/plantAPI/fetchPlantAPI", () => ({
   fetchOpenFarmPlants: jest.fn(),
   fetchPerenualPlants: jest.fn(),
 }));
+
+jest.mock("@helpers/fetchFirebasePlants", () => jest.fn());
 
 describe("useFetchAPIPlants", () => {
   it("should set loading to true when searchQuery is not empty", async () => {
@@ -49,5 +52,21 @@ describe("useFetchAPIPlants", () => {
       expect(result.current.loading).toBe(false);
     });
     expect(result.current.error).toBe(error);
+  })
+
+  it("should only return unique plants based on id or name", async () => {
+    const searchQuery = "test";
+
+    (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant, mockPlant2]);
+    (fetchFirebasePlants as jest.Mock).mockResolvedValue([mockPlant, mockPlant2,
+      { ...mockPlant, id: "3", name: "Unique Plant" }]);
+    const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
+    
+    expect(result.current.loading).toBe(true);
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+    
+    expect(result.current.plants).toHaveLength(3); // Should only have unique plants
   })
 });
