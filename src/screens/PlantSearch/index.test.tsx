@@ -101,18 +101,6 @@ describe("PlantSearchScreen", () => {
     expect(screen.getByText("Error fetching plants")).toBeVisible();
   });
 
-  it("Should navigate to submit plant screen when submit plant button is selected", async () => {
-    (useFetchAPIPlants as jest.Mock).mockReturnValue({
-      plants: [mockPlant, mockPlant2],
-      loading: false,
-      error: null,
-    });
-    renderWithNavigation();
-
-    fireEvent.press(screen.getByText("Submit new plant to database"));
-    expect(screen.getByText("Go To PlantSearchScreen")).toBeVisible();
-  });
-
   it("Should navigate back", () => {
     renderWithNavigation("SubmitPlant");
     fireEvent.press(screen.getByText("Go To PlantSearchScreen"));
@@ -120,22 +108,5 @@ describe("PlantSearchScreen", () => {
     fireEvent.press(screen.getByText("Go Back"));
     expect(screen.getByText("Go To PlantSearchScreen")).toBeVisible();
   });
-
-  it("calls handleSaveToFirebase, dispatches addPlant and navigates back when save button is pressed", async () => {
-    const mockDispatch = jest.fn();
-    jest.spyOn(require("react-redux"), "useDispatch").mockReturnValue(mockDispatch);
-
-    renderWithNavigation();
-    const saveButton = screen.getByText("Save");
-    fireEvent.press(saveButton);
-    await waitFor(() => {
-      expect(mockHandleSaveToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant);
-    });
-    expect(mockCloseModal).toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: "userPlants/addPlant",
-      payload: mockUserPlant,
-    });
-  })
 
 });

@@ -1,10 +1,5 @@
-
-
-import { NavigationProp } from "@react-navigation/native";
-import { useState } from "react";
-import { useDispatch } from "react-redux";
-
-import {Text } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import { Text } from "react-native";
 
 import { RootStackParamList } from "@components/navigation/types";
 import PlantCustomizationModal from "@components/plant/CustomizatonModal";
@@ -14,30 +9,69 @@ import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@constants/IPlant";
 import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
-import usePlantDetails from "@hooks/usePlantDetails";
-import { addPlant } from "@store/userPlantsSlice";
 
 
+import uuid from "react-native-uuid";
+import {AuthContext} from "@context/auth/AuthProvider";
+import savePlantToFirebase from "@helpers/savePlantToFirebase";
 import styles from "./index.styles";
 import PlantSearchResults from "./Results";
+import { NavigationProp } from "@react-navigation/native";
 
 interface PlantSearchScreenProps {
   navigation: NavigationProp<RootStackParamList>;
 }
 
-export default function PlantSearchScreen({
+export const PlantSearchScreen = ({
   navigation,
-}: PlantSearchScreenProps) {
+}: PlantSearchScreenProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { plants, loading, error } = useFetchAPIPlants(searchQuery);
-  const { selectedPlant, userPlant, handleSelectPlant, handleSaveToFirebase, closeModal } = usePlantDetails();
-  const dispatch = useDispatch();
+  const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
+  const { user } = useContext(AuthContext);
+  const [userPlant, setUserPlant] = useState<IUserPlant | null>(null);
+  const [isAddingNewPlant, setIsAddingNewPlant] = useState(false);
 
-  const handleSavePlant = async (userPlant: IUserPlant, plant: IPlant) => {
-    await handleSaveToFirebase(userPlant, plant);
-    dispatch(addPlant(userPlant));
+  useEffect(() => {
+    if (selectedPlant && user) {
+      setUserPlant({
+        userId: user.uid || "",
+        plantId: selectedPlant.id || "",
+        id: uuid.v4().toString(),
+        custom_attributes: {},
+      });
+    } else {
+      setUserPlant(null);
+    }
+  }, [selectedPlant, user]);
+
+  const handleSelectPlant = (plant: IPlant) => {
+    setSelectedPlant(plant);
+    setIsAddingNewPlant(false); // Ensure we're not in "add new" mode
+  };
+
+  const handleAddNewPlant = () => {
+    setSelectedPlant(null); // Clear any previously selected plant
+    setUserPlant(null); // Clear any previously created user plant data
+    setIsAddingNewPlant(true);
+  };
+
+  const closeModal = () => {
+    setSelectedPlant(null);
+    setUserPlant(null);
+    setIsAddingNewPlant(false);
+  };
+
+  const handleSave = async (userData: IUserPlant, plantData: IPlant) => {
+    // If adding a new plant, set the user plant's plantId to the newly generated plantData.id
+    if (isAddingNewPlant) {
+      userData.plantId = plantData.id;
+    }
+    // Use the wrapper function to save both base and user plant data
+    await savePlantToFirebase(userData, plantData, user);
+
     closeModal();
-    navigation.goBack();
+    navigation.navigate("Tab");
   };
 
   return (
@@ -50,19 +84,24 @@ export default function PlantSearchScreen({
       {loading && <LoadingOverlay message={`Searching for ${searchQuery}`} />}
       {error && <Text>Error fetching plants</Text>}
       <PlantSearchResults plants={plants} onSelectPlant={handleSelectPlant} />
-      {selectedPlant && (
-        <PlantCustomizationModal
-          plant={selectedPlant}
-          userPlant={userPlant}
-          onClose={closeModal}
-          onSave={handleSavePlant}
-        />
-      )}
+
       <ThemedButton
-        title="Submit new plant to database"
-        onPress={() => navigation.navigate("SubmitPlant")}
+        title="Add a new plant (not in search results)"
+        onPress={handleAddNewPlant}
         additionalStyle={styles.addPlantButton}
       />
+
+      {(selectedPlant || isAddingNewPlant) && (
+        <PlantCustomizationModal
+          plant={selectedPlant || undefined} // Pass selected plant or undefined
+          userPlant={userPlant || undefined} // Pass user plant or undefined
+          onClose={closeModal}
+          onSave={handleSave}
+          displayUserPlantData={true} // Always display user data in this combined flow
+          isAddingNewPlant={isAddingNewPlant} // Indicate if adding a new base plant
+        />
+      )}
+
       <ThemedButton
         title="Go Back"
         onPress={() => navigation.goBack()}
@@ -70,4 +109,6 @@ export default function PlantSearchScreen({
       />
     </ThemedView>
   );
-}
+};
+
+export default PlantSearchScreen;

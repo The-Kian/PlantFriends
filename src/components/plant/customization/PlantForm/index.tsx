@@ -1,5 +1,5 @@
 
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { View, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
@@ -21,6 +21,7 @@ interface PlantFormProps {
   initialUserPlantData?: IUserPlant;
   onSave: (userPlant: IUserPlant, plantData: IPlant) => Promise<void>;
   displayUserPlantData: boolean;
+  isAddingNewPlant: boolean;
 }
 
 const PlantForm = ({
@@ -28,6 +29,7 @@ const PlantForm = ({
   initialUserPlantData,
   onSave,
   displayUserPlantData,
+  isAddingNewPlant,
 }: PlantFormProps) => {
   const { user } = useContext(AuthContext);
 
@@ -44,63 +46,86 @@ const PlantForm = ({
     }
   );
 
-  const styles = useCustomizationStyles();
+  useEffect(() => {
+    if (initialUserPlantData) {
+      setUserData(initialUserPlantData);
+    }
+  }, [initialUserPlantData]);
 
-  const handlePlantAttributeChange = <K extends keyof IPlant>(
-    field: K,
-    value: IPlant[K]
-  ) => {
-    setCustomizations((prevPlant) => ({
-      ...prevPlant,
-      [field]: value,
+  useEffect(() => {
+    // Reset form when adding a new plant or selecting a different plant
+    if (isAddingNewPlant) {
+      setCustomizations({});
+      setUserData({
+        userId: user?.uid || "",
+        plantId: "", // This will be set after the base plant is saved
+        id: uuid.v4().toString(),
+        custom_attributes: {},
+      });
+    } else if (initialPlantData) {
+      setCustomizations(initialPlantData);
+      setUserData(initialUserPlantData || {
+        userId: user?.uid || "",
+        plantId: initialPlantData.id || "",
+        id: uuid.v4().toString(),
+        custom_attributes: {},
+      });
+    }
+  }, [isAddingNewPlant, initialPlantData, initialUserPlantData, user]);
+
+  const handlePlantAttributeChange = (key: keyof IPlant, value: any) => {
+    setCustomizations((prev) => ({
+      ...prev,
+      [key]: value,
     }));
   };
 
-  const handleUserDataChange = <K extends keyof IUserPlant>(
-    field: K,
-    value: IUserPlant[K]
-  ) => {
-    setUserData((prevUserData) => ({
-      ...prevUserData,
-      [field]: value,
+  const handleUserDataChange = (key: keyof IUserPlant, value: any) => {
+    setUserData((prev) => ({
+      ...prev,
+      [key]: value,
+      custom_attributes: {
+        ...prev.custom_attributes,
+        [key]: value, // Ensure changes are reflected in custom_attributes
+      },
     }));
   };
 
   const handleSave = async () => {
-    // Generate a new plant ID if it doesn't exist
-    const plantId = customizations.id || uuid.v4().toString();
-
-    const newPlantData: IPlant = {
+    const finalPlantData = {
       ...customizations,
-      id: plantId,
-      isVerified: customizations.isVerified ?? false,
-      contributedBy: user?.displayName ?? user?.email ?? "Anonymous",
-    };
+      // Only generate a new ID if adding a new plant and it doesn't have one
+      id: isAddingNewPlant && !customizations.id ? uuid.v4().toString() : customizations.id,
+    } as IPlant;
 
-    const newUserPlantData: IUserPlant = {
+    const finalUserData = {
       ...userData,
-      userId: user?.uid || "",
-      plantId: plantId,
-      id: userData.id || uuid.v4().toString(),
-      custom_attributes: customizations,
-    };
+      userId: user?.uid || "", // Ensure userId is set
+      plantId: finalPlantData.id, // Link user plant to the plant ID
+      id: userData.id || uuid.v4().toString(), // Ensure user data has an ID
+    } as IUserPlant;
 
-    await onSave(newUserPlantData, newPlantData);
+    await onSave(finalUserData, finalPlantData);
   };
+
+  const styles = useCustomizationStyles();
+
   return (
     <ScrollView>
       <ThemedView style={styles.content}>
-        <ThemedText style={styles.title}>Plant Form</ThemedText>
+        <ThemedText style={styles.title}>
+          {isAddingNewPlant ? "Add New Plant" : "Customize Plant"}
+        </ThemedText>
+        <GeneralInfoSection
+          attributes={customizations as IPlant}
+          onAttributeChange={handlePlantAttributeChange}
+        />
         {displayUserPlantData && (
           <UserDataSection
             userData={userData}
             onUserDataChange={handleUserDataChange}
           />
         )}
-        <GeneralInfoSection
-          attributes={customizations as IPlant}
-          onAttributeChange={handlePlantAttributeChange}
-        />
         <View style={styles.buttonContainer}>
           <ThemedButton
             title="Save"

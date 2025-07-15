@@ -226,4 +226,24 @@ describe("AuthProvider error handling", () => {
       expect(alertSpy).toHaveBeenCalledWith("Error logging out:", "err0r");
     });
   });
+
+  it("shows console error for login failure", async () => {
+    (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+      code: "auth/unknown-error",
+    });
+
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>
+    );
+    fireEvent.press(screen.getByTestId("login"));
+
+    await waitFor(() => {
+      expect(console.error).toHaveBeenCalledWith(
+        "Login error:",
+        expect.objectContaining({ code: "auth/unknown-error" })
+      );
+    });
+  });
 });
