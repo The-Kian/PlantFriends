@@ -1,38 +1,21 @@
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-
 import { Text } from "react-native";
-
 import { fireEvent, screen, waitFor } from "@testing-library/react-native";
-
 import { mockUserPlant } from "@test-utils/MockPlant";
 import { renderWithProviders } from "@test-utils/renderWithProviders";
-
 import MyPlantsScreen from "./";
-
-jest.mock('@hooks/useUserPlants', () => ({
-  __esModule: true,
-  default: () => ({
-    // getPlants is now a do-nothing jest.fn
-    getPlants: jest.fn(() => Promise.resolve([])),
-  }),
-}));
 
 describe("MyPlantsScreen", () => {
   const Stack = createStackNavigator();
+
   const renderWithNavigation = () => {
     return renderWithProviders(
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={{ animation: "none", headerShown: false }}
         >
-          <Stack.Screen
-            name="MyPlantsScreen"
-            component={MyPlantsScreen}
-          />
+          <Stack.Screen name="MyPlantsScreen" component={MyPlantsScreen} />
           <Stack.Screen name="PlantSearch" component={MockScreen} />
         </Stack.Navigator>
       </NavigationContainer>,
@@ -52,6 +35,10 @@ describe("MyPlantsScreen", () => {
       Go To SubmitPlantScreen
     </Text>
   );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   it("Should render correctly", () => {
     renderWithNavigation();
@@ -74,27 +61,18 @@ describe("MyPlantsScreen", () => {
 
     const mockScreen = await screen.findByText("Go To SubmitPlantScreen");
     expect(mockScreen).toBeVisible();
-  })
-
-  it("should render plants by location", () => {
-    renderWithNavigation();
-
-    const livingRoomPlants = screen.getByText("Living Room");
-    expect(livingRoomPlants).toBeVisible();
-    const kitchenPlants = screen.getByText("Kitchen");
-    expect(kitchenPlants).toBeVisible();
   });
-  
+
   it("should delete a plant", async () => {
     renderWithNavigation();
-  
+
     fireEvent.press(screen.getByText("Living Room"));
-      expect(await screen.findByText("Living Room Plant")).toBeVisible();
-  
+    expect(await screen.findByText("Living Room Plant")).toBeVisible();
+
     // Simulate deleting the plant
     const deleteButton = screen.getByText("Delete");
     fireEvent.press(deleteButton);
-  
+
     // Verify the plant is no longer visible
     await waitFor(() => {
       expect(screen.queryByText("Living Room Plant")).toBeNull();

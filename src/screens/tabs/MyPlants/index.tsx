@@ -11,11 +11,10 @@ import { ThemedText } from "@components/ui/Text/ThemedText";
 import { Collapsible } from "@components/ui/Views/Collapsible";
 import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { useUserPlantDataHandlers } from "@hooks/userPlantDataHandlers";
-import useUserPlants from "@hooks/useUserPlants";
+import { usePlantManagement } from "@hooks/user/usePlantManagement";
 import { RootState } from "@store/store";
 import { Colors } from "@theme/Colors";
-import { render } from "@testing-library/react-native";
+import useUserPlants from "@hooks/user/useUserPlants";
 
 
 
@@ -25,7 +24,7 @@ export default function MyPlantsScreen() {
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
   const { getPlants } = useUserPlants();
-  const { handleDeletePlant } = useUserPlantDataHandlers();
+  const { handleDeletePlant } = usePlantManagement();
 
   useEffect(() => {
     getPlants();

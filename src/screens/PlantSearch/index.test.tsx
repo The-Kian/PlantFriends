@@ -9,18 +9,27 @@ import { Text } from "react-native";
 import { screen, waitFor, fireEvent } from "@testing-library/react-native";
 
 import { useCombinedPlantSearch } from "@hooks/search/useCombinedPlantSearch";
-import usePlantDetails from "@hooks/usePlantDetails";
 import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
 import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 import PlantSearchScreen from "./";
+import { usePlantManagement } from "@hooks/user/usePlantManagement";
 
 
 jest.mock("@hooks/search/useCombinedPlantSearch");
 
-jest.mock("@hooks/usePlantDetails", () => ({
-  __esModule: true,
-  default: jest.fn(),
+jest.mock("@hooks/user/usePlantManagement", () => ({
+  usePlantManagement: jest.fn(() => ({
+    selectedPlant: null,
+    userPlant: null,
+    customizations: {},
+    handleSelectPlant: jest.fn(),
+    handlePlantAttributeChange: jest.fn(),
+    handleUserDataChange: jest.fn(),
+    handleSavePlant: jest.fn(),
+    handleDeletePlant: jest.fn(),
+    handleUpdatePlant: jest.fn(),
+  })),
 }));
 
 describe("PlantSearchScreen", () => {
@@ -52,7 +61,7 @@ describe("PlantSearchScreen", () => {
   const mockHandleSaveToFirebase = jest.fn().mockResolvedValueOnce(true);
   const mockCloseModal = jest.fn();
   beforeEach(() => {
-    (usePlantDetails as jest.Mock).mockReturnValue({
+    (usePlantManagement as jest.Mock).mockReturnValue({
       selectedPlant: mockPlant,
       userPlant: mockUserPlant, // Explicitly set userId here
       handleSelectPlant: jest.fn(),
