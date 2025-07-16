@@ -7,9 +7,21 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+
+  // Debounce logic: Update `debouncedQuery` after a delay
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 500); // 500ms delay
+
+    return () => {
+      clearTimeout(handler); // Clear timeout if searchQuery changes
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
-    if (searchQuery.length === 0) {
+    if (debouncedQuery.length === 0) {
       setPlants([]);
       return;
     }
@@ -18,11 +30,9 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
       setLoading(true);
       setError(null);
       try {
-        const firebasePlants = await fetchFirebasePlants(searchQuery) || [];
-        console.log(`🚀 - KP -  ~ fetchPlants ~ firebasePlants:`, firebasePlants)
+        const firebasePlants = await fetchFirebasePlants(debouncedQuery) || [];
         
-        const apiPlants = await fetchPerenualPlants(searchQuery) || [];
-        console.log(`🚀 - KP -  ~ fetchPlants ~ apiPlants:`, apiPlants)
+        const apiPlants = await fetchPerenualPlants(debouncedQuery) || [];
 
         // Combine and deduplicate plants based on `id` or `name`
         const combinedPlants = [...firebasePlants, ...apiPlants];
@@ -30,7 +40,6 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
           (plant, index, self) =>
             index === self.findIndex((p) => p.id === plant.id || p.name === plant.name)
         );
-        console.log(`🚀 - KP -  ~ fetchPlants ~ uniquePlants:`, uniquePlants)
 
         setPlants(uniquePlants);
       } catch (err) {
@@ -42,8 +51,7 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
     };
 
     fetchPlants();
-  }, [searchQuery]);
+  }, [debouncedQuery]);
 
-  console.log(`🚀 - KP -  ~ useCombinedPlantSearch ~ plants:`, plants)
   return { plants, loading, error };
 };

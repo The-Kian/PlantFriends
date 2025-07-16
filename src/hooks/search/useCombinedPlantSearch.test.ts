@@ -69,4 +69,33 @@ describe("useFetchAPIPlants", () => {
     
     expect(result.current.plants).toHaveLength(3); // Should only have unique plants
   })
+
+  it("debounces the search query before fetching plants", async () => {
+    jest.useFakeTimers(); // Use fake timers for testing debounce
+  
+    (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant]);
+  
+    const searchQuery = "test";
+    const { result, rerender } = renderHook(({ query }) => useCombinedPlantSearch(query), {
+      initialProps: { query: "" },
+    });
+  
+    expect(result.current.loading).toBe(false);
+  
+    // Update searchQuery
+    rerender({ query: searchQuery });
+  
+    // Fast-forward time to simulate debounce delay
+    jest.advanceTimersByTime(500);
+  
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+  
+    expect(result.current.plants).toEqual(
+      expect.arrayContaining([expect.objectContaining(mockPlant)])
+    );
+  
+    jest.useRealTimers(); // Restore real timers
+  });
 });

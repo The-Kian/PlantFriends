@@ -15,6 +15,7 @@ import { useUserPlantDataHandlers } from "@hooks/userPlantDataHandlers";
 import useUserPlants from "@hooks/useUserPlants";
 import { RootState } from "@store/store";
 import { Colors } from "@theme/Colors";
+import { render } from "@testing-library/react-native";
 
 
 
@@ -36,7 +37,12 @@ export default function MyPlantsScreen() {
 
   const renderPlantsByLocation = (location: string) => {
     const plantsInLocation = userPlants.filter(
-      (plant) => plant.houseLocation === location
+      (plant) => {
+        if (location === "Other") {
+          return !plant.houseLocation || plant.houseLocation === "";
+        }
+        return plant.houseLocation === location;
+      }
     );
 
     return (
@@ -75,6 +81,10 @@ export default function MyPlantsScreen() {
 
       <Collapsible title="Kitchen">
         {renderPlantsByLocation("Kitchen")}
+      </Collapsible>
+
+      <Collapsible title="Other Rooms">
+      {renderPlantsByLocation("Other")}
       </Collapsible>
     </ParallaxScrollView>
   );
