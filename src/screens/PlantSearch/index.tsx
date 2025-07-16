@@ -8,11 +8,11 @@ import TextInputField from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@constants/IPlant";
-import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
+import { useCombinedPlantSearch } from "@hooks/search/useCombinedPlantSearch";
 
 
 import uuid from "react-native-uuid";
-import {AuthContext} from "@context/auth/AuthProvider";
+import { AuthContext } from "@context/auth/AuthProvider";
 import savePlantToFirebase from "@helpers/savePlantToFirebase";
 import styles from "./index.styles";
 import PlantSearchResults from "./Results";
@@ -26,7 +26,7 @@ export const PlantSearchScreen = ({
   navigation,
 }: PlantSearchScreenProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { plants, loading, error } = useFetchAPIPlants(searchQuery);
+  const { plants, loading, error } = useCombinedPlantSearch(searchQuery);
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
   const { user } = useContext(AuthContext);
   const [userPlant, setUserPlant] = useState<IUserPlant | null>(null);
@@ -47,12 +47,12 @@ export const PlantSearchScreen = ({
 
   const handleSelectPlant = (plant: IPlant) => {
     setSelectedPlant(plant);
-    setIsAddingNewPlant(false); // Ensure we're not in "add new" mode
+    setIsAddingNewPlant(false);
   };
 
   const handleAddNewPlant = () => {
-    setSelectedPlant(null); // Clear any previously selected plant
-    setUserPlant(null); // Clear any previously created user plant data
+    setSelectedPlant(null);
+    setUserPlant(null);
     setIsAddingNewPlant(true);
   };
 
@@ -63,11 +63,9 @@ export const PlantSearchScreen = ({
   };
 
   const handleSave = async (userData: IUserPlant, plantData: IPlant) => {
-    // If adding a new plant, set the user plant's plantId to the newly generated plantData.id
     if (isAddingNewPlant) {
       userData.plantId = plantData.id;
     }
-    // Use the wrapper function to save both base and user plant data
     await savePlantToFirebase(userData, plantData, user);
 
     closeModal();
@@ -93,12 +91,12 @@ export const PlantSearchScreen = ({
 
       {(selectedPlant || isAddingNewPlant) && (
         <PlantCustomizationModal
-          plant={selectedPlant || undefined} // Pass selected plant or undefined
-          userPlant={userPlant || undefined} // Pass user plant or undefined
+          plant={selectedPlant || undefined}
+          userPlant={userPlant || undefined}
           onClose={closeModal}
           onSave={handleSave}
-          displayUserPlantData={true} // Always display user data in this combined flow
-          isAddingNewPlant={isAddingNewPlant} // Indicate if adding a new base plant
+          displayUserPlantData={true}
+          isAddingNewPlant={isAddingNewPlant}
         />
       )}
 

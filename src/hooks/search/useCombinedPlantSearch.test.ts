@@ -2,9 +2,8 @@ import { renderHook, waitFor } from "@testing-library/react-native";
 
 import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
-
-import { useFetchAPIPlants } from "./useFetchAPIPlants";
 import fetchFirebasePlants from "@helpers/fetchFirebasePlants";
+import { useCombinedPlantSearch } from "./useCombinedPlantSearch";
 
 jest.mock("@helpers/plantAPI/fetchPlantAPI", () => ({
   fetchOpenFarmPlants: jest.fn(),
@@ -16,7 +15,7 @@ jest.mock("@helpers/fetchFirebasePlants", () => jest.fn());
 describe("useFetchAPIPlants", () => {
   it("should set loading to true when searchQuery is not empty", async () => {
     const searchQuery = "test";
-    const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
+    const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
     await waitFor(() => {
     expect(result.current.loading).toBe(true);
     });
@@ -24,7 +23,7 @@ describe("useFetchAPIPlants", () => {
 
   it("should set loading to false and error to null when searchQuery is empty", async () => {
     const searchQuery = "";
-    const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
+    const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
     await waitFor(() => {
     expect(result.current.loading).toBe(false);
     });
@@ -33,11 +32,12 @@ describe("useFetchAPIPlants", () => {
   it("sets plants fetched from Perenual API", async () => {
     (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant]);
     const searchQuery = "test";
-    const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
+    const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
     expect(result.current.loading).toBe(true);
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
+    console.log(`🚀 - KP -  ~ it ~ result.current.plants:`, result.current.plants)
     expect(result.current.plants).toEqual(expect.arrayContaining([expect.objectContaining(mockPlant)]));
   });
 
@@ -46,7 +46,7 @@ describe("useFetchAPIPlants", () => {
     const errorMessage = "Error fetching plants";
     const error = new Error(errorMessage);
     (fetchPerenualPlants as jest.Mock).mockRejectedValue(error);
-    const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
+    const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
     expect(result.current.loading).toBe(true);
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -60,7 +60,7 @@ describe("useFetchAPIPlants", () => {
     (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant, mockPlant2]);
     (fetchFirebasePlants as jest.Mock).mockResolvedValue([mockPlant, mockPlant2,
       { ...mockPlant, id: "3", name: "Unique Plant" }]);
-    const { result } = renderHook(() => useFetchAPIPlants(searchQuery));
+    const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
     
     expect(result.current.loading).toBe(true);
     await waitFor(() => {
