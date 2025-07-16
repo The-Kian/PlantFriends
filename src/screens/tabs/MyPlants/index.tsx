@@ -15,6 +15,7 @@ import { usePlantManagement } from "@hooks/user/usePlantManagement";
 import useUserPlants from "@hooks/user/useUserPlants";
 import { RootState } from "@store/store";
 import { Colors } from "@theme/Colors";
+import { render } from "@testing-library/react-native";
 
 
 
