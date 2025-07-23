@@ -3,7 +3,7 @@ import { IPlant } from "@constants/IPlant";
 
 export const mapPerenualPlantToIPlant = (plant: any): IPlant => {
   const isValidField = (field: string | undefined): boolean =>
-    field !== undefined && !field.includes("Upgrade Plans To Premium");
+    typeof field === "string" && !field.includes("Upgrade Plans To Premium");
 
   const images: string[] = [];
 

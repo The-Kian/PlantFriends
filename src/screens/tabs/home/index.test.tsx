@@ -1,4 +1,3 @@
-// First, declare simple mocks without references to external variables
 
 import React from 'react';
 

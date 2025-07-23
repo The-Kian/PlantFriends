@@ -1,4 +1,3 @@
-
 import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
 import { useContext } from "react";
@@ -8,8 +7,6 @@ import LoginScreen from "@screens/auth/login";
 import SignupScreen from "@screens/auth/signup";
 import PlantSearchScreen from "@screens/PlantSearch";
 import ProfileSettingsScreen from "@screens/settings/profile";
-import SubmitPlantScreen from "@screens/SubmitPlant";
-
 
 import TabNavigator from "./TabNavigator";
 
@@ -41,11 +38,6 @@ export default function RootLayout({ initialRouteName }: RootLayoutProps) {
           <Stack.Screen
             name="PlantSearch"
             component={PlantSearchScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="SubmitPlant"
-            component={SubmitPlantScreen}
             options={{ headerShown: false }}
           />
         </>

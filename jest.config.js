@@ -24,6 +24,21 @@ module.exports = {
     "^@test-utils/(.*)$": "<rootDir>/src/test-utils/$1",
     "^@env$": "<rootDir>/__mocks__/@env.ts",
   },
-  coveragePathIgnorePatterns: ["jest/*", "src/test-utils/*", "src/context/auth/AuthTypes.tsx"],
+  coveragePathIgnorePatterns: [
+    "jest/*",
+    "src/test-utils/*",
+    "src/context/auth/AuthTypes.tsx",
+  ],
   setupFilesAfterEnv: ["<rootDir>/jest/setup.js"],
+  collectCoverageFrom: [
+    "src/**/*.{js,jsx,ts,tsx}",
+    "!src/**/*.d.ts",
+    "!src/test-utils/**",
+    "!**/**styles.ts",
+    "!**/TabBarIcon.tsx",
+    "!**/types.ts",
+    "!**/constants/**",
+    "!**/ThemedView.tsx",
+    "!**/ThemedText.tsx",
+  ],
 };

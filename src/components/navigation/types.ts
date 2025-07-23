@@ -6,4 +6,5 @@ export type RootStackParamList = {
   PlantSearch: undefined;
   SubmitPlant: undefined;
   Tab: undefined;
+  Initial: undefined;
 };

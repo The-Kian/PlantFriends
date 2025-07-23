@@ -7,8 +7,8 @@ const mockUser: FirebaseAuthTypes.User = {
     emailVerified: false,
     isAnonymous: false,
     metadata: {
-      creationTime: "",
-      lastSignInTime: ""
+        creationTime: "",
+        lastSignInTime: ""
     },
     multiFactor: null,
     phoneNumber: null,
@@ -36,9 +36,6 @@ const mockUser: FirebaseAuthTypes.User = {
     reauthenticateWithCredential: function (credential: FirebaseAuthTypes.AuthCredential): Promise<FirebaseAuthTypes.UserCredential> {
         throw new Error("Function not implemented.");
     },
-    reauthenticateWithProvider: function (provider: FirebaseAuthTypes.AuthProvider): Promise<FirebaseAuthTypes.UserCredential> {
-        throw new Error("Function not implemented.");
-    },
     reload: function (): Promise<void> {
         throw new Error("Function not implemented.");
     },
@@ -64,6 +61,12 @@ const mockUser: FirebaseAuthTypes.User = {
         throw new Error("Function not implemented.");
     },
     updateProfile: function (updates: FirebaseAuthTypes.UpdateProfile): Promise<void> {
+        throw new Error("Function not implemented.");
+    },
+    reauthenticateWithRedirect: function (provider: FirebaseAuthTypes.AuthProvider): Promise<void> {
+        throw new Error("Function not implemented.");
+    },
+    reauthenticateWithPopup: function (provider: FirebaseAuthTypes.AuthProvider): Promise<FirebaseAuthTypes.UserCredential> {
         throw new Error("Function not implemented.");
     }
 }

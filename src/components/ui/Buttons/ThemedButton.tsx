@@ -26,9 +26,10 @@ function ThemedButton({ title, onPress,additionalStyle, variant: variant = 'defa
 
   return (
     <Pressable
-    onPress={onPress}
-    style={({ pressed }) => [buttonStyles.button, varientStyle, additionalStyle,
-       pressed && buttonStyles.buttonPressed]}
+      testID="themed-button"
+      onPress={onPress}
+      style={({ pressed }) => [buttonStyles.button, varientStyle, additionalStyle,
+        pressed && buttonStyles.buttonPressed]}
     >
         <ThemedText>{title}</ThemedText>
          </Pressable>
