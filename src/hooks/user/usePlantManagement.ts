@@ -40,31 +40,38 @@ export const usePlantManagement = () => {
     value: IUserPlant[K]
   ) => {
     setUserPlant((prevUserData) => {
-        const updatedUserData = prevUserData || {
-            id: uuid.v4().toString(), // Initialize if null
-            userId: user?.uid || "",
-            plantId: selectedPlant?.id || "",
-            custom_attributes: {},
-          };
+      const updatedUserData = prevUserData || {
+        id: uuid.v4().toString(), // Initialize if null
+        userId: user?.uid || "",
+        plantId: selectedPlant?.id || "",
+        custom_attributes: {},
+      };
 
-          return {
-            ...updatedUserData,
-            [field]: value,
-          };
+      return {
+        ...updatedUserData,
+        [field]: value,
+      };
     });
   };
 
-
-  const handleSavePlant = async (updatedUserPlant: IUserPlant, plant: IPlant) => {
+  const handleSavePlant = async (
+    updatedUserPlant: IUserPlant,
+    plant: IPlant
+  ) => {
     try {
       if (user) {
-        const savedPlant = await savePlantToFirebase(updatedUserPlant, plant, user);
+        const savedPlant = await savePlantToFirebase(
+          updatedUserPlant,
+          plant,
+          user
+        );
         if (savedPlant) {
           dispatch(addPlant(savedPlant));
           setUserPlant(savedPlant);
           setSelectedPlant(null);
           return true;
         }
+        return false;
       }
       return false;
     } catch (error) {
@@ -75,7 +82,7 @@ export const usePlantManagement = () => {
 
   const handleDeletePlant = async (plant: IUserPlant) => {
     try {
-        dispatch(deletePlant(plant.id));
+      dispatch(deletePlant(plant.id));
     } catch (error) {
       console.error("Error deleting plant:", error);
     }

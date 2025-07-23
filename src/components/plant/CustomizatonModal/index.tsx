@@ -1,8 +1,5 @@
 // PlantCustomizationModal.tsx
 
-
-import { useEffect, useState } from "react";
-
 import { Modal, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
 

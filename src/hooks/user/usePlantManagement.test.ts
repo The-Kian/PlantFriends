@@ -73,13 +73,13 @@ describe("usePlantManagement", () => {
       await act(async () => {
         await result.current.handleSelectPlant(mockPlant);
       });
-      
+
       // Assert
       expect(result.current.selectedPlant).toEqual(mockPlant);
       expect(result.current.userPlant).toBeNull();
       expect(getUserPlantData).not.toHaveBeenCalled();
     });
-  }); 
+  });
 
   it("should handle plant attribute changes", () => {
     const { result } = renderHook(() => usePlantManagement());
@@ -90,7 +90,7 @@ describe("usePlantManagement", () => {
       name: "My Custom Monstera",
     });
   });
-  
+
   it("should handle user data changes", () => {
     const { result } = renderHook(() => usePlantManagement());
     act(() => {
@@ -102,91 +102,140 @@ describe("usePlantManagement", () => {
     });
   });
 
-  it("should handle saving a plant and reset state", async () => {
-    // Arrange
-    const newSavedPlant = { ...mockUserPlant, id: "newPlantId" };
-    (savePlantToFirebase as jest.Mock).mockResolvedValue(newSavedPlant);
-    const { result } = renderHook(() => usePlantManagement());
-    const savePromise = await waitFor(() =>
-       result.current.handleSavePlant(mockUserPlant, mockPlant)
-    );
+  describe("handleSavePlant", () => {
+    it("should handle saving a plant and reset state", async () => {
+      // Arrange
+      const newSavedPlant = { ...mockUserPlant, id: "newPlantId" };
+      (savePlantToFirebase as jest.Mock).mockResolvedValue(newSavedPlant);
+      const { result } = renderHook(() => usePlantManagement());
+      const savePromise = await waitFor(() =>
+        result.current.handleSavePlant(mockUserPlant, mockPlant)
+      );
 
-    const success = await savePromise;
-    expect(success).toBe(true);
+      const success = await savePromise;
+      expect(success).toBe(true);
 
-    expect(savePlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant, mockUser);
-    expect(mockDispatch).toHaveBeenCalledWith(addPlant(newSavedPlant));
+      expect(savePlantToFirebase).toHaveBeenCalledWith(
+        mockUserPlant,
+        mockPlant,
+        mockUser
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(addPlant(newSavedPlant));
 
-    await waitFor(() => {
+      await waitFor(() => {
         expect(result.current.selectedPlant).toBeNull();
       });
       expect(result.current.userPlant).toEqual(newSavedPlant);
-});
+    });
 
-  it("should dispatch deletePlant action when handleDeletePlant is called", () => {
-    const { result } = renderHook(() => usePlantManagement());
-    result.current.handleDeletePlant(mockUserPlant);
-    expect(mockDispatch).toHaveBeenCalledWith(deletePlant(mockUserPlant.id));
-    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    describe("handleDeletePlant", () => {
+      it("should dispatch deletePlant action when handleDeletePlant is called", () => {
+        const { result } = renderHook(() => usePlantManagement());
+        result.current.handleDeletePlant(mockUserPlant);
+        expect(mockDispatch).toHaveBeenCalledWith(
+          deletePlant(mockUserPlant.id)
+        );
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
+      });
+
+      describe("handleUpdatePlant", () => {
+        it("should dispatch updatePlant action if user exists", () => {
+          const { result } = renderHook(() => usePlantManagement());
+          const updatedPlantData = {
+            ...mockUserPlant,
+            custom_name: "New Name",
+          };
+          result.current.handleUpdatePlant(updatedPlantData);
+          expect(mockDispatch).toHaveBeenCalledWith(
+            updatePlant(updatedPlantData)
+          );
+          expect(mockDispatch).toHaveBeenCalledTimes(1);
+        });
+
+        it("should NOT dispatch updatePlant action if user is null", () => {
+          jest.spyOn(React, "useContext").mockReturnValue({ user: null });
+          const { result } = renderHook(() => usePlantManagement());
+          result.current.handleUpdatePlant(mockUserPlant);
+          expect(mockDispatch).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe("error handling", () => {
+      it("should log an error if handleSavePlant fails", async () => {
+        // Arrange
+        const error = new Error("Failed to save plant");
+        (savePlantToFirebase as jest.Mock).mockRejectedValue(error);
+        const consoleErrorSpy = jest
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
+        const { result } = renderHook(() => usePlantManagement());
+
+        // Act
+        const success = await waitFor(async () => {
+          return await result.current.handleSavePlant(mockUserPlant, mockPlant);
+        });
+
+        // Assert
+        expect(success).toBe(false);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          "Error saving plant:",
+          error
+        );
+
+        // Cleanup
+        consoleErrorSpy.mockRestore();
+      });
+
+      it("should log an error if handleDeletePlant fails", async () => {
+        // Arrange
+        const error = new Error("Failed to delete plant");
+        mockDispatch.mockImplementation(() => {
+          throw error;
+        });
+        const consoleErrorSpy = jest
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
+        const { result } = renderHook(() => usePlantManagement());
+
+        // Act
+        await waitFor(async () => {
+          await result.current.handleDeletePlant(mockUserPlant);
+        });
+
+        // Assert
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          "Error deleting plant:",
+          error
+        );
+
+        // Cleanup
+        consoleErrorSpy.mockRestore();
+      });
+
+      it("should log an error if handleUpdatePlant fails", () => {
+        // Arrange
+        const error = new Error("Failed to update plant");
+        mockDispatch.mockImplementation(() => {
+          throw error;
+        });
+        const consoleErrorSpy = jest
+          .spyOn(console, "error")
+          .mockImplementation(() => {});
+        const { result } = renderHook(() => usePlantManagement());
+
+        // Act
+        result.current.handleUpdatePlant(mockUserPlant);
+
+        // Assert
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          "Error updating plant:",
+          error
+        );
+
+        // Cleanup
+        consoleErrorSpy.mockRestore();
+      });
+    });
   });
-
-  describe("handleUpdatePlant", () => {
-    it("should dispatch updatePlant action if user exists", () => {
-      const { result } = renderHook(() => usePlantManagement());
-      const updatedPlantData = { ...mockUserPlant, custom_name: "New Name" };
-      result.current.handleUpdatePlant(updatedPlantData);
-      expect(mockDispatch).toHaveBeenCalledWith(updatePlant(updatedPlantData));
-      expect(mockDispatch).toHaveBeenCalledTimes(1);
-    });
-
-    it("should NOT dispatch updatePlant action if user is null", () => {
-      jest.spyOn(React, "useContext").mockReturnValue({ user: null });
-      const { result } = renderHook(() => usePlantManagement());
-      result.current.handleUpdatePlant(mockUserPlant);
-      expect(mockDispatch).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("error handling", () => {
-    it("should log an error if handleSavePlant fails", async () => {
-      // Arrange
-      const error = new Error("Failed to save plant");
-      (savePlantToFirebase as jest.Mock).mockRejectedValue(error);
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-      const { result } = renderHook(() => usePlantManagement());
-    
-      // Act
-      const success = await waitFor(async () => {
-        return await result.current.handleSavePlant(mockUserPlant, mockPlant);
-      });
-    
-      // Assert
-      expect(success).toBe(false);
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error saving plant:", error);
-    
-      // Cleanup
-      consoleErrorSpy.mockRestore();
-    });
-
-    it("should log an error if handleDeletePlant fails", async () => {
-      // Arrange
-      const error = new Error("Failed to delete plant");
-      mockDispatch.mockImplementation(() => {
-        throw error;
-      });
-      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-      const { result } = renderHook(() => usePlantManagement());
-    
-      // Act
-      await waitFor(async () => {
-        await result.current.handleDeletePlant(mockUserPlant);
-      });
-    
-      // Assert
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Error deleting plant:", error);
-    
-      // Cleanup
-      consoleErrorSpy.mockRestore();
-    });
-  })
 });
