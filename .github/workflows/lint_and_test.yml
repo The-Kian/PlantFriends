@@ -19,7 +19,7 @@ jobs:
       - name: Enable and prepare Corepack
         run: |
           corepack enable
-          corepack prepare yarn@3.6.3 --activate
+          corepack prepare yarn@4.4.0 --activate
           yarn --version
 
       - name: ⎔ Setup node
