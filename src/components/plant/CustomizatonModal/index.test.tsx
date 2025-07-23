@@ -1,5 +1,5 @@
 
-import { render, fireEvent, screen } from "@testing-library/react-native";
+import { render, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
 import { IUserPlant } from "@constants/IPlant";
 import { AuthContext } from "@context/auth/AuthProvider";
@@ -48,16 +48,18 @@ describe("PlantCustomizationModal", () => {
 
   it("calls onSave with correct arguments when the Save button is pressed", async () => {
     renderComponent();
-    await fireEvent.press(screen.getByText("Save"));
-    expect(mockOnSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: expect.any(String),
-        userId: "user1",
-        plantId: "1",
-        custom_attributes: expect.objectContaining({}),
-      }),
-      mockPlant
-    );
+    fireEvent.press(screen.getByText("Save"));
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(String),
+          userId: "user1",
+          plantId: "1",
+          custom_attributes: expect.objectContaining({}),
+        }),
+        mockPlant
+      );
+    });
     expect(mockOnClose).toHaveBeenCalled();
   });
 });

@@ -1,5 +1,8 @@
+import { NavigationProp } from "@react-navigation/native";
 import React, { useState, useContext, useEffect } from "react";
+
 import { Text } from "react-native";
+import uuid from "react-native-uuid";
 
 import { RootStackParamList } from "@components/navigation/types";
 import PlantCustomizationModal from "@components/plant/CustomizatonModal";
@@ -8,15 +11,12 @@ import TextInputField from "@components/ui/Input/TextInputField";
 import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@constants/IPlant";
-import { useCombinedPlantSearch } from "@hooks/search/useCombinedPlantSearch";
-
-
-import uuid from "react-native-uuid";
 import { AuthContext } from "@context/auth/AuthProvider";
 import savePlantToFirebase from "@helpers/savePlantToFirebase";
+import { useCombinedPlantSearch } from "@hooks/search/useCombinedPlantSearch";
+
 import styles from "./index.styles";
 import PlantSearchResults from "./Results";
-import { NavigationProp } from "@react-navigation/native";
 
 interface PlantSearchScreenProps {
   navigation: NavigationProp<RootStackParamList>;

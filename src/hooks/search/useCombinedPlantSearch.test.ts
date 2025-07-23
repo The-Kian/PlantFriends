@@ -1,8 +1,9 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
+import fetchFirebasePlants from "@helpers/fetchFirebasePlants";
 import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
-import fetchFirebasePlants from "@helpers/fetchFirebasePlants";
+
 import { useCombinedPlantSearch } from "./useCombinedPlantSearch";
 
 jest.mock("@helpers/plantAPI/fetchPlantAPI", () => ({

@@ -1,6 +1,7 @@
 import firestore from "@react-native-firebase/firestore";
 
 import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+
 import fetchFirebasePlants from "./fetchFirebasePlants";
 
 jest.mock("@react-native-firebase/firestore");

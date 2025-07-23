@@ -12,9 +12,9 @@ import { Collapsible } from "@components/ui/Views/Collapsible";
 import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@components/ui/Views/ThemedView";
 import { usePlantManagement } from "@hooks/user/usePlantManagement";
+import useUserPlants from "@hooks/user/useUserPlants";
 import { RootState } from "@store/store";
 import { Colors } from "@theme/Colors";
-import useUserPlants from "@hooks/user/useUserPlants";
 
 
 
