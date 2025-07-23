@@ -11,8 +11,8 @@ import { ThemedText } from "@components/ui/Text/ThemedText";
 import { Collapsible } from "@components/ui/Views/Collapsible";
 import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@components/ui/Views/ThemedView";
-import { useUserPlantDataHandlers } from "@hooks/userPlantDataHandlers";
-import useUserPlants from "@hooks/useUserPlants";
+import { usePlantManagement } from "@hooks/user/usePlantManagement";
+import useUserPlants from "@hooks/user/useUserPlants";
 import { RootState } from "@store/store";
 import { Colors } from "@theme/Colors";
 
@@ -24,7 +24,7 @@ export default function MyPlantsScreen() {
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
   const { getPlants } = useUserPlants();
-  const { handleDeletePlant } = useUserPlantDataHandlers();
+  const { handleDeletePlant } = usePlantManagement();
 
   useEffect(() => {
     getPlants();
@@ -36,7 +36,12 @@ export default function MyPlantsScreen() {
 
   const renderPlantsByLocation = (location: string) => {
     const plantsInLocation = userPlants.filter(
-      (plant) => plant.houseLocation === location
+      (plant) => {
+        if (location === "Other") {
+          return !plant.houseLocation || plant.houseLocation === "";
+        }
+        return plant.houseLocation === location;
+      }
     );
 
     return (
@@ -75,6 +80,10 @@ export default function MyPlantsScreen() {
 
       <Collapsible title="Kitchen">
         {renderPlantsByLocation("Kitchen")}
+      </Collapsible>
+
+      <Collapsible title="Other Rooms">
+      {renderPlantsByLocation("Other")}
       </Collapsible>
     </ParallaxScrollView>
   );

@@ -1,6 +1,6 @@
 import { Text, type TextProps, StyleSheet } from 'react-native';
 
-import { useTheme } from '@hooks/useTheme';
+import { useTheme } from '@hooks/utils/useTheme';
 
 
 

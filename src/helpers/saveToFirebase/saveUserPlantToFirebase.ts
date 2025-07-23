@@ -27,7 +27,8 @@ const saveUserPlantToFirebase = async (
       .set(userPlantData);
     return true;
   } catch (error) {
-    console.error("Error saving user plant data: ", error);
+    console.error("saveUserPlantToFirebase: Error saving user plant data: ", error);
+    console.log(`🚀 - KP -  ~ userPlantData:`, userPlantData)
     return false;
   }
 };

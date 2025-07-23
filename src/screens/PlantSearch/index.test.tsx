@@ -3,139 +3,185 @@
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import React from "react";
 
-import { Text } from "react-native";
+import { Text, Button } from "react-native";
 
 import { screen, waitFor, fireEvent } from "@testing-library/react-native";
 
-import { useFetchAPIPlants } from "@hooks/useFetchAPIPlants";
-import usePlantDetails from "@hooks/usePlantDetails";
-import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
+import { RootStackParamList } from "@components/navigation/types";
+import { AuthContext } from "@context/auth/AuthProvider";
+import savePlantToFirebase from "@helpers/savePlantToFirebase";
+import { useCombinedPlantSearch } from "@hooks/search/useCombinedPlantSearch";
+import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import mockUser from "@test-utils/MockFirebaseUser";
+import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
 import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 import PlantSearchScreen from "./";
 
+jest.mock("./Results", () => {
+  const MockResults = (props: { plants: any[], onSelectPlant: (plant: any) => void }) => {
+    const { View, Button } = require("react-native");
+    return (
+      <View>
+        {props.plants.map((plant) => (
+          <Button
+            key={plant.id}
+            title={plant.name}
+            onPress={() => props.onSelectPlant(plant)}
+            testID={`select-${plant.name}`}
+          />
+        ))}
+      </View>
+    )
+  };
+  MockResults.displayName = "MockResults";
+  return MockResults;
+});
 
-jest.mock("@hooks/useFetchAPIPlants");
+jest.mock("@components/plant/CustomizatonModal", () => {
+  const MockCustomizationModal =
+  (props: {
+  plant?: any;
+  userPlant?: any;
+  onSave: (u: any, p: any) => void;
+  onClose: () => void;
+  isAddingNewPlant: boolean;
+}) => {
+  const { View, Button, Text } = require("react-native");
+  const handleSave = () => {
+    // This mock behaves differently depending on if we are adding or editing
+    if (props.isAddingNewPlant) {
+      // Use imported mocks to simulate saving a new plant
+      props.onSave(mockUserPlant, mockPlant);
+    } else {
+      // Use the data passed via props when editing an existing plant
+      props.onSave(props.userPlant, props.plant);
+    }
+  };
+  return (
+    <View>
+      <Text>Mock Customization Modal</Text>
+      <Button title="Save" onPress={handleSave} testID="save-button" />
+      <Button title="Close" onPress={props.onClose} testID="close-button" />
+    </View>
+  )}
+  MockCustomizationModal.displayName = "MockCustomizationModal";
+  return MockCustomizationModal;
+});
 
-jest.mock("@hooks/usePlantDetails", () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
+// Mock helper functions and hooks
+jest.mock("@hooks/search/useCombinedPlantSearch");
+jest.mock("@helpers/savePlantToFirebase");
+jest.mock("react-native-uuid", () => ({ v4: () => "mock-uuid-123" }));
 
+// --- Test Suite ---
 describe("PlantSearchScreen", () => {
-  const Stack = createStackNavigator();
+  const Stack = createStackNavigator<RootStackParamList>();
 
-  const MockScreen = ({ navigation }: any) => (
-    <Text onPress={() => navigation.navigate("PlantSearchScreen")}>
-      Go To PlantSearchScreen
-    </Text>
+  // Mock screens to test navigation TO and FROM
+  const MockTabScreen = () => <Text>You are on the Tab screen</Text>;
+  const InitialTestScreen = ({ navigation }: any) => (
+    <Button title="Go to Search" onPress={() => navigation.navigate("PlantSearch")} />
   );
 
-  const renderWithNavigation = (initialRouteName = "PlantSearchScreen") => {
+  // A custom render function that provides a real navigator and all necessary contexts
+  const renderComponent = (initialRoute: keyof RootStackParamList = "PlantSearch") => {
     return renderWithProviders(
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{ animation: "none" }}
-          initialRouteName={initialRouteName}
-        >
-          <Stack.Screen
-            name="PlantSearchScreen"
-            component={PlantSearchScreen}
-          />
-          <Stack.Screen name="SubmitPlant" component={MockScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AuthContext.Provider value={mockAuthContextValue}>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName={initialRoute}>
+            <Stack.Screen name="Initial" component={InitialTestScreen} />
+            <Stack.Screen name="PlantSearch" component={PlantSearchScreen} />
+            <Stack.Screen name="Tab" component={MockTabScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthContext.Provider>
     );
   };
 
-  const mockHandleSaveToFirebase = jest.fn().mockResolvedValueOnce(true);
-  const mockCloseModal = jest.fn();
   beforeEach(() => {
-    (usePlantDetails as jest.Mock).mockReturnValue({
-      selectedPlant: mockPlant,
-      userPlant: mockUserPlant, // Explicitly set userId here
-      handleSelectPlant: jest.fn(),
-      handleSaveToFirebase: mockHandleSaveToFirebase,
-      closeModal: mockCloseModal,
+    jest.clearAllMocks();
+    (useCombinedPlantSearch as jest.Mock).mockReturnValue({
+      plants: [], loading: false, error: null,
     });
   });
 
-
-  it("renders correctly", () => {
-    (useFetchAPIPlants as jest.Mock).mockReturnValue({
-      plants: [],
-      loading: false,
-      error: null,
-    });
-    renderWithNavigation();
-    expect(screen.getByText("Search for a plant")).toBeVisible();
-  });
-  it("Shows loading overlay when loading", () => {
-    const searchQuery = "test";
-
-    (useFetchAPIPlants as jest.Mock).mockReturnValue({
-      plants: [],
-      loading: true,
-      error: null,
-    });
-
-    renderWithNavigation();
-
-    // Find the input field and set the value
-    const searchInput = screen.getByLabelText("Search for a plant input field");
-    fireEvent.changeText(searchInput, searchQuery);
-
-    expect(screen.getByText(`Searching for ${searchQuery}`)).toBeVisible();
-  });
-
-  it("Shows error message when error", () => {
-    (useFetchAPIPlants as jest.Mock).mockReturnValue({
-      plants: [],
-      loading: false,
-      error: "Error fetching plants",
-    });
-
-    renderWithNavigation();
-
-    expect(screen.getByText("Error fetching plants")).toBeVisible();
-  });
-
-  it("Should navigate to submit plant screen when submit plant button is selected", async () => {
-    (useFetchAPIPlants as jest.Mock).mockReturnValue({
-      plants: [mockPlant, mockPlant2],
-      loading: false,
-      error: null,
-    });
-    renderWithNavigation();
-
-    fireEvent.press(screen.getByText("Submit new plant to database"));
-    expect(screen.getByText("Go To PlantSearchScreen")).toBeVisible();
-  });
-
-  it("Should navigate back", () => {
-    renderWithNavigation("SubmitPlant");
-    fireEvent.press(screen.getByText("Go To PlantSearchScreen"));
-    expect(screen.getByText("Search for a plant")).toBeVisible();
-    fireEvent.press(screen.getByText("Go Back"));
-    expect(screen.getByText("Go To PlantSearchScreen")).toBeVisible();
-  });
-
-  it("calls handleSaveToFirebase, dispatches addPlant and navigates back when save button is pressed", async () => {
-    const mockDispatch = jest.fn();
-    jest.spyOn(require("react-redux"), "useDispatch").mockReturnValue(mockDispatch);
-
-    renderWithNavigation();
-    const saveButton = screen.getByText("Save");
-    fireEvent.press(saveButton);
+  it("opens modal with user data when a plant is selected", async () => {
+    (useCombinedPlantSearch as jest.Mock).mockReturnValue({ plants: [mockPlant] });
+    renderComponent();
+    fireEvent.press(screen.getByTestId(`select-${mockPlant.name}`));
     await waitFor(() => {
-      expect(mockHandleSaveToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant);
+      expect(screen.getByText("Mock Customization Modal")).toBeVisible();
     });
-    expect(mockCloseModal).toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: "userPlants/addPlant",
-      payload: mockUserPlant,
-    });
-  })
+  });
 
+  it("opens modal in 'add new' mode when button is pressed", async () => {
+    renderComponent();
+    fireEvent.press(screen.getByText("Add a new plant (not in search results)"));
+    await waitFor(() => {
+      expect(screen.getByText("Mock Customization Modal")).toBeVisible();
+    });
+  });
+
+  it("closes the modal when the close action is triggered", async () => {
+    (useCombinedPlantSearch as jest.Mock).mockReturnValue({ plants: [mockPlant] });
+    renderComponent();
+
+    fireEvent.press(screen.getByTestId(`select-${mockPlant.name}`));
+    await screen.findByText("Mock Customization Modal");
+    fireEvent.press(screen.getByTestId("close-button"));
+    await waitFor(() => {
+      expect(screen.queryByText("Mock Customization Modal")).toBeNull();
+    });
+  });
+
+  it("navigates to Tab screen after saving a selected plant", async () => {
+    (useCombinedPlantSearch as jest.Mock).mockReturnValue({ plants: [mockPlant] });
+    renderComponent();
+
+    fireEvent.press(screen.getByTestId(`select-${mockPlant.name}`));
+    await screen.findByText("Mock Customization Modal");
+    fireEvent.press(screen.getByTestId("save-button"));
+
+    await waitFor(() => {
+      expect(savePlantToFirebase).toHaveBeenCalledWith(
+        expect.objectContaining({ plantId: mockPlant.id, id: "mock-uuid-123" }),
+        mockPlant,
+        mockUser
+      );
+    });
+    expect(screen.getByText("You are on the Tab screen")).toBeVisible();
+  });
+
+  it("navigates to Tab screen after saving a new plant", async () => {
+    renderComponent();
+
+    fireEvent.press(screen.getByText("Add a new plant (not in search results)"));
+    await screen.findByText("Mock Customization Modal");
+    fireEvent.press(screen.getByTestId("save-button"));
+
+    await waitFor(() => {
+      expect(savePlantToFirebase).toHaveBeenCalledWith(
+        expect.objectContaining({ plantId: mockPlant.id }),
+        mockPlant,
+        mockUser
+      )
+    })
+    expect(screen.getByText("You are on the Tab screen")).toBeVisible();
+  });
+
+  it("navigates back when 'Go Back' is pressed", async () => {
+    renderComponent('Initial');
+
+    fireEvent.press(screen.getByText("Go to Search"));
+    await screen.findByText("Go Back");
+
+    fireEvent.press(screen.getByText("Go Back"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Go to Search")).toBeVisible();
+    });
+  });
 });
