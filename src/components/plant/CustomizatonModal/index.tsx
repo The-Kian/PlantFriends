@@ -29,8 +29,6 @@ const PlantCustomizationModal = ({
   displayUserPlantData,
   isAddingNewPlant, // New prop to indicate if adding a new plant
 }: PlantCustomizationModalProps) => {
-  const [isVisible, setIsVisible] = useState(false);
-
   const styles = useCustomizationStyles();
   // Use initial values from props or create new ones if adding a new plant
   const initialPlantData = isAddingNewPlant ? { id: uuid.v4().toString() } : plant;
@@ -38,28 +36,19 @@ const PlantCustomizationModal = ({
     ? { userId: "", plantId: "", id: uuid.v4().toString(), custom_attributes: {} } // Create a new temporary ID for new user plants
     : userPlant;
 
-  useEffect(() => {
-    if (plant || isAddingNewPlant) {
-      setIsVisible(true);
-    } else {
-      setIsVisible(false);
-    }
-  }, [plant, isAddingNewPlant]);
-
   const handleSave = async (userData: IUserPlant, plantData: IPlant) => {
-    console.log("handleSave called", userData, plantData);
     await onSave(userData, plantData);
     onClose();
   };
 
   return (
     <Modal
-      visible={isVisible}
+
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
     >
-      <ThemedView style={styles.modalOverlay}>
+      <ThemedView style={styles.modalOverlay} testID="plant-customization-modal">
         <ScrollView contentContainerStyle={styles.modal}>
           <PlantForm
             initialPlantData={initialPlantData}

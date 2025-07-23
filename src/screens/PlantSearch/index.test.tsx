@@ -20,8 +20,6 @@ import { renderWithProviders } from "@test-utils/renderWithProviders";
 
 import PlantSearchScreen from "./";
 
-// --- Mocks ---
-// Mock child components to control props and test interactions
 jest.mock("./Results", () => {
   const MockResults = (props: { plants: any[], onSelectPlant: (plant: any) => void }) => {
     const { View, Button } = require("react-native");
@@ -113,11 +111,7 @@ describe("PlantSearchScreen", () => {
   it("opens modal with user data when a plant is selected", async () => {
     (useCombinedPlantSearch as jest.Mock).mockReturnValue({ plants: [mockPlant] });
     renderComponent();
-
-    // Act
     fireEvent.press(screen.getByTestId(`select-${mockPlant.name}`));
-
-    // Assert: Modal opens (this covers handleSelectPlant & useEffect)
     await waitFor(() => {
       expect(screen.getByText("Mock Customization Modal")).toBeVisible();
     });
@@ -125,11 +119,7 @@ describe("PlantSearchScreen", () => {
 
   it("opens modal in 'add new' mode when button is pressed", async () => {
     renderComponent();
-
-    // Act (this covers handleAddNewPlant)
     fireEvent.press(screen.getByText("Add a new plant (not in search results)"));
-
-    // Assert
     await waitFor(() => {
       expect(screen.getByText("Mock Customization Modal")).toBeVisible();
     });
@@ -141,11 +131,7 @@ describe("PlantSearchScreen", () => {
 
     fireEvent.press(screen.getByTestId(`select-${mockPlant.name}`));
     await screen.findByText("Mock Customization Modal");
-
-    // Act (this covers closeModal)
     fireEvent.press(screen.getByTestId("close-button"));
-
-    // Assert
     await waitFor(() => {
       expect(screen.queryByText("Mock Customization Modal")).toBeNull();
     });
@@ -155,12 +141,10 @@ describe("PlantSearchScreen", () => {
     (useCombinedPlantSearch as jest.Mock).mockReturnValue({ plants: [mockPlant] });
     renderComponent();
 
-    // Act (this covers the 'edit' path of handleSave)
     fireEvent.press(screen.getByTestId(`select-${mockPlant.name}`));
     await screen.findByText("Mock Customization Modal");
     fireEvent.press(screen.getByTestId("save-button"));
 
-    // Assert
     await waitFor(() => {
       expect(savePlantToFirebase).toHaveBeenCalledWith(
         expect.objectContaining({ plantId: mockPlant.id, id: "mock-uuid-123" }),
@@ -174,12 +158,10 @@ describe("PlantSearchScreen", () => {
   it("navigates to Tab screen after saving a new plant", async () => {
     renderComponent();
 
-    // Act (this covers the 'add new' path of handleSave)
     fireEvent.press(screen.getByText("Add a new plant (not in search results)"));
     await screen.findByText("Mock Customization Modal");
     fireEvent.press(screen.getByTestId("save-button"));
 
-    // Assert
     await waitFor(() => {
       expect(savePlantToFirebase).toHaveBeenCalledWith(
         expect.objectContaining({ plantId: mockPlant.id }),
@@ -191,17 +173,13 @@ describe("PlantSearchScreen", () => {
   });
 
   it("navigates back when 'Go Back' is pressed", async () => {
-    // Start on a different screen to test the "back" action
     renderComponent('Initial');
 
-    // Navigate to the screen we want to test
     fireEvent.press(screen.getByText("Go to Search"));
     await screen.findByText("Go Back");
 
-    // Act
     fireEvent.press(screen.getByText("Go Back"));
 
-    // Assert: Check that we are back on the initial screen
     await waitFor(() => {
       expect(screen.getByText("Go to Search")).toBeVisible();
     });
