@@ -15,12 +15,6 @@ jobs:
     steps:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
-            
-      - name: Enable and prepare Corepack
-        run: |
-          corepack enable
-          corepack prepare yarn@4.4.0 --activate
-          yarn --version
 
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
@@ -28,11 +22,17 @@ jobs:
           node-version: 'lts/*'
           cache: 'yarn'
 
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Yarn
+        run: corepack prepare yarn@4.4.0 --activate
+
       - name: 📥 Install deps
         run: yarn install
 
       - name: 🔬 Lint
         run: 'yarn eslint . --rule "import/order: off"'
-        
+
       - name: 🧪 Test
         run: yarn test
