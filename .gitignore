@@ -59,4 +59,8 @@ expo-env.d.ts
 # @end expo-cli
 
 .yarn/*
-!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
