@@ -58,4 +58,5 @@ yarn-error.*
 expo-env.d.ts
 # @end expo-cli
 
-.yarn/releases/*
+.yarn/*
+!.yarn/cache
