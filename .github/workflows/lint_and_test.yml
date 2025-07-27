@@ -16,14 +16,14 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: ⎔ Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
           cache: 'yarn'
-
-      - name: Enable Corepack
-        run: corepack enable
 
       - name: Install Yarn
         run: corepack prepare yarn@4.4.0 --activate
