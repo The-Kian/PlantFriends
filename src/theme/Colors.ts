@@ -1,8 +1,5 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
 
+<<<<<<< HEAD
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
 
@@ -32,5 +29,43 @@ export const Colors = {
     border: "#39424E",
     greenButton: "#00A86B",
     redButton: "#FF0000",
+=======
+
+const primaryGreen = '#4A5D50';
+const accentYellow = '#E5C95F';
+const lightText = '#FFFFFF';
+const cardBackground = '#637C6A';
+const inactiveGray = '#E0E0E0';
+const errorRed = '#FF5252';
+const subtleBorder = '#7C8B7E';
+
+
+export const Colors = {
+  light: {
+    text: lightText,
+    background: primaryGreen,
+    tint: accentYellow,
+    icon: lightText,
+    tabIconDefault: inactiveGray,
+    tabIconSelected: accentYellow,
+    headerBackground: primaryGreen,
+    card: cardBackground,
+    button: accentYellow,
+    border: subtleBorder,
+    error: errorRed,
+  },
+  dark: {
+    text: lightText,
+    background: primaryGreen,
+    tint: accentYellow,
+    icon: lightText,
+    tabIconDefault: inactiveGray,
+    tabIconSelected: accentYellow,
+    headerBackground: primaryGreen,
+    card: cardBackground,
+    button: accentYellow,
+    border: subtleBorder,
+    error: errorRed,
+>>>>>>> 5eae45e (PlantCard created)
   },
 };
