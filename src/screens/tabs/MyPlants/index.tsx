@@ -15,6 +15,7 @@ import { usePlantManagement } from "@hooks/user/usePlantManagement";
 import useUserPlants from "@hooks/user/useUserPlants";
 import { RootState } from "@store/store";
 import { Colors } from "@theme/Colors";
+import PlantCard from "@components/plant/plantCard";
 
 
 export default function MyPlantsScreen() {
@@ -45,13 +46,19 @@ export default function MyPlantsScreen() {
     return (
       <ThemedView>
         {plantsInLocation.map((item) => (
-          <ThemedView key={item.id}>
-            <ThemedText>{item.custom_name || "Unnamed Plant"}</ThemedText>
-            <ThemedButton
-              title="Delete"
-              onPress={() => handleDeletePlant(item)}
-            />
-          </ThemedView>
+          // <ThemedView key={item.id}>
+          //   <ThemedText>{item.custom_name || "Unnamed Plant"}</ThemedText>
+            // <ThemedButton
+            //   title="Delete"
+            //   onPress={() => handleDeletePlant(item)}
+            // />
+          // </ThemedView>
+          <PlantCard
+            key={item.id}
+            plant={item}
+            onPress={() => navigation.navigate("PlantDetails", { plantId: item.id })}
+            onDelete={() => handleDeletePlant(item)}
+          />
         ))}
       </ThemedView>
     );
