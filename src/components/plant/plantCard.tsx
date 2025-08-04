@@ -9,7 +9,7 @@ import { ThemedView } from '@components/ui/Views/ThemedView';
 import { ThemedText } from '@components/ui/Text/ThemedText';
 
 interface PlantCardProps {
-    plant: IUserPlant;
+    plant: IPlant;
     onPress: () => void;
     onDelete: (plant: IPlant) => void;
 }
@@ -25,7 +25,7 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onPress, onDelete }) => {
                 <Ionicons name="leaf-outline" size={80} color={colors.icon} style={styles.image} />
             )}
             <ThemedView style={styles.infoContainer}>
-                <ThemedText style={[styles.plantName, { color: colors.text }]}>{plant.custom_name || "Unnamed Plant"}</ThemedText>
+                <ThemedText style={[styles.plantName, { color: colors.text }]}>{plant.name || "Unnamed Plant"}</ThemedText>
             </ThemedView >
             <ThemedButton
                 title="Delete"
