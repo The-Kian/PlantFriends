@@ -34,8 +34,12 @@
       }
     },
     "plugins": [
+<<<<<<< HEAD
       "@react-native-firebase/app",
       "@react-native-community/datetimepicker"
+=======
+      "@react-native-firebase/app"
+>>>>>>> bf3109e (move firebase to cng)
     ]
   }
 }
