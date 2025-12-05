@@ -8,7 +8,7 @@ import SignupScreen from "@/screens/auth/signup";
 import PlantSearchScreen from "@/screens/PlantSearch";
 import PlantDetailsScreen from "@/screens/PlantSearch/PlantDetails";
 import ProfileSettingsScreen from "@/screens/settings/profile";
-
+import PlantDetailsScreen from "@/screens/PlantSearch/PlantDetails";
 import TabNavigator from "./TabNavigator";
 
 type RootLayoutProps = {
