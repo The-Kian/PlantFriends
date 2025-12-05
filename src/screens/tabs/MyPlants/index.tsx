@@ -5,17 +5,16 @@ import { useSelector } from "react-redux";
 
 import { StyleSheet } from "react-native";
 
-import { RootStackParamList } from "@components/navigation/types";
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import { ThemedText } from "@components/ui/Text/ThemedText";
-import { Collapsible } from "@components/ui/Views/Collapsible";
-import ParallaxScrollView from "@components/ui/Views/ParallaxScrollView";
-import { ThemedView } from "@components/ui/Views/ThemedView";
-import { usePlantManagement } from "@hooks/user/usePlantManagement";
-import useUserPlants from "@hooks/user/useUserPlants";
-import { RootState } from "@store/store";
-import { Colors } from "@theme/Colors";
-
+import { RootStackParamList } from "@/components/navigation/types";
+import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import { ThemedText } from "@/components/ui/Text/ThemedText";
+import { Collapsible } from "@/components/ui/Views/Collapsible";
+import ParallaxScrollView from "@/components/ui/Views/ParallaxScrollView";
+import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { usePlantManagement } from "@/hooks/user/usePlantManagement";
+import useUserPlants from "@/hooks/user/useUserPlants";
+import { RootState } from "@/store/store";
+import { Colors } from "@/theme/Colors";
 
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -33,14 +32,12 @@ export default function MyPlantsScreen() {
   };
 
   const renderPlantsByLocation = (location: string) => {
-    const plantsInLocation = userPlants.filter(
-      (plant) => {
-        if (location === "Other") {
-          return !plant.houseLocation || plant.houseLocation === "";
-        }
-        return plant.houseLocation === location;
+    const plantsInLocation = userPlants.filter((plant) => {
+      if (location === "Other") {
+        return !plant.houseLocation || plant.houseLocation === "";
       }
-    );
+      return plant.houseLocation === location;
+    });
 
     return (
       <ThemedView>
@@ -81,7 +78,7 @@ export default function MyPlantsScreen() {
       </Collapsible>
 
       <Collapsible title="Other Rooms">
-      {renderPlantsByLocation("Other")}
+        {renderPlantsByLocation("Other")}
       </Collapsible>
     </ParallaxScrollView>
   );

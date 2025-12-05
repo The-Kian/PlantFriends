@@ -1,33 +1,38 @@
 // AuthForm.tsx
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState, useContext } from 'react';
+import { useState, useContext } from "react";
 
-import { View } from 'react-native';
+import { View } from "react-native";
 
+import DatePickerField from "@/components/ui/Input/DatePickerField";
+import TextInputField from "@/components/ui/Input/TextInputField";
+import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import { AuthProps } from "@/context/auth/AuthTypes";
 
-import DatePickerField from '@components/ui/Input/DatePickerField';
-import TextInputField from '@components/ui/Input/TextInputField';
-import { ThemedView } from '@components/ui/Views/ThemedView';
-import { AuthContext } from '@context/auth/AuthProvider';
-import { AuthProps } from '@context/auth/AuthTypes';
-
-
-import ThemedButton from '../ui/Buttons/ThemedButton';
+import ThemedButton from "../ui/Buttons/ThemedButton";
 
 const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
+  const isDevelopment = process.env.NODE_ENV === "development";
   const { user } = useContext(AuthContext);
   const [enteredEmail, setEnteredEmail] = useState(
-    user?.email ?? 'test@gmail.com'
+    user?.email ?? (isDevelopment ? "test@gmail.com" : ""),
   );
-  const [enteredConfirmEmail, setEnteredConfirmEmail] = useState('test@gmail.com');
-  const [enteredPassword, setEnteredPassword] = useState('password');
-  const [enteredConfirmPassword, setEnteredConfirmPassword] = useState('password');
+  const [enteredConfirmEmail, setEnteredConfirmEmail] = useState(
+    isDevelopment ? "test@gmail.com" : "",
+  );
+  const [enteredPassword, setEnteredPassword] = useState(
+    isDevelopment ? "password" : "",
+  );
+  const [enteredConfirmPassword, setEnteredConfirmPassword] = useState(
+    isDevelopment ? "password" : "",
+  );
   const [enteredDisplayName, setEnteredDisplayName] = useState(
-    user?.displayName ?? ''
+    user?.displayName ?? (isDevelopment ? "Test User" : ""),
   );
   const [enteredDateOfBirth, setEnteredDateOfBirth] = useState(
-    new Date('1997-12-12')
+    isDevelopment ? new Date("1997-12-12") : new Date(),
   );
 
   const submitHandler = () => {
@@ -43,72 +48,80 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
 
   function updateInputValueHandler(inputType: string, enteredValue: any) {
     switch (inputType) {
-      case 'email':
+      case "email":
         setEnteredEmail(enteredValue);
         break;
-      case 'confirmEmail':
+      case "confirmEmail":
         setEnteredConfirmEmail(enteredValue);
         break;
-      case 'password':
+      case "password":
         setEnteredPassword(enteredValue);
         break;
-      case 'confirmPassword':
+      case "confirmPassword":
         setEnteredConfirmPassword(enteredValue);
         break;
-      case 'displayName':
+      case "displayName":
         setEnteredDisplayName(enteredValue);
         break;
-      case 'dateOfBirth':
+      case "dateOfBirth":
         setEnteredDateOfBirth(enteredValue);
         break;
     }
   }
 
   return (
-    <View testID='AuthForm-View'>
+    <View testID="AuthForm-View">
       <View>
-        {authScreenType !== 'update' && (
+        {authScreenType !== "update" && (
           <TextInputField
             label="Email Address"
-            onChangeText={(text) => updateInputValueHandler('email', text)}
+            onChangeText={(text) => updateInputValueHandler("email", text)}
             value={enteredEmail}
             keyboardType="email-address"
           />
         )}
-        {authScreenType === 'signUp' && (
+        {authScreenType === "signUp" && (
           <View>
             <TextInputField
               label="Confirm Email Address"
-              onChangeText={(text) => updateInputValueHandler('confirmEmail', text)}
+              onChangeText={(text) =>
+                updateInputValueHandler("confirmEmail", text)
+              }
               value={enteredConfirmEmail}
               keyboardType="email-address"
             />
             <DatePickerField
               label="Date of Birth"
               date={enteredDateOfBirth}
-              onDateChange={(date) => updateInputValueHandler('dateOfBirth', date)}
+              onDateChange={(date) =>
+                updateInputValueHandler("dateOfBirth", date)
+              }
             />
           </View>
         )}
-        {authScreenType !== 'login' && (
+        {authScreenType !== "login" && (
           <TextInputField
             label="Display Name"
-            onChangeText={(text) => updateInputValueHandler('displayName', text)}
+            onChangeText={(text) =>
+              updateInputValueHandler("displayName", text)
+            }
             value={enteredDisplayName}
           />
         )}
-        {authScreenType !== 'update' && (
+        {authScreenType !== "update" && (
           <TextInputField
             label="Password"
-            onChangeText={(text) => updateInputValueHandler('password', text)}
+            onChangeText={(text) => updateInputValueHandler("password", text)}
             value={enteredPassword}
             secureTextEntry={true}
           />
         )}
-        {authScreenType === 'signUp' && (
+        {authScreenType === "signUp" && (
           <TextInputField
             label="Confirm Password"
-            onChangeText={(text) => updateInputValueHandler('confirmPassword', text)}
+            onChangeText={(text) =>
+              updateInputValueHandler("confirmPassword", text)
+            }
             value={enteredConfirmPassword}
             secureTextEntry={true}
           />
@@ -117,11 +130,11 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
           <ThemedButton
             onPress={submitHandler}
             title={
-              authScreenType === 'login'
-                ? 'Log In'
-                : authScreenType === 'signUp'
-                ? 'Sign Up'
-                : 'Update Details'
+              authScreenType === "login"
+                ? "Log In"
+                : authScreenType === "signUp"
+                  ? "Sign Up"
+                  : "Update Details"
             }
           />
         </ThemedView>

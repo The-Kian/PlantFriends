@@ -1,16 +1,17 @@
+import {
+  render,
+  fireEvent,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
-import { render, fireEvent, screen, waitFor } from "@testing-library/react-native";
-
-import { IUserPlant } from "@constants/IPlant";
-import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant } from "@test-utils/MockPlant";
-
-
+import { IUserPlant } from "@/constants/IPlant";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
+import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockPlant } from "@/test-utils/MockPlant";
 
 import PlantCustomizationModal from "./index";
-
 
 const mockOnClose = jest.fn();
 const mockOnSave = jest.fn();
@@ -24,8 +25,9 @@ const renderComponent = (plant = mockPlant, userPlant?: IUserPlant) => {
         onClose={mockOnClose}
         onSave={mockOnSave}
         displayUserPlantData={false}
-        isAddingNewPlant={false} />
-    </AuthContext.Provider>
+        isAddingNewPlant={false}
+      />
+    </AuthContext.Provider>,
   );
 };
 
@@ -57,7 +59,7 @@ describe("PlantCustomizationModal", () => {
           plantId: "1",
           custom_attributes: expect.objectContaining({}),
         }),
-        mockPlant
+        mockPlant,
       );
     });
     expect(mockOnClose).toHaveBeenCalled();

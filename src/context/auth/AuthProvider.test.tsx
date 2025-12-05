@@ -13,8 +13,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import mockUser from "@test-utils/MockFirebaseUser";
-
+import mockUser from "@/test-utils/MockFirebaseUser";
 
 import { AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
@@ -24,7 +23,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     // Check initial state using text content assertions
@@ -44,7 +43,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("login"));
     await waitFor(() => {
@@ -56,7 +55,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("register"));
     await waitFor(() => {
@@ -68,7 +67,7 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("update"));
     await waitFor(() => {
@@ -80,11 +79,13 @@ describe("AuthProvider", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     // Wait for the user state to be updated before logout
     await waitFor(() => {
-      expect(screen.getByTestId("user")).toHaveTextContent(mockUser.email as string);
+      expect(screen.getByTestId("user")).toHaveTextContent(
+        mockUser.email as string,
+      );
     });
     fireEvent.press(screen.getByTestId("logout"));
     await waitFor(() => {
@@ -101,7 +102,7 @@ describe("AuthProvider error handling", () => {
   });
 
   it("shows alert for email already in use on registration", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/email-already-in-use",
     });
@@ -109,19 +110,19 @@ describe("AuthProvider error handling", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("register"));
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        "That email address is already in use!"
+        "That email address is already in use!",
       );
     });
   });
 
   it("shows alert for invalid email on registration", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/invalid-email",
     });
@@ -129,7 +130,7 @@ describe("AuthProvider error handling", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("register"));
 
@@ -139,7 +140,7 @@ describe("AuthProvider error handling", () => {
   });
 
   it("shows alert for user not found on login", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/user-not-found",
     });
@@ -147,7 +148,7 @@ describe("AuthProvider error handling", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("login"));
 
@@ -164,7 +165,7 @@ describe("AuthProvider error handling", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("register"));
 
@@ -174,7 +175,7 @@ describe("AuthProvider error handling", () => {
   });
 
   it("shows alert for update failed", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (auth().currentUser?.updateProfile as jest.Mock).mockRejectedValueOnce({
       message: "err0r",
     });
@@ -182,7 +183,7 @@ describe("AuthProvider error handling", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("update"));
 
@@ -192,25 +193,28 @@ describe("AuthProvider error handling", () => {
   });
 
   it("shows alert for update Firestore failed", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (firestore as any)._mockSet.mockRejectedValueOnce({
-      message: "err0r"
+      message: "err0r",
     });
 
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("update"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Error updating Firestore:", "err0r");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Error updating Firestore:",
+        "err0r",
+      );
     });
   });
 
   it("shows alert for error logging out failed", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => { });
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (auth().signOut as jest.Mock).mockRejectedValueOnce({
       message: "err0r",
     });
@@ -218,7 +222,7 @@ describe("AuthProvider error handling", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("logout"));
 
@@ -235,14 +239,14 @@ describe("AuthProvider error handling", () => {
     render(
       <AuthProvider>
         <AuthTestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
     fireEvent.press(screen.getByTestId("login"));
 
     await waitFor(() => {
       expect(console.error).toHaveBeenCalledWith(
         "Login error:",
-        expect.objectContaining({ code: "auth/unknown-error" })
+        expect.objectContaining({ code: "auth/unknown-error" }),
       );
     });
   });

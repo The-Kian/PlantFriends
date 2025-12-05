@@ -5,11 +5,11 @@ import { useState, createContext, useEffect } from "react";
 
 import { Alert } from "react-native";
 
-import { ProviderProps } from "@constants/genericTypes";
+import { ProviderProps } from "@/constants/genericTypes";
 
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
-// import removeTokenFromDatabase from "@components/messaging/RemoveTokenFromDatabase";
-// import { getDeviceToken } from "@components/messaging/GetDeviceToken";
+// import removeTokenFromDatabase from "@/components/messaging/RemoveTokenFromDatabase";
+// import { getDeviceToken } from "@/components/messaging/GetDeviceToken";
 
 export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     try {
       const userCredential = await auth().createUserWithEmailAndPassword(
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
               displayName: displayName ?? user?.email,
               email: user.email,
             },
-            { merge: true }
+            { merge: true },
           );
       } catch (error: any) {
         Alert.alert("Error updating Firestore:", error.message);

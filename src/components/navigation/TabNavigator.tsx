@@ -1,7 +1,7 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import HomeScreen from "@screens/tabs/home";
-import MyPlantsScreen from "@screens/tabs/MyPlants";
+import HomeScreen from "@/screens/tabs/home";
+import MyPlantsScreen from "@/screens/tabs/MyPlants";
 
 import ProfileButton from "./ProfileButton";
 
@@ -10,19 +10,19 @@ export default function TabNavigator() {
 
   return (
     <Tab.Navigator
-    screenOptions={{
-      headerRight: () => <ProfileButton />,
-    }}
+      screenOptions={{
+        headerRight: () => <ProfileButton />,
+      }}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={{ tabBarLabel: "Home"}}
+        options={{ tabBarLabel: "Home" }}
       />
       <Tab.Screen
         name="MyPlants"
         component={MyPlantsScreen}
-        options={{ tabBarLabel: "My Plants" }} 
+        options={{ tabBarLabel: "My Plants" }}
       />
     </Tab.Navigator>
   );

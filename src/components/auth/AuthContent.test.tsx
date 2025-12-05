@@ -1,4 +1,3 @@
-
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
@@ -11,16 +10,16 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { AuthProps } from "@context/auth/AuthTypes";
-import validateCredentials from "@helpers/auth/validateCredentials";
-import LoginScreen from "@screens/auth/login";
-import SignupScreen from "@screens/auth/signup";
+import { AuthProps } from "@/context/auth/AuthTypes";
+import validateCredentials from "@/helpers/auth/validateCredentials";
+import LoginScreen from "@/screens/auth/login";
+import SignupScreen from "@/screens/auth/signup";
 
 import AuthContent from "./AuthContent";
 
 jest.spyOn(Alert, "alert").mockImplementation(() => {});
 
-jest.mock("@helpers/auth/validateCredentials", () => jest.fn());
+jest.mock("@/helpers/auth/validateCredentials", () => jest.fn());
 const mockedValidateCredentials = validateCredentials as jest.MockedFunction<
   typeof validateCredentials
 >;
@@ -54,7 +53,7 @@ describe("AuthContent Tests", () => {
           {...props}
         />
         ;
-      </NavigationContainer>
+      </NavigationContainer>,
     );
   };
 
@@ -70,7 +69,7 @@ describe("AuthContent Tests", () => {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignupScreen} />
         </Stack.Navigator>
-      </NavigationContainer>
+      </NavigationContainer>,
     );
   };
 
@@ -130,7 +129,7 @@ describe("AuthContent Tests", () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       "Invalid input",
-      "Please check your entered credentials."
+      "Please check your entered credentials.",
     );
   });
 });

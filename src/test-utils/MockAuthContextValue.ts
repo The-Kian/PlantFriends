@@ -10,4 +10,4 @@ const mockAuthContextValue = {
   resetPassword: jest.fn(),
   update: jest.fn(),
 };
- export default mockAuthContextValue;
+export default mockAuthContextValue;

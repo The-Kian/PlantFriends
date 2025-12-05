@@ -1,17 +1,14 @@
-
 import React from "react";
 
 import { render, fireEvent, screen } from "@testing-library/react-native";
 
-import UserDataSection from "@components/plant/customization/PlantForm/UserDataSection";
-
-
+import UserDataSection from "@/components/plant/customization/PlantForm/UserDataSection";
 
 const mockUserData = {
-    custom_name: "Test Plant",
-    id: "123",
-    userId: "456",
-    plantId: "789",
+  custom_name: "Test Plant",
+  id: "123",
+  userId: "456",
+  plantId: "789",
 };
 
 const mockOnUserDataChange = jest.fn();
@@ -21,7 +18,7 @@ const renderComponent = (userData = mockUserData) => {
     <UserDataSection
       userData={userData}
       onUserDataChange={mockOnUserDataChange}
-    />
+    />,
   );
 };
 
@@ -35,7 +32,9 @@ describe("GeneralInfoSection", () => {
     expect(screen.getByLabelText(`Custom Name input field`)).toBeVisible();
     expect(screen.getByLabelText(`Date Added input field`)).toBeVisible();
     expect(screen.getByLabelText(`Location input field`)).toBeVisible();
-    expect(screen.getByLabelText(`Watering Schedule input field`)).toBeVisible();
+    expect(
+      screen.getByLabelText(`Watering Schedule input field`),
+    ).toBeVisible();
   });
 
   it("updates the text input and calls onChangeText when the user types", () => {
@@ -44,7 +43,10 @@ describe("GeneralInfoSection", () => {
     const textField = screen.getByLabelText("Custom Name input field");
     fireEvent.changeText(textField, "New Value");
 
-    expect(mockOnUserDataChange).toHaveBeenCalledWith("custom_name", "New Value");
+    expect(mockOnUserDataChange).toHaveBeenCalledWith(
+      "custom_name",
+      "New Value",
+    );
   });
 
   it("calls onAttributeChange with correct arguments for date input", () => {
@@ -55,7 +57,7 @@ describe("GeneralInfoSection", () => {
     fireEvent(datePickerField, "onDateChange", newDate);
 
     expect(mockOnUserDataChange).toHaveBeenCalledWith("date_added", newDate);
-    });
+  });
 
   it("calls onAttributeChange with correct arguments for picker input", () => {
     renderComponent();
@@ -64,19 +66,21 @@ describe("GeneralInfoSection", () => {
     fireEvent(pickerField, "onValueChange", "Kitchen");
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "houseLocation",
-      "Kitchen"
+      "Kitchen",
     );
   });
 
   it("calls onAttributeChange with correct arguments for watering schedule picker", () => {
     renderComponent();
 
-    const wateringScheduleField = screen.getByLabelText("Watering Schedule input field");
+    const wateringScheduleField = screen.getByLabelText(
+      "Watering Schedule input field",
+    );
     fireEvent(wateringScheduleField, "onValueChange", "Weekly");
-    
+
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "custom_watering_schedule",
-      "Weekly"
+      "Weekly",
     );
   });
 });

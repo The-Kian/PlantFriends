@@ -1,7 +1,7 @@
 // src/theme/index.ts
-import { Colors } from './Colors';
-import { Fonts } from './Fonts';
-import { Spacing } from './Spacing';
+import { Colors } from "./Colors";
+import { Fonts } from "./Fonts";
+import { Spacing } from "./Spacing";
 
 export const lightTheme = {
   colors: Colors.light,

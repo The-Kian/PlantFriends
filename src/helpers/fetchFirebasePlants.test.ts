@@ -1,6 +1,6 @@
 import firestore from "@react-native-firebase/firestore";
 
-import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+import { mockPlant, mockPlant2 } from "@/test-utils/MockPlant";
 
 import fetchFirebasePlants from "./fetchFirebasePlants";
 
@@ -51,7 +51,11 @@ describe("fetchFirebasePlants", () => {
     expect(firestore).toHaveBeenCalled();
     expect(mockCollection).toHaveBeenCalledWith("Plants");
     expect(mockWhere).toHaveBeenCalledWith("name", ">=", "Nonexistent Plant");
-    expect(mockWhere).toHaveBeenCalledWith("name", "<=", "Nonexistent Plant\uf8ff");
+    expect(mockWhere).toHaveBeenCalledWith(
+      "name",
+      "<=",
+      "Nonexistent Plant\uf8ff",
+    );
     expect(mockGet).toHaveBeenCalled();
     expect(result).toEqual([]);
   });
@@ -60,7 +64,9 @@ describe("fetchFirebasePlants", () => {
     const error = new Error("Firestore error");
     mockGet.mockRejectedValueOnce(error);
 
-    await expect(fetchFirebasePlants("Test Plant")).rejects.toThrow("Firestore error");
+    await expect(fetchFirebasePlants("Test Plant")).rejects.toThrow(
+      "Firestore error",
+    );
 
     expect(firestore).toHaveBeenCalled();
     expect(mockCollection).toHaveBeenCalledWith("Plants");

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IPlant } from "@constants/IPlant";
+import { IPlant } from "@/constants/IPlant";
 
 export const mapPerenualPlantToIPlant = (plant: any): IPlant => {
   const isValidField = (field: string | undefined): boolean =>
@@ -38,7 +38,10 @@ export const mapPerenualPlantToIPlant = (plant: any): IPlant => {
 
   return {
     id: plant.id.toString(),
-    name: plant.common_name || (plant.scientific_name && plant.scientific_name[0]) || "",
+    name:
+      plant.common_name ||
+      (plant.scientific_name && plant.scientific_name[0]) ||
+      "",
     slug: plant.slug || "",
     scientific_name: plant.scientific_name || [],
     common_names: plant.other_name || [],

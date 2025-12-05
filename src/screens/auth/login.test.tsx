@@ -1,5 +1,4 @@
 import { NavigationContainer } from "@react-navigation/native";
-
 import {
   fireEvent,
   render,
@@ -7,30 +6,27 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-
-
+import { AuthContext } from "@/context/auth/AuthProvider";
+import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import LoginScreen from "./login";
 
-
-
 describe("LoginScreen", () => {
-    
-    const renderLoginScreen = () => {
-      return render(
-        <NavigationContainer>
-          <AuthContext.Provider value={mockAuthContextValue}>
-            <LoginScreen />
-          </AuthContext.Provider>
-        </NavigationContainer>
-      );
-    }
+  
+  const renderLoginScreen = () => {
+    return render(
+      <NavigationContainer>
+        <AuthContext.Provider value={mockAuthContextValue}>
+          <LoginScreen />
+        </AuthContext.Provider>
+      </NavigationContainer>
+    );
+  }
 
-    const mockLogin = jest.fn();
+  const mockLogin = jest.fn();
 
   beforeEach(() => {
     mockLogin.mockClear();
+    jest.clearAllMocks();
   });
 
   it("renders AuthContent when not authenticating", () => {
@@ -47,8 +43,10 @@ describe("LoginScreen", () => {
 
     renderLoginScreen();
 
-    const loginButton = screen.getByText("Log In");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
 
+    const loginButton = screen.getByText("Log In");
     fireEvent.press(loginButton);
 
     await waitFor(() => {
@@ -61,9 +59,12 @@ describe("LoginScreen", () => {
 
     renderLoginScreen();
 
-    const loginButton = screen.getByText("Log In");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
 
+    const loginButton = screen.getByText("Log In");
     fireEvent.press(loginButton);
+
     await waitFor(() => {
       expect(screen.queryByText("Logging you in...")).not.toBeOnTheScreen();
     });
