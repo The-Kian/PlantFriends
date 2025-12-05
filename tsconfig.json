@@ -8,19 +8,19 @@
     "jsx": "react-native",
     "paths": {
       "@context/*": ["./src/context/*"],
-      "@navigation/*": ["./src/navigation/*"],
+      "@navigation/*": ["./src/components/navigation/*"],
       "@screens/*": ["./src/screens/*"],
       "@components/*": ["./src/components/*"],
       "@utils/*": ["./src/utils/*"],
       "@types/*": ["./src/types/*"],
       "@assets/*": ["./assets/*"],
       "@hooks/*": ["./src/hooks/*"],
-      "@common/*": ["src/common/*"],
+      "@common/*": ["./src/common/*"],
       "@constants/*": ["./src/constants/*"],
       "@theme/*": ["./src/theme/*"],
       "@helpers/*": ["./src/helpers/*"],
       "@test-utils/*": ["./src/test-utils/*"],
-      "@mocks/*": ["./src/mocks/*"],
+      "@mocks/*": ["./__mocks__/*"],
       "@store/*": ["./src/store/*"],
     }
   },
@@ -30,6 +30,9 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "jest.config.js",
-    "src/constants/react-native-dotenv.d.ts"
-, "jest/androidUtils.js", "src/store/testRedux.js", "__mocks__/@env.js"  ]
+    "src/constants/react-native-dotenv.d.ts",
+    "jest/androidUtils.js",
+    "src/store/testRedux.js",
+    "__mocks__/@env.js"
+  ]
 }

@@ -14,14 +14,16 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.thekian.plantfriends"
+      "bundleIdentifier": "com.thekian.plantfriends",
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.thekian.plantfriends"
+      "package": "com.thekian.plantfriends",
+      "googleServicesFile": "./google-services.json"
     },
     "experiments": {
       "typedRoutes": true
@@ -32,7 +34,8 @@
       }
     },
     "plugins": [
-      "expo-font"
+      "@react-native-firebase/app",
+      "@react-native-community/datetimepicker"
     ]
   }
 }

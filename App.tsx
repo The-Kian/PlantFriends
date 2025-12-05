@@ -10,9 +10,6 @@ import { setupStore } from "@store/store";
 
 import './gesture-handler';
 
-
-
-
 export default function App() {
   return (
     <Provider store={setupStore()}>
