@@ -53,7 +53,7 @@ export default function MyPlantsScreen() {
           <PlantCard
             key={item.id}
             plant={item}
-            onPress={() => navigation.navigate("PlantDetails", { plantId: item.id })}
+            onPress={() => navigation.navigate("PlantDetails" as keyof RootStackParamList, { plantId: item.id } as never)}
             onDelete={() => handleDeletePlant(item)}
           />
         ))}

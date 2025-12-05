@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '@hooks/utils/useTheme';
-import { Colors } from '@theme/Colors';
-import { IPlant, IUserPlant } from '@constants/IPlant';
-import ThemedButton from '@components/ui/Buttons/ThemedButton';
+import { Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { useTheme } from '@/hooks/utils/useTheme';
+import { IPlant } from '@/constants/IPlant';
+import ThemedButton from '@/components/ui/Buttons/ThemedButton';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemedView } from '@components/ui/Views/ThemedView';
-import { ThemedText } from '@components/ui/Text/ThemedText';
+import { ThemedView } from '@/components/ui/Views/ThemedView';
+import { ThemedText } from '@/components/ui/Text/ThemedText';
 
 interface PlantCardProps {
     plant: IPlant;
@@ -18,7 +17,7 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onPress, onDelete }) => {
     const { colors } = useTheme();
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.card, { backgroundColor: colors.card }]}>
+        <TouchableOpacity onPress={onPress} style={[styles.card, { backgroundColor: colors.tint }]}>
             {plant.images && plant.images.length > 0 ? (
                 <Image source={{ uri: plant.images[0] }} style={styles.image} />
             ) : (
