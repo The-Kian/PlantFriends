@@ -1,31 +1,33 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-    /* eslint-disable import/no-unresolved */
+/* eslint-disable import/no-unresolved */
 
 import { PERENUAL_API_KEY } from "@env";
 
-import { IPlant } from "@constants/IPlant";
+import { IPlant } from "@/constants/IPlant";
 
+import { mapPerenualPlantToIPlant, PerenualPlant } from "./mapPerenualPlantToIPlant";
 
-import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
+interface PerenualAPIResponse {
+  data: PerenualPlant[];
+}
 
-
-  
-  export const fetchPerenualPlants = async (searchQuery: string): Promise<IPlant[]> => {
-    try {
+export const fetchPerenualPlants = async (
+  searchQuery: string,
+): Promise<IPlant[]> => {
+  try {
     const URL = `https://perenual.com/api/species-list?key=${PERENUAL_API_KEY}&q=${searchQuery}`;
     const response = await fetch(URL);
 
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
     }
-    
-    const data = await response.json();
-    
+
+    const data: PerenualAPIResponse = await response.json();
+
     if (data.data && Array.isArray(data.data)) {
-      const plantsData: IPlant[] = data.data.map((plant: any) => {
-        const mapped = mapPerenualPlantToIPlant(plant)
-        return mapped
-      })
+      const plantsData: IPlant[] = data.data.map((plant: PerenualPlant) => {
+        const mapped = mapPerenualPlantToIPlant(plant);
+        return mapped;
+      });
       return plantsData;
     } else {
       throw new Error("No plants found in API response");
@@ -35,7 +37,6 @@ import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
     throw error;
   }
 };
-  
 
 // export const fetchOpenFarmPlants = async (searchQuery: string): Promise<IPlant[]> => {
 //     const URL = `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`;
@@ -44,7 +45,7 @@ import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
 //       throw new Error(`API request failed with status ${response.status}`);
 //     }
 //     const data = await response.json();
-  
+
 //     if (data.data && Array.isArray(data.data)) {
 //       const plantsData: IPlant[] = data.data.map((plant: any) =>
 //         mapOpenFarmPlantToIPlant(plant)

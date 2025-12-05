@@ -1,9 +1,8 @@
-
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 
 import { Alert } from "react-native";
 
-import { IUserPlant, IPlant } from "@constants/IPlant";
+import { IUserPlant, IPlant } from "@/constants/IPlant";
 
 import saveBasePlantToFirebase from "./saveToFirebase/saveBasePlantToFirebase";
 import saveUserPlantToFirebase from "./saveToFirebase/saveUserPlantToFirebase";
@@ -11,7 +10,7 @@ import saveUserPlantToFirebase from "./saveToFirebase/saveUserPlantToFirebase";
 const savePlantToFirebase = async (
   userPlant: IUserPlant,
   plantData: IPlant,
-  user: FirebaseAuthTypes.User | null
+  user: FirebaseAuthTypes.User | null,
 ) => {
   if (!user) {
     console.error("User is not authenticated.");
@@ -30,7 +29,7 @@ const savePlantToFirebase = async (
     console.error("Failed to save user plant.");
   }
 
-  return userPlant
+  return userPlant;
 };
 
 export default savePlantToFirebase;

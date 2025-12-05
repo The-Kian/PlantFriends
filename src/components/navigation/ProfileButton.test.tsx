@@ -3,15 +3,10 @@ import { createStackNavigator } from "@react-navigation/stack";
 
 import { useColorScheme } from "react-native";
 
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
-import ProfileSettingsScreen from "@screens/settings/profile";
-import { Colors } from "@theme/Colors";
+import ProfileSettingsScreen from "@/screens/settings/profile";
+import { Colors } from "@/theme/Colors";
 
 import ProfileButton from "./ProfileButton";
 
@@ -20,7 +15,7 @@ describe("ProfileButton", () => {
     render(
       <NavigationContainer>
         <ProfileButton />
-      </NavigationContainer>
+      </NavigationContainer>,
     );
 
     const button = await screen.findByTestId("profile-button");
@@ -28,11 +23,11 @@ describe("ProfileButton", () => {
   });
 
   it("renders the correct icon in light mode", async () => {
-    (useColorScheme as jest.Mock).mockReturnValue('light');
+    (useColorScheme as jest.Mock).mockReturnValue("light");
     render(
       <NavigationContainer>
         <ProfileButton />
-      </NavigationContainer>
+      </NavigationContainer>,
     );
 
     const icon = await screen.findByTestId("profile-icon");
@@ -41,11 +36,11 @@ describe("ProfileButton", () => {
   });
 
   it("renders the correct icon in dark mode", async () => {
-    (useColorScheme as jest.Mock).mockReturnValue('dark');
+    (useColorScheme as jest.Mock).mockReturnValue("dark");
     render(
       <NavigationContainer>
         <ProfileButton />
-      </NavigationContainer>
+      </NavigationContainer>,
     );
 
     const icon = await screen.findByTestId("profile-icon");
@@ -58,7 +53,7 @@ describe("ProfileButton", () => {
 
     render(
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ animation: 'none' }}>
+        <Stack.Navigator screenOptions={{ animation: "none" }}>
           <Stack.Screen name="Home" component={ProfileButton} />
           <Stack.Screen
             name="Profile"
@@ -66,7 +61,7 @@ describe("ProfileButton", () => {
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
-      </NavigationContainer>
+      </NavigationContainer>,
     );
 
     fireEvent.press(screen.getByTestId("profile-button"));
@@ -74,9 +69,8 @@ describe("ProfileButton", () => {
     act(() => {
       jest.runAllTimers();
     });
-    
+
     const profileText = await screen.findByText("Profile");
     expect(profileText).toBeTruthy();
-    
   });
 });

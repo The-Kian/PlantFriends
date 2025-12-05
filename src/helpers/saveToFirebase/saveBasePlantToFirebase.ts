@@ -1,11 +1,11 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 
-import { IPlant } from "@constants/IPlant";
+import { IPlant } from "@/constants/IPlant";
 
 const saveBasePlantToFirebase = async (
   plantData: IPlant,
-  user: FirebaseAuthTypes.User
+  user: FirebaseAuthTypes.User,
 ): Promise<boolean> => {
   const plantId = plantData.id;
   const plantRef = firestore().collection("Plants").doc(plantId);

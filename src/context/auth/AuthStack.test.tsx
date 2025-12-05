@@ -6,23 +6,23 @@ import { render, screen } from "@testing-library/react-native";
 import AuthStack from "./AuthStack";
 
 describe("AuthStack", () => {
-    it("renders the Login screen as the initial route", () => {
-        render(
-            <NavigationContainer>
-                <AuthStack />
-            </NavigationContainer>
-        );
+  it("renders the Login screen as the initial route", () => {
+    render(
+      <NavigationContainer>
+        <AuthStack />
+      </NavigationContainer>,
+    );
 
-        expect(screen.getByText("Log In")).toBeTruthy();
-    });
+    expect(screen.getByText("Log In")).toBeTruthy();
+  });
 
-    it("contains the SignUp screen", () => {
-        render(
-            <NavigationContainer>
-                <AuthStack />
-            </NavigationContainer>
-        );
+  it("contains the SignUp screen", () => {
+    render(
+      <NavigationContainer>
+        <AuthStack />
+      </NavigationContainer>,
+    );
 
-        expect(screen.getByText("Create a new user")).toBeTruthy();
-    });
+    expect(screen.getByText("Create a new user")).toBeTruthy();
+  });
 });

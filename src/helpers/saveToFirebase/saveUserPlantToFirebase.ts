@@ -1,14 +1,13 @@
-
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 
 import uuid from "react-native-uuid";
 
-import { IUserPlant } from "@constants/IPlant";
+import { IUserPlant } from "@/constants/IPlant";
 
 const saveUserPlantToFirebase = async (
   userPlant: IUserPlant,
-  user: FirebaseAuthTypes.User
+  user: FirebaseAuthTypes.User,
 ): Promise<boolean> => {
   const userPlantId = userPlant.id ?? uuid.v4().toString();
   const userPlantData: IUserPlant = {
@@ -27,8 +26,11 @@ const saveUserPlantToFirebase = async (
       .set(userPlantData);
     return true;
   } catch (error) {
-    console.error("saveUserPlantToFirebase: Error saving user plant data: ", error);
-    console.log(`🚀 - KP -  ~ userPlantData:`, userPlantData)
+    console.error(
+      "saveUserPlantToFirebase: Error saving user plant data: ",
+      error,
+    );
+    console.log(`🚀 - KP -  ~ userPlantData:`, userPlantData);
     return false;
   }
 };

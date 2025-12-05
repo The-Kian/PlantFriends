@@ -1,35 +1,31 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
+import React, { PropsWithChildren } from "react";
+import { Provider } from "react-redux";
 
-import { configureStore } from '@reduxjs/toolkit'
-import React, { PropsWithChildren } from 'react'
-import { Provider } from 'react-redux';
+import { renderHook, RenderHookOptions } from "@testing-library/react-native";
 
-import type { RenderOptions } from '@testing-library/react-native'
-import { renderHook } from '@testing-library/react-native';
+import { setupStore, type AppStore, type RootState } from "@/store/store";
 
-import userPlantsReducer from '@store/userPlantsSlice';
-
-interface ExtendedRenderOptions extends RenderOptions {
-  preloadedState?: any;
-  store?: ReturnType<typeof configureStore>;
+interface ExtendedRenderHookOptions<Props> extends RenderHookOptions<Props> {
+  preloadedState?: Partial<RootState>;
+  store?: AppStore;
 }
 
-export function renderHookWithProviders<
-  Result,
-  Props>(
-    render: (initialProps: Props) => Result,
-    {
-      preloadedState = {},
-      store = configureStore({
-          reducer: userPlantsReducer,
-          preloadedState
-        }),
-      ...renderOptions
-    }: ExtendedRenderOptions = {}
-  ) {
-  function Wrapper({ children }: PropsWithChildren<object>): React.ReactElement {
-    return <Provider store={store}>{children}</Provider>
+export function renderHookWithProviders<Result, Props>(
+  renderCallback: (initialProps: Props) => Result,
+  {
+    preloadedState = {},
+    store = setupStore(preloadedState),
+    ...renderOptions
+  }: ExtendedRenderHookOptions<Props> = {},
+) {
+  function Wrapper({
+    children,
+  }: PropsWithChildren<Props>): React.ReactElement {
+    return <Provider store={store}>{children}</Provider>;
   }
 
-  return { store, ...renderHook(render, { wrapper: Wrapper, ...renderOptions }) }
+  return {
+    store,
+    ...renderHook(renderCallback, { wrapper: Wrapper, ...renderOptions }),
+  };
 }

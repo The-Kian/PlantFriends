@@ -3,11 +3,11 @@ import { useDispatch } from "react-redux";
 
 import uuid from "react-native-uuid";
 
-import { IPlant, IUserPlant } from "@constants/IPlant";
-import { AuthContext } from "@context/auth/AuthProvider";
-import getUserPlantData from "@helpers/getUserPlantData";
-import savePlantToFirebase from "@helpers/savePlantToFirebase";
-import { addPlant, deletePlant, updatePlant } from "@store/userPlantsSlice";
+import { IPlant, IUserPlant } from "@/constants/IPlant";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import getUserPlantData from "@/helpers/getUserPlantData";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
@@ -27,7 +27,7 @@ export const usePlantManagement = () => {
 
   const handlePlantAttributeChange = <K extends keyof IPlant>(
     field: K,
-    value: IPlant[K]
+    value: IPlant[K],
   ) => {
     setCustomizations((prev) => ({
       ...prev,
@@ -37,7 +37,7 @@ export const usePlantManagement = () => {
 
   const handleUserDataChange = <K extends keyof IUserPlant>(
     field: K,
-    value: IUserPlant[K]
+    value: IUserPlant[K],
   ) => {
     setUserPlant((prevUserData) => {
       const updatedUserData = prevUserData || {
@@ -56,14 +56,14 @@ export const usePlantManagement = () => {
 
   const handleSavePlant = async (
     updatedUserPlant: IUserPlant,
-    plant: IPlant
+    plant: IPlant,
   ) => {
     try {
       if (user) {
         const savedPlant = await savePlantToFirebase(
           updatedUserPlant,
           plant,
-          user
+          user,
         );
         if (savedPlant) {
           dispatch(addPlant(savedPlant));

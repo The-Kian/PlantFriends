@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 
-import { IPlant } from "@constants/IPlant";
+import { IPlant } from "@/constants/IPlant";
 
 import SearchResultComponent from "./SearchResult";
 
@@ -10,16 +10,16 @@ describe("Search Result Button", () => {
     name: "Test Plant",
   };
 
-  const onSelect = jest.fn()
+  const onSelect = jest.fn();
 
   it("renders a search result", () => {
-    render(<SearchResultComponent onSelect={onSelect} plant={mockPlant}/>)
-    expect(screen.getByText("Test Plant")).toBeOnTheScreen()
+    render(<SearchResultComponent onSelect={onSelect} plant={mockPlant} />);
+    expect(screen.getByText("Test Plant")).toBeOnTheScreen();
   });
 
   it("calls onSelect when pressed", () => {
-    render(<SearchResultComponent onSelect={onSelect} plant={mockPlant}/>)
-    fireEvent.press(screen.getByText("Test Plant"))
-    expect(onSelect).toHaveBeenCalled()
-  })
+    render(<SearchResultComponent onSelect={onSelect} plant={mockPlant} />);
+    fireEvent.press(screen.getByText("Test Plant"));
+    expect(onSelect).toHaveBeenCalled();
+  });
 });

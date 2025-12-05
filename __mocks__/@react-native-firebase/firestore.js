@@ -2,9 +2,17 @@
 
 const mockGet = jest.fn().mockResolvedValue({
   exists: true,
-  data: () => ({ /* default data */ }),
+  data: () => ({
+    /* default data */
+  }),
   empty: false,
-  docs: [{ data: () => ({ /* default data */ }) }],
+  docs: [
+    {
+      data: () => ({
+        /* default data */
+      }),
+    },
+  ],
 });
 
 const mockSet = jest.fn().mockResolvedValue(undefined);

@@ -10,17 +10,17 @@ import "react-native-gesture-handler/jestSetup";
 import { setUpTests } from "react-native-reanimated";
 setUpTests();
 
-require("dotenv").config();                 // load .env into process.env
+require("dotenv").config(); // load .env into process.env
 
-jest.mock('@components/ui/Text/ThemedText', () => {
-  const { Text } = require('react-native');
+jest.mock("@/components/ui/Text/ThemedText", () => {
+  const { Text } = require("react-native");
   return {
     ThemedText: ({ children }) => <Text>{children}</Text>,
   };
 });
 
-jest.mock('@components/ui/Views/ThemedView', () => {
-  const { View } = require('react-native');
+jest.mock("@/components/ui/Views/ThemedView", () => {
+  const { View } = require("react-native");
   return {
     ThemedView: ({ children, style, ...props }) => (
       <View style={style} {...props}>

@@ -1,14 +1,12 @@
-
 import { NavigationContainer } from "@react-navigation/native";
 import React from "react";
 
 import { render, screen } from "@testing-library/react-native";
 
-
 import TabNavigator from "./TabNavigator";
 
-jest.mock("@screens/tabs/home", () => () => null);
-jest.mock("@screens/tabs/MyPlants", () => () => null);
+jest.mock("@/screens/tabs/home", () => () => null);
+jest.mock("@/screens/tabs/MyPlants", () => () => null);
 jest.mock("./ProfileButton", () => () => null);
 
 describe("TabNavigator", () => {
@@ -16,11 +14,11 @@ describe("TabNavigator", () => {
     render(
       <NavigationContainer>
         <TabNavigator />
-      </NavigationContainer>
+      </NavigationContainer>,
     );
     expect(await screen.findByRole("button", { name: "Home" })).toBeTruthy();
     expect(
-      await screen.findByRole("button", { name: "My Plants" })
+      await screen.findByRole("button", { name: "My Plants" }),
     ).toBeTruthy();
   });
 });

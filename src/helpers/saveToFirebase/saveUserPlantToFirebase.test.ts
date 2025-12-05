@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import firestore from "@react-native-firebase/firestore";
 
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockUserPlant } from "@test-utils/MockPlant";
+import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockUserPlant } from "@/test-utils/MockPlant";
 
 import saveUserPlantToFirebase from "./saveUserPlantToFirebase";
 
@@ -21,20 +21,20 @@ describe("saveUserPlantToFirebase", () => {
     const mockFirestoreInstance = firestore();
 
     expect(mockFirestoreInstance.collection("Users").doc).toHaveBeenCalledWith(
-      user.uid
+      user.uid,
     );
     expect(
       mockFirestoreInstance
         .collection("Users")
         .doc(user.uid)
-        .collection("UserPlants").doc
+        .collection("UserPlants").doc,
     ).toHaveBeenCalledWith(mockUserPlant.id);
     expect(
       mockFirestoreInstance
         .collection("Users")
         .doc(user.uid)
         .collection("UserPlants")
-        .doc(mockUserPlant.id).set
+        .doc(mockUserPlant.id).set,
     ).toHaveBeenCalledWith(mockUserPlant);
     expect(result).toBe(true);
   });
@@ -45,7 +45,7 @@ describe("saveUserPlantToFirebase", () => {
 
     (firestore as any)._mockGet.mockResolvedValueOnce({ exists: false });
     (firestore as any)._mockSet.mockRejectedValueOnce(
-      new Error("Failed to save")
+      new Error("Failed to save"),
     );
 
     const result = await saveUserPlantToFirebase(mockUserPlant, user);

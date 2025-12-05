@@ -10,16 +10,16 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { IPlant } from "@constants/IPlant";
-import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant, mockPlant2, mockUserPlant } from "@test-utils/MockPlant";
+import { IPlant } from "@/constants/IPlant";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
+import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockPlant, mockPlant2, mockUserPlant } from "@/test-utils/MockPlant";
 
 import PlantForm from "./";
 
 // Mock useCustomizationStyles to return dummy style objects
-jest.mock("@components/plant/customization/plantCustomization.styles", () => ({
+jest.mock("@/components/plant/customization/plantCustomization.styles", () => ({
   useCustomizationStyles: () => ({
     content: { padding: 10 },
     title: { fontSize: 20 },
@@ -39,7 +39,7 @@ jest.mock("./GeneralInfoSection", () => {
       onPress={() => onAttributeChange("name", "NewName")}
     />
   );
-  MockGeneralInfoSection.displayName = "MockGeneralInfoSection"
+  MockGeneralInfoSection.displayName = "MockGeneralInfoSection";
   return MockGeneralInfoSection;
 });
 
@@ -67,7 +67,7 @@ describe("PlantForm", () => {
   const renderAddNewPlantForm = (
     displayUserPlantData: boolean = true,
     initialPlantData = mockPlant,
-    initialUserPlantData = mockUserPlant
+    initialUserPlantData = mockUserPlant,
   ) => {
     return render(
       <AuthContext.Provider value={{ ...mockUser, ...mockAuthContextValue }}>
@@ -78,7 +78,7 @@ describe("PlantForm", () => {
           displayUserPlantData={displayUserPlantData}
           isAddingNewPlant={true}
         />
-      </AuthContext.Provider>
+      </AuthContext.Provider>,
     );
   };
 
@@ -127,7 +127,7 @@ describe("PlantForm", () => {
         expect.objectContaining({
           id: "test-uuid", // Expect the generated UUID for the plant
           name: "NewName",
-        })
+        }),
       );
     });
   });
@@ -136,7 +136,10 @@ describe("PlantForm", () => {
     (uuid.v4 as jest.Mock).mockClear();
 
     // Create a plant data without ID - use type assertion to avoid TS error
-    const plantWithoutId = { ...mockPlant2, id: undefined } as unknown as IPlant;
+    const plantWithoutId = {
+      ...mockPlant2,
+      id: undefined,
+    } as unknown as IPlant;
 
     renderAddNewPlantForm(true, plantWithoutId, mockUserPlant);
 
@@ -146,7 +149,6 @@ describe("PlantForm", () => {
     // Verify uuid.v4 was called to generate the missing ID
     expect(uuid.v4).toHaveBeenCalled();
     await waitFor(() => {
-
       // Verify the generated ID ("test-uuid") was used for the plant
       expect(mockOnSave).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -157,11 +159,10 @@ describe("PlantForm", () => {
         }),
         expect.objectContaining({
           id: "test-uuid",
-        })
+        }),
       );
     });
   });
-
 
   it("updates userData when UserDataSection triggers onUserDataChange", async () => {
     renderAddNewPlantForm(true);
@@ -176,11 +177,11 @@ describe("PlantForm", () => {
       // Verify the userData contains the updated field value
       expect(mockOnSave).toHaveBeenCalledWith(
         expect.objectContaining({
-          // The mock UserDataSection calls onUserDataChange with 
+          // The mock UserDataSection calls onUserDataChange with
           // field: "customField", value: "NewValue"
-          customField: "NewValue"
+          customField: "NewValue",
         }),
-        expect.any(Object)
+        expect.any(Object),
       );
     });
   });

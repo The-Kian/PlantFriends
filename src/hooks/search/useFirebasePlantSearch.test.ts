@@ -1,20 +1,22 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { renderHook, waitFor } from "@testing-library/react-native";
 
-import { IPlant } from '@constants/IPlant';
-import fetchFirebasePlants from '@helpers/fetchFirebasePlants';
+import { IPlant } from "@/constants/IPlant";
+import fetchFirebasePlants from "@/helpers/fetchFirebasePlants";
 
-import { useFirebasePlantSearch } from './useFirebasePlantSearch';
+import { useFirebasePlantSearch } from "./useFirebasePlantSearch";
 
-jest.mock('@helpers/fetchFirebasePlants');
+jest.mock("@/helpers/fetchFirebasePlants");
 
-const mockedFetchFirebasePlants = fetchFirebasePlants as jest.Mock<Promise<IPlant[]>>;
+const mockedFetchFirebasePlants = fetchFirebasePlants as jest.Mock<
+  Promise<IPlant[]>
+>;
 
-describe('useFirebasePlantSearch', () => {
-  it('should return loading, error, and plants states', async () => {
-    const mockPlants: IPlant[] = [{ id: '1', name: 'Test Plant' }];
+describe("useFirebasePlantSearch", () => {
+  it("should return loading, error, and plants states", async () => {
+    const mockPlants: IPlant[] = [{ id: "1", name: "Test Plant" }];
     mockedFetchFirebasePlants.mockResolvedValue(mockPlants);
 
-    const { result } = renderHook(() => useFirebasePlantSearch('test'));
+    const { result } = renderHook(() => useFirebasePlantSearch("test"));
 
     result.current.searchPlants();
 
@@ -26,15 +28,15 @@ describe('useFirebasePlantSearch', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('should handle errors', async () => {
-    mockedFetchFirebasePlants.mockRejectedValue(new Error('Failed to fetch'));
+  it("should handle errors", async () => {
+    mockedFetchFirebasePlants.mockRejectedValue(new Error("Failed to fetch"));
 
-    const { result } = renderHook(() => useFirebasePlantSearch('test'));
+    const { result } = renderHook(() => useFirebasePlantSearch("test"));
 
     result.current.searchPlants();
 
     await waitFor(() => {
-      expect(result.current.error).toBe('Failed to fetch plants');
+      expect(result.current.error).toBe("Failed to fetch plants");
     });
 
     expect(result.current.loading).toBe(false);

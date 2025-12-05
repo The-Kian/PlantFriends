@@ -3,11 +3,11 @@
 import { Modal, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
 
-import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
-import PlantForm from "@components/plant/customization/PlantForm"
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import { ThemedView } from "@components/ui/Views/ThemedView";
-import { IPlant, IUserPlant } from "@constants/IPlant";
+import { useCustomizationStyles } from "@/components/plant/customization/plantCustomization.styles";
+import PlantForm from "@/components/plant/customization/PlantForm";
+import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { IPlant, IUserPlant } from "@/constants/IPlant";
 
 interface PlantCustomizationModalProps {
   plant?: IPlant;
@@ -28,9 +28,16 @@ const PlantCustomizationModal = ({
 }: PlantCustomizationModalProps) => {
   const styles = useCustomizationStyles();
   // Use initial values from props or create new ones if adding a new plant
-  const initialPlantData = isAddingNewPlant ? { id: uuid.v4().toString() } : plant;
+  const initialPlantData = isAddingNewPlant
+    ? { id: uuid.v4().toString() }
+    : plant;
   const initialUserPlantData = isAddingNewPlant
-    ? { userId: "", plantId: "", id: uuid.v4().toString(), custom_attributes: {} } // Create a new temporary ID for new user plants
+    ? {
+        userId: "",
+        plantId: "",
+        id: uuid.v4().toString(),
+        custom_attributes: {},
+      } // Create a new temporary ID for new user plants
     : userPlant;
 
   const handleSave = async (userData: IUserPlant, plantData: IPlant) => {
@@ -39,13 +46,11 @@ const PlantCustomizationModal = ({
   };
 
   return (
-    <Modal
-
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <ThemedView style={styles.modalOverlay} testID="plant-customization-modal">
+    <Modal animationType="slide" transparent={true} onRequestClose={onClose}>
+      <ThemedView
+        style={styles.modalOverlay}
+        testID="plant-customization-modal"
+      >
         <ScrollView contentContainerStyle={styles.modal}>
           <PlantForm
             initialPlantData={initialPlantData}

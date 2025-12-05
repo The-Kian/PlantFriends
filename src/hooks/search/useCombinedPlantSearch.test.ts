@@ -1,24 +1,24 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
-import fetchFirebasePlants from "@helpers/fetchFirebasePlants";
-import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
-import { mockPlant, mockPlant2 } from "@test-utils/MockPlant";
+import fetchFirebasePlants from "@/helpers/fetchFirebasePlants";
+import { fetchPerenualPlants } from "@/helpers/plantAPI/fetchPlantAPI";
+import { mockPlant, mockPlant2 } from "@/test-utils/MockPlant";
 
 import { useCombinedPlantSearch } from "./useCombinedPlantSearch";
 
-jest.mock("@helpers/plantAPI/fetchPlantAPI", () => ({
+jest.mock("@/helpers/plantAPI/fetchPlantAPI", () => ({
   fetchOpenFarmPlants: jest.fn(),
   fetchPerenualPlants: jest.fn(),
 }));
 
-jest.mock("@helpers/fetchFirebasePlants", () => jest.fn());
+jest.mock("@/helpers/fetchFirebasePlants", () => jest.fn());
 
 describe("useFetchAPIPlants", () => {
   it("should set loading to true when searchQuery is not empty", async () => {
     const searchQuery = "test";
     const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
     await waitFor(() => {
-    expect(result.current.loading).toBe(true);
+      expect(result.current.loading).toBe(true);
     });
   });
 
@@ -26,7 +26,7 @@ describe("useFetchAPIPlants", () => {
     const searchQuery = "";
     const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
     await waitFor(() => {
-    expect(result.current.loading).toBe(false);
+      expect(result.current.loading).toBe(false);
     });
   });
 
@@ -38,8 +38,13 @@ describe("useFetchAPIPlants", () => {
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
-    console.log(`🚀 - KP -  ~ it ~ result.current.plants:`, result.current.plants)
-    expect(result.current.plants).toEqual(expect.arrayContaining([expect.objectContaining(mockPlant)]));
+    console.log(
+      `🚀 - KP -  ~ it ~ result.current.plants:`,
+      result.current.plants,
+    );
+    expect(result.current.plants).toEqual(
+      expect.arrayContaining([expect.objectContaining(mockPlant)]),
+    );
   });
 
   it("sets error when fetchPerenualPlants fails", async () => {
@@ -53,46 +58,55 @@ describe("useFetchAPIPlants", () => {
       expect(result.current.loading).toBe(false);
     });
     expect(result.current.error).toBe(error);
-  })
+  });
 
   it("should only return unique plants based on id or name", async () => {
     const searchQuery = "test";
 
-    (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant, mockPlant2]);
-    (fetchFirebasePlants as jest.Mock).mockResolvedValue([mockPlant, mockPlant2,
-      { ...mockPlant, id: "3", name: "Unique Plant" }]);
+    (fetchPerenualPlants as jest.Mock).mockResolvedValue([
+      mockPlant,
+      mockPlant2,
+    ]);
+    (fetchFirebasePlants as jest.Mock).mockResolvedValue([
+      mockPlant,
+      mockPlant2,
+      { ...mockPlant, id: "3", name: "Unique Plant" },
+    ]);
     const { result } = renderHook(() => useCombinedPlantSearch(searchQuery));
-    
+
     expect(result.current.loading).toBe(true);
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
-    
+
     expect(result.current.plants).toHaveLength(3); // Should only have unique plants
-  })
+  });
 
   it("debounces the search query before fetching plants", async () => {
     jest.useFakeTimers();
-  
+
     (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant]);
-  
+
     const searchQuery = "test";
-    const { result, rerender } = renderHook(({ query }) => useCombinedPlantSearch(query), {
-      initialProps: { query: "" },
-    });
-  
+    const { result, rerender } = renderHook(
+      ({ query }) => useCombinedPlantSearch(query),
+      {
+        initialProps: { query: "" },
+      },
+    );
+
     expect(result.current.loading).toBe(false);
-  
+
     rerender({ query: searchQuery });
-  
+
     jest.advanceTimersByTime(500);
-  
+
     await waitFor(() => {
       expect(result.current.plants).toEqual(
-        expect.arrayContaining([expect.objectContaining(mockPlant)])
+        expect.arrayContaining([expect.objectContaining(mockPlant)]),
       );
     });
-  
+
     jest.useRealTimers();
   });
 });

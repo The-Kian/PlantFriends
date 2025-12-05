@@ -1,8 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import { useTheme } from "@hooks/utils/useTheme";
-
-
+import { useTheme } from "@/hooks/utils/useTheme";
 
 export const useCustomizationStyles = () => {
   const theme = useTheme();
@@ -10,16 +8,16 @@ export const useCustomizationStyles = () => {
   return StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+      justifyContent: "center",
+      alignItems: "center",
     },
     modal: {
-      width: '85%',
+      width: "85%",
       borderRadius: 12,
       padding: 20,
       // Shadows for iOS
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.3,
       shadowRadius: 4,
@@ -32,9 +30,9 @@ export const useCustomizationStyles = () => {
     },
     title: {
       fontSize: theme.fonts.sizeLarge,
-      fontWeight: theme.fonts.weightBold as '700',
+      fontWeight: theme.fonts.weightBold as "700",
       marginBottom: 20,
-      textAlign: 'left',
+      textAlign: "left",
       color: theme.colors.text,
     },
     textInput: {
@@ -48,8 +46,8 @@ export const useCustomizationStyles = () => {
       backgroundColor: theme.colors.background,
     },
     buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      justifyContent: "space-between",
     },
     button: {
       flex: 1,

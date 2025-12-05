@@ -1,5 +1,5 @@
-import { IUserPlant } from "@constants/IPlant";
-import { mockUserPlant, mockUserPlant2 } from "@test-utils/MockPlant";
+import { IUserPlant } from "@/constants/IPlant";
+import { mockUserPlant, mockUserPlant2 } from "@/test-utils/MockPlant";
 
 import userPlantsReducer, {
   setUserPlants,

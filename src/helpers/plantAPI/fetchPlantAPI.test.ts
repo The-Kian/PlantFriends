@@ -90,7 +90,7 @@ describe("fetchPerenualPlants", () => {
 
     const plants = await fetchPerenualPlants(searchQuery);
     expect(global.fetch).toHaveBeenCalledWith(
-      `https://perenual.com/api/species-list?key=API_KEY&q=${searchQuery}`
+      `https://perenual.com/api/species-list?key=API_KEY&q=${searchQuery}`,
     );
     expect(plants).toEqual([
       expect.objectContaining({
@@ -103,7 +103,7 @@ describe("fetchPerenualPlants", () => {
       }),
     ]);
     expect(mapPerenualPlantToIPlant).toHaveBeenCalledTimes(
-      fakeData.data.length
+      fakeData.data.length,
     );
   });
 
@@ -119,7 +119,7 @@ describe("fetchPerenualPlants", () => {
     } as any);
 
     await expect(fetchPerenualPlants(searchQuery)).rejects.toThrow(
-      "API request failed with status undefined"
+      "API request failed with status undefined",
     );
   });
 
@@ -136,7 +136,7 @@ describe("fetchPerenualPlants", () => {
     } as any);
 
     await expect(fetchPerenualPlants(searchQuery)).rejects.toThrow(
-      "No plants found in API response"
+      "No plants found in API response",
     );
   });
 });

@@ -1,18 +1,14 @@
-
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import { Alert } from "react-native";
 
-
-import { RootStackParamList } from "@components/navigation/types";
-import { ThemedView } from "@components/ui/Views/ThemedView";
-import { AuthProps, CredentialsType } from "@context/auth/AuthTypes";
-import validateCredentials from "@helpers/auth/validateCredentials";
+import { RootStackParamList } from "@/components/navigation/types";
+import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { AuthProps, CredentialsType } from "@/context/auth/AuthTypes";
+import validateCredentials from "@/helpers/auth/validateCredentials";
 
 import AuthForm from "./AuthForm";
 import ThemedButton from "../ui/Buttons/ThemedButton";
-
-
 
 function AuthContent({ authScreenType, onSubmit }: AuthProps) {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -29,7 +25,7 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
     const validationResult = validateCredentials(credentials, authScreenType);
 
     if (!validationResult.isValid) {
-      Alert.alert('Invalid input', 'Please check your entered credentials.');
+      Alert.alert("Invalid input", "Please check your entered credentials.");
       return;
     }
     onSubmit(credentials);
@@ -37,10 +33,7 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
 
   return (
     <ThemedView testID={"AuthContent-View"}>
-      <AuthForm
-        onSubmit={submitHandler}
-        authScreenType={authScreenType}
-      />
+      <AuthForm onSubmit={submitHandler} authScreenType={authScreenType} />
       <ThemedView>
         {authScreenType !== "update" && (
           <ThemedButton

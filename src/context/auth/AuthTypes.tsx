@@ -1,6 +1,5 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 
-
 export type CredentialsInvalidType = {
   email: boolean;
   confirmEmail: boolean;
@@ -22,7 +21,6 @@ export type AuthProps = {
   onSubmit: (credentials: CredentialsType) => void;
   credentialsInvalid?: CredentialsInvalidType;
 };
-
 
 export interface AuthContextType {
   initializing: boolean;
