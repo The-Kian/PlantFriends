@@ -1,22 +1,22 @@
-import React from 'react';
+import React from "react";
 
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { render, fireEvent, screen } from "@testing-library/react-native";
 
-import ThemedButton from './ThemedButton';
-import { useThemedButtonStyles } from './ThemedButton.styles';
+import ThemedButton from "./ThemedButton";
+import { useThemedButtonStyles } from "./ThemedButton.styles";
 
 // Mock the styles hook
-jest.mock('./ThemedButton.styles', () => ({
+jest.mock("./ThemedButton.styles", () => ({
   useThemedButtonStyles: jest.fn(),
 }));
 
 const mockUseThemedButtonStyles = useThemedButtonStyles as jest.Mock;
 
-describe('ThemedButton', () => {
+describe("ThemedButton", () => {
   const mockStyles = {
-    button: { backgroundColor: 'blue' },
-    acceptButton: { backgroundColor: 'green' },
-    cancelButton: { backgroundColor: 'red' },
+    button: { backgroundColor: "blue" },
+    acceptButton: { backgroundColor: "green" },
+    cancelButton: { backgroundColor: "red" },
     buttonPressed: { opacity: 0.5 },
   };
 
@@ -24,41 +24,43 @@ describe('ThemedButton', () => {
     mockUseThemedButtonStyles.mockReturnValue(mockStyles);
   });
 
-  it('renders with default variant', () => {
+  it("renders with default variant", () => {
     render(<ThemedButton title="Default" onPress={() => {}} />);
-    const button = screen.getByText('Default');
+    const button = screen.getByText("Default");
     expect(button).toBeTruthy();
   });
 
-  it('renders with accept variant', () => {
-    render(
-      <ThemedButton title="Accept" onPress={() => {}} variant="accept" />
-    );
-    const button = screen.getByTestId('themed-button');
+  it("renders with accept variant", () => {
+    render(<ThemedButton title="Accept" onPress={() => {}} variant="accept" />);
+    const button = screen.getByTestId("themed-button");
     expect(button.props.style).toContain(mockStyles.acceptButton);
   });
 
-  it('renders with decline variant', () => {
+  it("renders with decline variant", () => {
     render(
-      <ThemedButton title="Decline" onPress={() => {}} variant="decline" />
+      <ThemedButton title="Decline" onPress={() => {}} variant="decline" />,
     );
-    const button = screen.getByTestId('themed-button');
+    const button = screen.getByTestId("themed-button");
     expect(button.props.style).toContain(mockStyles.cancelButton);
   });
 
-  it('applies additional styles', () => {
+  it("applies additional styles", () => {
     const additionalStyle = { margin: 10 };
     render(
-      <ThemedButton title="Styled" onPress={() => {}} additionalStyle={additionalStyle} />
+      <ThemedButton
+        title="Styled"
+        onPress={() => {}}
+        additionalStyle={additionalStyle}
+      />,
     );
-    const button = screen.getByTestId('themed-button');
+    const button = screen.getByTestId("themed-button");
     expect(button.props.style).toContain(additionalStyle);
   });
 
-  it('handles press events', () => {
+  it("handles press events", () => {
     const onPress = jest.fn();
     render(<ThemedButton title="Press Me" onPress={onPress} />);
-    const button = screen.getByText('Press Me');
+    const button = screen.getByText("Press Me");
     fireEvent.press(button);
     expect(onPress).toHaveBeenCalledTimes(1);
   });

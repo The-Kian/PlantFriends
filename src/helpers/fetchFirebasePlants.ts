@@ -1,6 +1,6 @@
 import firestore from "@react-native-firebase/firestore";
 
-import { IPlant } from "@constants/IPlant";
+import { IPlant } from "@/constants/IPlant";
 
 async function fetchFirebasePlants(plantName: string): Promise<IPlant[]> {
   const plantsRef = firestore().collection("Plants");
@@ -10,12 +10,12 @@ async function fetchFirebasePlants(plantName: string): Promise<IPlant[]> {
     .where("name", "<=", plantName + "\uf8ff")
     .get();
 
-    if (!snapshot.empty) {
-        return snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as IPlant[];
-      }
+  if (!snapshot.empty) {
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as IPlant[];
+  }
   return [];
 }
 

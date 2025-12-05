@@ -3,15 +3,14 @@ import * as reactRedux from "react-redux";
 
 import { renderHook, waitFor } from "@testing-library/react-native";
 
-import { AuthContext } from "@context/auth/AuthProvider";
-import fetchUserPlants from "@helpers/fetchUserPlants";
-import { setUserPlants } from "@store/userPlantsSlice";
-import { mockUserPlant } from "@test-utils/MockPlant";
-
+import { AuthContext } from "@/context/auth/AuthProvider";
+import fetchUserPlants from "@/helpers/fetchUserPlants";
+import { setUserPlants } from "@/store/userPlantsSlice";
+import { mockUserPlant } from "@/test-utils/MockPlant";
 
 import useUserPlants from "./useUserPlants";
 
-jest.mock("@helpers/fetchUserPlants");
+jest.mock("@/helpers/fetchUserPlants");
 
 describe("useUserPlants", () => {
   const mockDispatch = jest.fn();
@@ -72,6 +71,8 @@ describe("useUserPlants", () => {
     });
 
     expect(fetchUserPlants).toHaveBeenCalledWith(mockUser.uid);
-    expect(mockDispatch).not.toHaveBeenCalledWith(setUserPlants(expect.anything()));
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setUserPlants(expect.anything()),
+    );
   });
 });

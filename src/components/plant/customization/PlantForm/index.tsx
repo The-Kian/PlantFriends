@@ -5,14 +5,12 @@ import { useContext, useEffect, useState } from "react";
 import { View, ScrollView } from "react-native";
 import uuid from "react-native-uuid";
 
-
-import { useCustomizationStyles } from "@components/plant/customization/plantCustomization.styles";
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import { ThemedText } from "@components/ui/Text/ThemedText";
-import { ThemedView } from "@components/ui/Views/ThemedView";
-import { IPlant, IUserPlant } from "@constants/IPlant";
-import { AuthContext } from "@context/auth/AuthProvider";
-
+import { useCustomizationStyles } from "@/components/plant/customization/plantCustomization.styles";
+import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import { ThemedText } from "@/components/ui/Text/ThemedText";
+import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { IPlant, IUserPlant } from "@/constants/IPlant";
+import { AuthContext } from "@/context/auth/AuthProvider";
 
 import GeneralInfoSection from "./GeneralInfoSection";
 import UserDataSection from "./UserDataSection";
@@ -35,7 +33,7 @@ const PlantForm = ({
   const { user } = useContext(AuthContext);
 
   const [customizations, setCustomizations] = useState<Partial<IPlant>>(
-    initialPlantData || {}
+    initialPlantData || {},
   );
 
   const [userData, setUserData] = useState<IUserPlant>(
@@ -44,7 +42,7 @@ const PlantForm = ({
       plantId: "",
       id: uuid.v4().toString(),
       custom_attributes: {},
-    }
+    },
   );
 
   useEffect(() => {
@@ -65,12 +63,14 @@ const PlantForm = ({
       });
     } else if (initialPlantData) {
       setCustomizations(initialPlantData);
-      setUserData(initialUserPlantData || {
-        userId: user?.uid || "",
-        plantId: initialPlantData.id || "",
-        id: uuid.v4().toString(),
-        custom_attributes: {},
-      });
+      setUserData(
+        initialUserPlantData || {
+          userId: user?.uid || "",
+          plantId: initialPlantData.id || "",
+          id: uuid.v4().toString(),
+          custom_attributes: {},
+        },
+      );
     }
   }, [isAddingNewPlant, initialPlantData, initialUserPlantData, user]);
 
@@ -96,7 +96,10 @@ const PlantForm = ({
     const finalPlantData = {
       ...customizations,
       // Only generate a new ID if adding a new plant and it doesn't have one
-      id: isAddingNewPlant && !customizations.id ? uuid.v4().toString() : customizations.id,
+      id:
+        isAddingNewPlant && !customizations.id
+          ? uuid.v4().toString()
+          : customizations.id,
     } as IPlant;
 
     const finalUserData = {

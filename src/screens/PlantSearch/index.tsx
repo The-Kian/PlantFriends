@@ -4,16 +4,16 @@ import React, { useState, useContext, useEffect } from "react";
 import { Text } from "react-native";
 import uuid from "react-native-uuid";
 
-import { RootStackParamList } from "@components/navigation/types";
-import PlantCustomizationModal from "@components/plant/CustomizatonModal";
-import ThemedButton from "@components/ui/Buttons/ThemedButton";
-import TextInputField from "@components/ui/Input/TextInputField";
-import LoadingOverlay from "@components/ui/Views/LoadingOverlay";
-import { ThemedView } from "@components/ui/Views/ThemedView";
-import { IUserPlant, IPlant } from "@constants/IPlant";
-import { AuthContext } from "@context/auth/AuthProvider";
-import savePlantToFirebase from "@helpers/savePlantToFirebase";
-import { useCombinedPlantSearch } from "@hooks/search/useCombinedPlantSearch";
+import { RootStackParamList } from "@/components/navigation/types";
+import PlantCustomizationModal from "@/components/plant/CustomizationModal";
+import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import TextInputField from "@/components/ui/Input/TextInputField";
+import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
+import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { IUserPlant, IPlant } from "@/constants/IPlant";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 
 import styles from "./index.styles";
 import PlantSearchResults from "./Results";
@@ -22,9 +22,7 @@ interface PlantSearchScreenProps {
   navigation: NavigationProp<RootStackParamList>;
 }
 
-export const PlantSearchScreen = ({
-  navigation,
-}: PlantSearchScreenProps) => {
+export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { plants, loading, error } = useCombinedPlantSearch(searchQuery);
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);

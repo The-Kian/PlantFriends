@@ -1,10 +1,8 @@
-
 import { useColorScheme } from "react-native";
 
 import { renderHook, waitFor } from "@testing-library/react-native";
 
-import { darkTheme, lightTheme } from "@theme/index";
-
+import { darkTheme, lightTheme } from "@/theme/index";
 
 import { useTheme } from "./useTheme";
 
@@ -16,9 +14,9 @@ describe("useTheme", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-  
+
   it("should return the light theme by default", () => {
-      const { result } = renderHook(() => useTheme());
+    const { result } = renderHook(() => useTheme());
     expect(result.current).toBe(lightTheme);
   });
 

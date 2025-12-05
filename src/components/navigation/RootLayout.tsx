@@ -2,19 +2,17 @@ import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
 import { useContext } from "react";
 
-import { AuthContext } from "@context/auth/AuthProvider";
-import LoginScreen from "@screens/auth/login";
-import SignupScreen from "@screens/auth/signup";
-import PlantSearchScreen from "@screens/PlantSearch";
-import ProfileSettingsScreen from "@screens/settings/profile";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import LoginScreen from "@/screens/auth/login";
+import SignupScreen from "@/screens/auth/signup";
+import PlantSearchScreen from "@/screens/PlantSearch";
+import ProfileSettingsScreen from "@/screens/settings/profile";
 
 import TabNavigator from "./TabNavigator";
-
 
 type RootLayoutProps = {
   initialRouteName?: string;
 };
-
 
 export default function RootLayout({ initialRouteName }: RootLayoutProps) {
   const { user } = useContext(AuthContext);
@@ -58,4 +56,3 @@ export default function RootLayout({ initialRouteName }: RootLayoutProps) {
     </Stack.Navigator>
   );
 }
-

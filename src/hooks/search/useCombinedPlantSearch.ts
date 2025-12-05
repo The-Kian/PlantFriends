@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
-import { IPlant } from "@constants/IPlant";
-import fetchFirebasePlants from "@helpers/fetchFirebasePlants";
-import { fetchPerenualPlants } from "@helpers/plantAPI/fetchPlantAPI";
+import { IPlant } from "@/constants/IPlant";
+import fetchFirebasePlants from "@/helpers/fetchFirebasePlants";
+import { fetchPerenualPlants } from "@/helpers/plantAPI/fetchPlantAPI";
 
 export const useCombinedPlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
@@ -31,15 +31,17 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
       setLoading(true);
       setError(null);
       try {
-        const firebasePlants = await fetchFirebasePlants(debouncedQuery) || [];
-        
-        const apiPlants = await fetchPerenualPlants(debouncedQuery) || [];
+        const firebasePlants =
+          (await fetchFirebasePlants(debouncedQuery)) || [];
+
+        const apiPlants = (await fetchPerenualPlants(debouncedQuery)) || [];
 
         // Combine and deduplicate plants based on `id` or `name`
         const combinedPlants = [...firebasePlants, ...apiPlants];
         const uniquePlants = combinedPlants.filter(
           (plant, index, self) =>
-            index === self.findIndex((p) => p.id === plant.id || p.name === plant.name)
+            index ===
+            self.findIndex((p) => p.id === plant.id || p.name === plant.name),
         );
 
         setPlants(uniquePlants);

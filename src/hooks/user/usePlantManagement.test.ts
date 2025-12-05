@@ -3,18 +3,18 @@ import * as reactRedux from "react-redux";
 
 import { act, renderHook, waitFor } from "@testing-library/react-native"; // No longer need waitFor
 
-import { AuthContext } from "@context/auth/AuthProvider";
-import getUserPlantData from "@helpers/getUserPlantData";
-import savePlantToFirebase from "@helpers/savePlantToFirebase";
-import { addPlant, deletePlant, updatePlant } from "@store/userPlantsSlice";
-import mockUser from "@test-utils/MockFirebaseUser";
-import { mockPlant, mockUserPlant } from "@test-utils/MockPlant";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import getUserPlantData from "@/helpers/getUserPlantData";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
+import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
 import { usePlantManagement } from "./usePlantManagement";
 
 // Mock helpers and modules
-jest.mock("@helpers/savePlantToFirebase");
-jest.mock("@helpers/getUserPlantData", () => ({
+jest.mock("@/helpers/savePlantToFirebase");
+jest.mock("@/helpers/getUserPlantData", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -109,7 +109,7 @@ describe("usePlantManagement", () => {
       (savePlantToFirebase as jest.Mock).mockResolvedValue(newSavedPlant);
       const { result } = renderHook(() => usePlantManagement());
       const savePromise = await waitFor(() =>
-        result.current.handleSavePlant(mockUserPlant, mockPlant)
+        result.current.handleSavePlant(mockUserPlant, mockPlant),
       );
 
       const success = await savePromise;
@@ -118,7 +118,7 @@ describe("usePlantManagement", () => {
       expect(savePlantToFirebase).toHaveBeenCalledWith(
         mockUserPlant,
         mockPlant,
-        mockUser
+        mockUser,
       );
       expect(mockDispatch).toHaveBeenCalledWith(addPlant(newSavedPlant));
 
@@ -133,7 +133,7 @@ describe("usePlantManagement", () => {
         const { result } = renderHook(() => usePlantManagement());
         result.current.handleDeletePlant(mockUserPlant);
         expect(mockDispatch).toHaveBeenCalledWith(
-          deletePlant(mockUserPlant.id)
+          deletePlant(mockUserPlant.id),
         );
         expect(mockDispatch).toHaveBeenCalledTimes(1);
       });
@@ -147,7 +147,7 @@ describe("usePlantManagement", () => {
           };
           result.current.handleUpdatePlant(updatedPlantData);
           expect(mockDispatch).toHaveBeenCalledWith(
-            updatePlant(updatedPlantData)
+            updatePlant(updatedPlantData),
           );
           expect(mockDispatch).toHaveBeenCalledTimes(1);
         });
@@ -180,7 +180,7 @@ describe("usePlantManagement", () => {
         expect(success).toBe(false);
         expect(consoleErrorSpy).toHaveBeenCalledWith(
           "Error saving plant:",
-          error
+          error,
         );
 
         // Cleanup
@@ -206,7 +206,7 @@ describe("usePlantManagement", () => {
         // Assert
         expect(consoleErrorSpy).toHaveBeenCalledWith(
           "Error deleting plant:",
-          error
+          error,
         );
 
         // Cleanup
@@ -230,7 +230,7 @@ describe("usePlantManagement", () => {
         // Assert
         expect(consoleErrorSpy).toHaveBeenCalledWith(
           "Error updating plant:",
-          error
+          error,
         );
 
         // Cleanup

@@ -2,16 +2,16 @@ import React from "react";
 
 import { View } from "react-native";
 
-import DatePickerField from "@components/ui/Input/DatePickerField";
-import PickerField from "@components/ui/Input/PickerField";
-import TextInputField from "@components/ui/Input/TextInputField";
-import { IUserPlant } from "@constants/IPlant";
+import DatePickerField from "@/components/ui/Input/DatePickerField";
+import PickerField from "@/components/ui/Input/PickerField";
+import TextInputField from "@/components/ui/Input/TextInputField";
+import { IUserPlant } from "@/constants/IPlant";
 
 interface UserDataSectionProps {
   userData: IUserPlant;
   onUserDataChange: <K extends keyof IUserPlant>(
     field: K,
-    value: IUserPlant[K]
+    value: IUserPlant[K],
   ) => void;
 }
 
@@ -34,7 +34,9 @@ const UserDataSection = ({
       <PickerField
         label="Location"
         value={userData?.houseLocation || ""}
-        onValueChange={(location) => onUserDataChange("houseLocation", location)}
+        onValueChange={(location) =>
+          onUserDataChange("houseLocation", location)
+        }
         options={[
           "Kitchen",
           "Living Room",
@@ -45,12 +47,13 @@ const UserDataSection = ({
           "Garden",
         ]}
         placeholder="Select a location"
-
       />
       <PickerField
         label="Watering Schedule"
         value={userData?.custom_watering_schedule || ""}
-        onValueChange={(schedule) => onUserDataChange("custom_watering_schedule", schedule)}
+        onValueChange={(schedule) =>
+          onUserDataChange("custom_watering_schedule", schedule)
+        }
         options={[
           "Daily",
           "Every 2-3 days",

@@ -1,8 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
-import { useTheme } from '@hooks/utils/useTheme';
-
-
+import { useTheme } from "@/hooks/utils/useTheme";
 
 export const useThemedButtonStyles = () => {
   const theme = useTheme();
@@ -10,7 +8,7 @@ export const useThemedButtonStyles = () => {
   return StyleSheet.create({
     button: {
       borderRadius: 6,
-      justifyContent: 'center',
+      justifyContent: "center",
       paddingHorizontal: theme.spacing.medium,
       backgroundColor: theme.colors.background,
       elevation: 2,
@@ -28,7 +26,7 @@ export const useThemedButtonStyles = () => {
       opacity: 0.7,
     },
     buttonText: {
-      textAlign: 'center',
+      textAlign: "center",
       color: theme.colors.text,
       fontSize: theme.fonts.sizeMedium,
       fontWeight: theme.fonts.weightBold as "700",

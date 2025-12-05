@@ -1,4 +1,4 @@
-import { IPlant } from "@constants/IPlant";
+import { IPlant } from "@/constants/IPlant";
 
 import { searchResultStyle } from "./SearchResult.styles";
 import ThemedButton from "./ThemedButton";

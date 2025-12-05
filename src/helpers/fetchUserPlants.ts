@@ -1,6 +1,6 @@
 import firestore from "@react-native-firebase/firestore";
 
-import { IUserPlant } from "@constants/IPlant";
+import { IUserPlant } from "@/constants/IPlant";
 
 async function fetchUserPlants(userId: string): Promise<IUserPlant[]> {
   const userPlantsRef = firestore()

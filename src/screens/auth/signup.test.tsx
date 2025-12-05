@@ -2,11 +2,15 @@ import { NavigationContainer } from "@react-navigation/native";
 import "@testing-library/jest-native/extend-expect";
 import React from "react";
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react-native";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react-native";
 
-
-import { AuthContext } from "@context/auth/AuthProvider";
-import mockAuthContextValue from "@test-utils/MockAuthContextValue";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 
 import SignupScreen from "./signup";
 
@@ -25,7 +29,6 @@ describe("SignupScreen", () => {
     jest.clearAllMocks();
   });
 
-  // Test initial rendering state
   it("should render AuthContent initially", () => {
     renderSignUpScreen();
 
@@ -40,8 +43,19 @@ describe("SignupScreen", () => {
 
     renderSignUpScreen();
 
-    const signUpButton = screen.getByText("Sign Up");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Email Address"), "test@example.com");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Display Name"), "PlantFriend");
+    
+    const dobInput = screen.queryByPlaceholderText("Enter Date of Birth");
+    if (dobInput) {
+      fireEvent.changeText(dobInput, "01/01/2000"); 
+    }
 
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Password"), "password123");
+
+    const signUpButton = screen.getByText("Sign Up");
     fireEvent.press(signUpButton);
 
     await waitFor(() => {
@@ -54,13 +68,25 @@ describe("SignupScreen", () => {
     mockAuthContextValue.update.mockResolvedValue(undefined);
 
     renderSignUpScreen();
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Email Address"), "test@example.com");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Display Name"), "PlantFriend");
     
+    const dobInput = screen.queryByPlaceholderText("Enter Date of Birth");
+    if (dobInput) {
+      fireEvent.changeText(dobInput, "01/01/2000"); 
+    }
+
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
+    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Password"), "password123");
+
     const signUpButton = screen.getByText("Sign Up");
     fireEvent.press(signUpButton);
 
     await waitFor(() => {
-        expect(screen.queryByText("Signing up...")).not.toBeOnTheScreen();
-      });
-      expect(screen.getByTestId("AuthContent-View")).toBeOnTheScreen();
+      expect(screen.queryByText("Signing up...")).not.toBeOnTheScreen();
+    });
+    expect(screen.getByTestId("AuthContent-View")).toBeOnTheScreen();
   });
 });

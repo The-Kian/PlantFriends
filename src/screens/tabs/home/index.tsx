@@ -1,28 +1,28 @@
+import { Image, StyleSheet } from "react-native";
 
-import { Image, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@components/ui/HelloWave';
-import { ThemedText } from '@components/ui/Text/ThemedText';
-import ParallaxScrollView from '@components/ui/Views/ParallaxScrollView';
-import { ThemedView } from '@components/ui/Views/ThemedView';
-import { Colors } from '@theme/Colors';
-
+import { HelloWave } from "@/components/ui/HelloWave";
+import { ThemedText } from "@/components/ui/Text/ThemedText";
+import ParallaxScrollView from "@/components/ui/Views/ParallaxScrollView";
+import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { Colors } from "@/theme/Colors";
 
 export default function HomeScreen() {
-
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: Colors['light'].headerBackground, dark: Colors['dark'].headerBackground }}
+      headerBackgroundColor={{
+        light: Colors["light"].headerBackground,
+        dark: Colors["dark"].headerBackground,
+      }}
       headerImage={
         <Image
-          source={require('../../../assets/images/partial-react-logo.png')}
+          source={require("@assets/images/partial-react-logo.png")}
           style={styles.reactLogo}
         />
-      }>
+      }
+    >
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Plant Friends!</ThemedText>
         <HelloWave />
-
       </ThemedView>
     </ParallaxScrollView>
   );
@@ -30,8 +30,8 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   stepContainer: {
@@ -43,6 +43,6 @@ const styles = StyleSheet.create({
     width: 290,
     bottom: 0,
     left: 0,
-    position: 'absolute',
+    position: "absolute",
   },
 });
