@@ -12,8 +12,7 @@ export function setupStore(preloadedState?: Partial<RootState>) {
     devTools: true,
     // enhancers: (getDefaultEnhancers) =>
     //   getDefaultEnhancers().concat(devToolsEnhancer()),
-    reducer: 
-      rootReducer,
+    reducer: rootReducer,
     preloadedState,
   });
 }

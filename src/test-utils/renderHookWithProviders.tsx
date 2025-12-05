@@ -27,7 +27,7 @@ export function renderHookWithProviders<
       ...renderOptions
     }: ExtendedRenderOptions = {}
   ) {
-  function Wrapper({ children }: PropsWithChildren<object>): JSX.Element {
+  function Wrapper({ children }: PropsWithChildren<object>): React.ReactElement {
     return <Provider store={store}>{children}</Provider>
   }
 
