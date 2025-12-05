@@ -34,7 +34,8 @@
       }
     },
     "plugins": [
-      "@react-native-firebase/app"
+      "@react-native-firebase/app",
+      "@react-native-community/datetimepicker"
     ]
   }
 }
