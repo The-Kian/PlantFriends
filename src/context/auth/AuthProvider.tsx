@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import { useState, createContext, useEffect } from "react";
@@ -8,14 +7,12 @@ import { Alert } from "react-native";
 import { ProviderProps } from "@/constants/genericTypes";
 
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
-// import removeTokenFromDatabase from "@/components/messaging/RemoveTokenFromDatabase";
-// import { getDeviceToken } from "@/components/messaging/GetDeviceToken";
+
 
 export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 
 export const AuthProvider = ({ children }: ProviderProps) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  // const [token, setToken] = useState<string>("");
   const [initializing, setInitializing] = useState<boolean>(true);
 
   useEffect(() => {
@@ -40,11 +37,12 @@ export const AuthProvider = ({ children }: ProviderProps) => {
   }) => {
     try {
       await auth().signInWithEmailAndPassword(email, password);
-    } catch (error: any) {
-      if (error.code === "auth/user-not-found") {
+    } catch (error) {
+      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+      if (nativeError.code === "auth/user-not-found") {
         Alert.alert("User not found");
       } else {
-        console.error("Login error:", error);
+        console.error("Login error:", nativeError);
       }
     }
   };
@@ -70,13 +68,14 @@ export const AuthProvider = ({ children }: ProviderProps) => {
           displayName: user?.displayName ?? email,
           email: email,
         });
-    } catch (error: any) {
-      if (error.code === "auth/email-already-in-use") {
+    } catch (error) {
+      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+      if (nativeError.code === "auth/email-already-in-use") {
         Alert.alert("That email address is already in use!");
-      } else if (error.code === "auth/invalid-email") {
+      } else if (nativeError.code === "auth/invalid-email") {
         Alert.alert("That email address is invalid!");
       } else {
-        console.error("Registration error:", error);
+        console.error("Registration error:", nativeError);
       }
     }
   };
@@ -88,8 +87,9 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         await user.updateProfile({
           displayName: displayName,
         });
-      } catch (error: any) {
-        Alert.alert("Error updating profile:", error.message);
+      } catch (error) {
+        const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+        Alert.alert("Error updating profile:", nativeError.message);
       }
       try {
         await firestore()
@@ -102,8 +102,9 @@ export const AuthProvider = ({ children }: ProviderProps) => {
             },
             { merge: true },
           );
-      } catch (error: any) {
-        Alert.alert("Error updating Firestore:", error.message);
+      } catch (error) {
+        const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+        Alert.alert("Error updating Firestore:", nativeError.message);
       } finally {
         setUser(auth().currentUser);
       }
@@ -115,8 +116,9 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       // await removeTokenFromDatabase(token, user.uid);
       // await firebase.messaging().deleteToken();
       await auth().signOut();
-    } catch (error: any) {
-      Alert.alert("Error logging out:", error.message);
+    } catch (error) {
+      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+      Alert.alert("Error logging out:", nativeError.message);
     }
   };
 

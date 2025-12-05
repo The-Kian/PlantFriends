@@ -43,7 +43,7 @@ jest.mock("./Results", () => {
   return MockResults;
 });
 
-jest.mock("@/components/plant/CustomizatonModal", () => {
+jest.mock("@/components/plant/CustomizationModal", () => {
   const MockCustomizationModal = (props: {
     plant?: any;
     userPlant?: any;

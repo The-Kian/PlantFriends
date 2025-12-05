@@ -1,4 +1,5 @@
 import { NavigationContainer } from "@react-navigation/native";
+
 import {
   fireEvent,
   render,
@@ -8,6 +9,7 @@ import {
 
 import { AuthContext } from "@/context/auth/AuthProvider";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
+
 import LoginScreen from "./login";
 
 describe("LoginScreen", () => {

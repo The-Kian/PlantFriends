@@ -1,5 +1,4 @@
 // AuthForm.tsx
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useContext } from "react";
 
@@ -46,36 +45,13 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
     });
   };
 
-  function updateInputValueHandler(inputType: string, enteredValue: any) {
-    switch (inputType) {
-      case "email":
-        setEnteredEmail(enteredValue);
-        break;
-      case "confirmEmail":
-        setEnteredConfirmEmail(enteredValue);
-        break;
-      case "password":
-        setEnteredPassword(enteredValue);
-        break;
-      case "confirmPassword":
-        setEnteredConfirmPassword(enteredValue);
-        break;
-      case "displayName":
-        setEnteredDisplayName(enteredValue);
-        break;
-      case "dateOfBirth":
-        setEnteredDateOfBirth(enteredValue);
-        break;
-    }
-  }
-
   return (
     <View testID="AuthForm-View">
       <View>
         {authScreenType !== "update" && (
           <TextInputField
             label="Email Address"
-            onChangeText={(text) => updateInputValueHandler("email", text)}
+            onChangeText={setEnteredEmail}
             value={enteredEmail}
             keyboardType="email-address"
           />
@@ -84,34 +60,28 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
           <View>
             <TextInputField
               label="Confirm Email Address"
-              onChangeText={(text) =>
-                updateInputValueHandler("confirmEmail", text)
-              }
+              onChangeText={setEnteredConfirmEmail}
               value={enteredConfirmEmail}
               keyboardType="email-address"
             />
             <DatePickerField
               label="Date of Birth"
               date={enteredDateOfBirth}
-              onDateChange={(date) =>
-                updateInputValueHandler("dateOfBirth", date)
-              }
+              onDateChange={setEnteredDateOfBirth}
             />
           </View>
         )}
         {authScreenType !== "login" && (
           <TextInputField
             label="Display Name"
-            onChangeText={(text) =>
-              updateInputValueHandler("displayName", text)
-            }
+            onChangeText={setEnteredDisplayName}
             value={enteredDisplayName}
           />
         )}
         {authScreenType !== "update" && (
           <TextInputField
             label="Password"
-            onChangeText={(text) => updateInputValueHandler("password", text)}
+            onChangeText={setEnteredPassword}
             value={enteredPassword}
             secureTextEntry={true}
           />
@@ -119,9 +89,7 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
         {authScreenType === "signUp" && (
           <TextInputField
             label="Confirm Password"
-            onChangeText={(text) =>
-              updateInputValueHandler("confirmPassword", text)
-            }
+            onChangeText={setEnteredConfirmPassword}
             value={enteredConfirmPassword}
             secureTextEntry={true}
           />

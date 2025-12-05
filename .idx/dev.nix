@@ -1,8 +1,7 @@
 { pkgs }: {
   packages = [
-    pkgs.nodejs_20 # Or your preferred Node.js version
-    
-    # other packages you need
+    pkgs.nodejs_20
+    pkgs.corepack_latest
     pkgs.yarn
   ];
 }

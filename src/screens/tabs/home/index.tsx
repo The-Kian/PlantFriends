@@ -15,7 +15,7 @@ export default function HomeScreen() {
       }}
       headerImage={
         <Image
-          source={require("../../../assets/images/partial-react-logo.png")}
+          source={require("@assets/images/partial-react-logo.png")}
           style={styles.reactLogo}
         />
       }

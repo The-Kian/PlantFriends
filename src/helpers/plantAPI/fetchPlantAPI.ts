@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable import/no-unresolved */
 
 import { PERENUAL_API_KEY } from "@env";
 
 import { IPlant } from "@/constants/IPlant";
 
-import { mapPerenualPlantToIPlant } from "./mapPerenualPlantToIPlant";
+import { mapPerenualPlantToIPlant, PerenualPlant } from "./mapPerenualPlantToIPlant";
+
+interface PerenualAPIResponse {
+  data: PerenualPlant[];
+}
 
 export const fetchPerenualPlants = async (
   searchQuery: string,
@@ -18,10 +21,10 @@ export const fetchPerenualPlants = async (
       throw new Error(`API request failed with status ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: PerenualAPIResponse = await response.json();
 
     if (data.data && Array.isArray(data.data)) {
-      const plantsData: IPlant[] = data.data.map((plant: any) => {
+      const plantsData: IPlant[] = data.data.map((plant: PerenualPlant) => {
         const mapped = mapPerenualPlantToIPlant(plant);
         return mapped;
       });

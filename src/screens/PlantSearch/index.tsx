@@ -5,7 +5,7 @@ import { Text } from "react-native";
 import uuid from "react-native-uuid";
 
 import { RootStackParamList } from "@/components/navigation/types";
-import PlantCustomizationModal from "@/components/plant/CustomizatonModal";
+import PlantCustomizationModal from "@/components/plant/CustomizationModal";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import TextInputField from "@/components/ui/Input/TextInputField";
 import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
