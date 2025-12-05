@@ -43,17 +43,10 @@ export default function MyPlantsScreen() {
     return (
       <ThemedView>
         {plantsInLocation.map((item) => (
-          // <ThemedView key={item.id}>
-          //   <ThemedText>{item.custom_name || "Unnamed Plant"}</ThemedText>
-            // <ThemedButton
-            //   title="Delete"
-            //   onPress={() => handleDeletePlant(item)}
-            // />
-          // </ThemedView>
           <PlantCard
             key={item.id}
             plant={item}
-            onPress={() => navigation.navigate("PlantDetails" as keyof RootStackParamList, { plantId: item.id } as never)}
+            onPress={() => navigation.navigate("PlantDetails", { plantId: item.id })}
             onDelete={() => handleDeletePlant(item)}
           />
         ))}
