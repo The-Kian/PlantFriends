@@ -7,7 +7,7 @@ import LoginScreen from "@/screens/auth/login";
 import SignupScreen from "@/screens/auth/signup";
 import PlantSearchScreen from "@/screens/PlantSearch";
 import ProfileSettingsScreen from "@/screens/settings/profile";
-
+import PlantDetailsScreen from "@/screens/PlantSearch/PlantDetails";
 import TabNavigator from "./TabNavigator";
 
 type RootLayoutProps = {
@@ -36,6 +36,11 @@ export default function RootLayout({ initialRouteName }: RootLayoutProps) {
           <Stack.Screen
             name="PlantSearch"
             component={PlantSearchScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="PlantDetails"
+            component={PlantDetailsScreen}
             options={{ headerShown: false }}
           />
         </>

@@ -15,6 +15,7 @@ import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
 import useUserPlants from "@/hooks/plants/useUserPlants";
 import { RootState } from "@/store/store";
 import { Colors } from "@/theme/Colors";
+import PlantCard from "@/components/plant/plantCard";
 
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -42,13 +43,19 @@ export default function MyPlantsScreen() {
     return (
       <ThemedView>
         {plantsInLocation.map((item) => (
-          <ThemedView key={item.id}>
-            <ThemedText>{item.custom_name || "Unnamed Plant"}</ThemedText>
-            <ThemedButton
-              title="Delete"
-              onPress={() => handleDeletePlant(item)}
-            />
-          </ThemedView>
+          // <ThemedView key={item.id}>
+          //   <ThemedText>{item.custom_name || "Unnamed Plant"}</ThemedText>
+            // <ThemedButton
+            //   title="Delete"
+            //   onPress={() => handleDeletePlant(item)}
+            // />
+          // </ThemedView>
+          <PlantCard
+            key={item.id}
+            plant={item}
+            onPress={() => navigation.navigate("PlantDetails" as keyof RootStackParamList, { plantId: item.id } as never)}
+            onDelete={() => handleDeletePlant(item)}
+          />
         ))}
       </ThemedView>
     );
