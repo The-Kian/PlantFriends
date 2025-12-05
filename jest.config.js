@@ -10,7 +10,7 @@ module.exports = {
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
   moduleNameMapper: {
     "^@context/(.*)$": "<rootDir>/src/context/$1",
-    "^@navigation/(.*)$": "<rootDir>/src/navigation/$1",
+    "^@navigation/(.*)$": "<rootDir>/src/components/navigation/$1",
     "^@screens/(.*)$": "<rootDir>/src/screens/$1",
     "^@components/(.*)$": "<rootDir>/src/components/$1",
     "^@utils/(.*)$": "<rootDir>/src/utils/$1",
@@ -22,7 +22,9 @@ module.exports = {
     "^@theme/(.*)$": "<rootDir>/src/theme/$1",
     "^@helpers/(.*)$": "<rootDir>/src/helpers/$1",
     "^@test-utils/(.*)$": "<rootDir>/src/test-utils/$1",
-    "^@env$": "<rootDir>/__mocks__/@env.ts",
+    "^@store/(.*)$": "<rootDir>/src/store/$1",
+    "^@mocks/(.*)$": "<rootDir>/__mocks__/$1",
+    "^@env$": "<rootDir>/__mocks__/@env.js",
   },
   coveragePathIgnorePatterns: [
     "jest/*",
