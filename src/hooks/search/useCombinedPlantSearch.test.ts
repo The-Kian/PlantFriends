@@ -72,7 +72,7 @@ describe("useFetchAPIPlants", () => {
   })
 
   it("debounces the search query before fetching plants", async () => {
-    jest.useFakeTimers(); // Use fake timers for testing debounce
+    jest.useFakeTimers();
   
     (fetchPerenualPlants as jest.Mock).mockResolvedValue([mockPlant]);
   
@@ -83,20 +83,16 @@ describe("useFetchAPIPlants", () => {
   
     expect(result.current.loading).toBe(false);
   
-    // Update searchQuery
     rerender({ query: searchQuery });
   
-    // Fast-forward time to simulate debounce delay
     jest.advanceTimersByTime(500);
   
     await waitFor(() => {
-      expect(result.current.loading).toBe(false);
+      expect(result.current.plants).toEqual(
+        expect.arrayContaining([expect.objectContaining(mockPlant)])
+      );
     });
   
-    expect(result.current.plants).toEqual(
-      expect.arrayContaining([expect.objectContaining(mockPlant)])
-    );
-  
-    jest.useRealTimers(); // Restore real timers
+    jest.useRealTimers();
   });
 });
