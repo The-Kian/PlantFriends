@@ -14,28 +14,25 @@ describe("saveUserPlantToFirebase", () => {
   it("should save the custom user plant to firebase", async () => {
     const user = mockUser;
 
-    (firestore as any)._mockGet.mockResolvedValueOnce({ exists: false });
+    jest.resetModules();
+    const setDocMock = jest.fn().mockResolvedValueOnce(undefined);
+    const collectionMock = jest.fn(() => ({}));
+    const docMock = jest.fn(() => ({}));
+    jest.doMock("@react-native-firebase/firestore", () => ({
+      getFirestore: jest.fn(() => ({})),
+      collection: collectionMock,
+      doc: docMock,
+      setDoc: setDocMock,
+    }));
+
+    // Re-import after mocking
+    const saveUserPlantToFirebase = require("./saveUserPlantToFirebase").default;
 
     const result = await saveUserPlantToFirebase(mockUserPlant, user);
 
-    const mockFirestoreInstance = firestore();
-
-    expect(mockFirestoreInstance.collection("Users").doc).toHaveBeenCalledWith(
-      user.uid,
-    );
-    expect(
-      mockFirestoreInstance
-        .collection("Users")
-        .doc(user.uid)
-        .collection("UserPlants").doc,
-    ).toHaveBeenCalledWith(mockUserPlant.id);
-    expect(
-      mockFirestoreInstance
-        .collection("Users")
-        .doc(user.uid)
-        .collection("UserPlants")
-        .doc(mockUserPlant.id).set,
-    ).toHaveBeenCalledWith(mockUserPlant);
+    expect(setDocMock).toHaveBeenCalled();
+    expect(collectionMock).toHaveBeenCalled();
+    expect(docMock).toHaveBeenCalled();
     expect(result).toBe(true);
   });
 

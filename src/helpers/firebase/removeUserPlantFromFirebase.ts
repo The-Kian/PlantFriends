@@ -1,5 +1,10 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getFirestore,
+} from "@react-native-firebase/firestore";
 
 import { Alert } from "react-native";
 
@@ -14,12 +19,12 @@ const removeUserPlantFromFirebase = async (
   }
 
   try {
-    await firestore()
-      .collection("Users")
-      .doc(user.uid)
-      .collection("UserPlants")
-      .doc(userPlantId)
-      .delete();
+    const db = getFirestore();
+    const userPlantRef = doc(
+      collection(doc(collection(db, "Users"), user.uid), "UserPlants"),
+      userPlantId,
+    );
+    await deleteDoc(userPlantRef);
     return true;
   } catch (error) {
     console.error("removeUserPlantFromFirebase: Error deleting user plant:", error);

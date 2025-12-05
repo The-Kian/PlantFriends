@@ -1,14 +1,17 @@
-import firestore from "@react-native-firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  getFirestore,
+} from "@react-native-firebase/firestore";
 
 import { IUserPlant } from "@/constants/IPlant";
 
 async function fetchUserPlants(userId: string): Promise<IUserPlant[]> {
-  const userPlantsRef = firestore()
-    .collection("Users")
-    .doc(userId)
-    .collection("UserPlants");
+  const db = getFirestore();
+  const userPlantsRef = collection(doc(collection(db, "Users"), userId), "UserPlants");
 
-  const snapshot = await userPlantsRef.get();
+  const snapshot = await getDocs(userPlantsRef);
 
   if (!snapshot.empty) {
     return snapshot.docs.map((doc) => doc.data() as IUserPlant);
