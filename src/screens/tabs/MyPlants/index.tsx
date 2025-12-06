@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { StyleSheet } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
+import PlantCard from "@/components/plant/plantCard";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { Collapsible } from "@/components/ui/Views/Collapsible";
@@ -15,6 +16,7 @@ import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
 import useUserPlants from "@/hooks/plants/useUserPlants";
 import { RootState } from "@/store/store";
 import { Colors } from "@/theme/Colors";
+
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -41,13 +43,12 @@ export default function MyPlantsScreen() {
     return (
       <ThemedView>
         {plantsInLocation.map((item) => (
-          <ThemedView key={item.id}>
-            <ThemedText>{item.custom_name || "Unnamed Plant"}</ThemedText>
-            <ThemedButton
-              title="Delete"
-              onPress={() => handleDeletePlant(item)}
-            />
-          </ThemedView>
+          <PlantCard
+            key={item.id}
+            plant={item}
+            onPress={() => navigation.navigate("PlantDetails", { plantId: item.id })}
+            onDelete={() => handleDeletePlant(item)}
+          />
         ))}
       </ThemedView>
     );
