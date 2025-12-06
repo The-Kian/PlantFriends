@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-
 import { IPlant, IUserPlant } from '@/constants/IPlant';
 import fetchFirebasePlantById from '@/helpers/firebase/fetchFirebasePlantById';
 

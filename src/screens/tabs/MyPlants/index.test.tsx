@@ -6,7 +6,6 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { Text } from "react-native";
 
 import { fireEvent, screen, waitFor } from "@testing-library/react-native";
-
 import { mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 

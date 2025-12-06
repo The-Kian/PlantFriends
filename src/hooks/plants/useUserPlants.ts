@@ -3,8 +3,8 @@ import { useDispatch } from "react-redux";
 
 import { IUserPlant, IUserPlantMerged } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
-import fetchFirebasePlantById from '@/helpers/firebase/fetchFirebasePlantById';
 import fetchUserPlants from "@/helpers/plants/fetchUserPlants";
+import fetchFirebasePlantById from '@/helpers/firebase/fetchFirebasePlantById';
 import { setUserPlants } from "@/store/userPlantsSlice";
 
 export interface useUserPlantsProps {
