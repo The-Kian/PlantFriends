@@ -6,16 +6,23 @@ import uuid from "react-native-uuid";
 import { IPlant, IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import getUserPlantData from "@/helpers/getUserPlantData";
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
+import usePlantPersistence from "@/hooks/user/usePlantPersistence";
+import usePlantCustomizations from "@/hooks/user/usePlantCustomizations";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
   const dispatch = useDispatch();
 
+  // Selection / fetched user plant
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
   const [userPlant, setUserPlant] = useState<IUserPlant | null>(null);
-  const [customizations, setCustomizations] = useState({});
+
+  const { customizations, handlePlantAttributeChange } =
+    usePlantCustomizations();
+
+  const { persistSavePlant, persistDeletePlant, persistUpdatePlant } =
+    usePlantPersistence(user);
 
   const handleSelectPlant = async (plant: IPlant) => {
     setSelectedPlant(plant);
@@ -23,16 +30,6 @@ export const usePlantManagement = () => {
       const userPlantData = await getUserPlantData(user.uid, plant.id);
       setUserPlant(userPlantData || null);
     }
-  };
-
-  const handlePlantAttributeChange = <K extends keyof IPlant>(
-    field: K,
-    value: IPlant[K],
-  ) => {
-    setCustomizations((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
   };
 
   const handleUserDataChange = <K extends keyof IUserPlant>(
@@ -59,19 +56,12 @@ export const usePlantManagement = () => {
     plant: IPlant,
   ) => {
     try {
-      if (user) {
-        const savedPlant = await savePlantToFirebase(
-          updatedUserPlant,
-          plant,
-          user,
-        );
-        if (savedPlant) {
-          dispatch(addPlant(savedPlant));
-          setUserPlant(savedPlant);
-          setSelectedPlant(null);
-          return true;
-        }
-        return false;
+      const savedPlant = await persistSavePlant(updatedUserPlant, plant);
+      if (savedPlant) {
+        dispatch(addPlant(savedPlant));
+        setUserPlant(savedPlant);
+        setSelectedPlant(null);
+        return true;
       }
       return false;
     } catch (error) {
@@ -82,7 +72,17 @@ export const usePlantManagement = () => {
 
   const handleDeletePlant = async (plant: IUserPlant) => {
     try {
+      // Optimistic removal for immediate UI response
       dispatch(deletePlant(plant.id));
+
+      // Fire-and-forget backend removal; log failures for troubleshooting
+      persistDeletePlant(plant.id).then((removed) => {
+        if (!removed) {
+          console.error("Failed to remove plant from firebase");
+        }
+      });
+
+      return true;
     } catch (error) {
       console.error("Error deleting plant:", error);
     }
