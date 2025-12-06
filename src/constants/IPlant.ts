@@ -79,3 +79,9 @@ export interface IUserPlant {
   /** Whether the plant is marked as a favorite */
   is_favorite?: boolean;
 }
+
+/**
+ * A merged representation when a user plant can be enriched with base plant data.
+ * Contains all user-specific fields plus optional base/species fields.
+ */
+export type IUserPlantMerged = IUserPlant & Partial<IPlant>;

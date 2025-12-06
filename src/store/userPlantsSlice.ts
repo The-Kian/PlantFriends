@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-import { IUserPlant } from "@/constants/IPlant";
+import { IUserPlant, IUserPlantMerged } from "@/constants/IPlant";
 
-const initialState: IUserPlant[] = [];
+const initialState: (IUserPlant | IUserPlantMerged)[] = [];
 /**
  * @slice
  * This slice manages the user's plants in the Redux store.
@@ -21,7 +21,7 @@ const userPlantsSlice = createSlice({
      * takes an array of IUserPlant objects and replaces the entire state with it.
      * This is used when initially loading plants from Firebase.
      */
-    setUserPlants: (state, action: PayloadAction<IUserPlant[]>) => {
+    setUserPlants: (state, action: PayloadAction<(IUserPlant | IUserPlantMerged)[]>) => {
       return action.payload;
     },
     /**
@@ -29,7 +29,7 @@ const userPlantsSlice = createSlice({
      * takes an IUserPlant object and adds it to the state.
      * This is used when a new plant is added.
      */
-    addPlant: (state, action: PayloadAction<IUserPlant>) => {
+    addPlant: (state, action: PayloadAction<IUserPlant | IUserPlantMerged>) => {
       state.push(action.payload);
     },
     /**
@@ -38,7 +38,7 @@ const userPlantsSlice = createSlice({
      * This is used when a plant is updated.
      */
 
-    updatePlant: (state, action: PayloadAction<IUserPlant>) => {
+    updatePlant: (state, action: PayloadAction<IUserPlant | IUserPlantMerged>) => {
       const index = state.findIndex((plant) => plant.id === action.payload.id);
       if (index !== -1) {
         state[index] = action.payload;

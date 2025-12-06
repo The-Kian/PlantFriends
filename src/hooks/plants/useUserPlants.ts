@@ -1,8 +1,9 @@
 import { useCallback, useContext } from "react";
 import { useDispatch } from "react-redux";
 
-import { IUserPlant } from "@/constants/IPlant";
+import { IUserPlant, IUserPlantMerged } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import fetchFirebasePlantById from '@/helpers/firebase/fetchFirebasePlantById';
 import fetchUserPlants from "@/helpers/plants/fetchUserPlants";
 import { setUserPlants } from "@/store/userPlantsSlice";
 
@@ -20,7 +21,30 @@ const useUserPlants = (): useUserPlantsProps => {
     }
 
     const plants = await fetchUserPlants(user.uid);
-    dispatch(setUserPlants(plants));
+
+    // Attempt to enrich each user plant with its base plant data.
+    const merged = await Promise.all(
+      plants.map(async (up) => {
+        try {
+          if (!up.plantId) return up;
+          const base = await fetchFirebasePlantById(up.plantId);
+          if (!base) return up;
+          // Merge base fields into the user plant while preserving user instance id
+          const mergedPlant: IUserPlantMerged = {
+            // include base fields first, then user fields overwrite when present
+            ...base,
+            ...up,
+            id: up.id,
+          };
+          return mergedPlant;
+        } catch (e) {
+          console.error('Error merging plant data:', e);
+          return up;
+        }
+      }),
+    );
+
+    dispatch(setUserPlants(merged));
     return plants;
   }, [user, dispatch]);
 
