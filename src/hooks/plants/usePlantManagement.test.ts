@@ -4,8 +4,9 @@ import * as reactRedux from "react-redux";
 import { act, renderHook, waitFor } from "@testing-library/react-native"; // No longer need waitFor
 
 import { AuthContext } from "@/context/auth/AuthProvider";
-import getUserPlantData from "@/helpers/getUserPlantData";
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import getUserPlantData from "@/helpers/firebase/getUserPlantData";
+import removeUserPlantFromFirebase from "@/helpers/firebase/removeUserPlantFromFirebase";
+import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
@@ -13,8 +14,12 @@ import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 import { usePlantManagement } from "./usePlantManagement";
 
 // Mock helpers and modules
-jest.mock("@/helpers/savePlantToFirebase");
-jest.mock("@/helpers/getUserPlantData", () => ({
+jest.mock("@/helpers/firebase/savePlantToFirebase");
+jest.mock("@/helpers/firebase/getUserPlantData", () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+jest.mock("@/helpers/firebase/removeUserPlantFromFirebase", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -136,6 +141,24 @@ describe("usePlantManagement", () => {
           deletePlant(mockUserPlant.id),
         );
         expect(mockDispatch).toHaveBeenCalledTimes(1);
+      });
+
+      it("should call removeUserPlantFromFirebase when user exists", () => {
+        (removeUserPlantFromFirebase as jest.Mock).mockResolvedValue(true);
+        const { result } = renderHook(() => usePlantManagement());
+        result.current.handleDeletePlant(mockUserPlant);
+        expect(removeUserPlantFromFirebase).toHaveBeenCalledWith(
+          mockUserPlant.id,
+          mockUser,
+        );
+      });
+
+      it("should NOT call removeUserPlantFromFirebase when user is null", () => {
+        jest.spyOn(React, "useContext").mockReturnValue({ user: null });
+        (removeUserPlantFromFirebase as jest.Mock).mockClear();
+        const { result } = renderHook(() => usePlantManagement());
+        result.current.handleDeletePlant(mockUserPlant);
+        expect(removeUserPlantFromFirebase).not.toHaveBeenCalled();
       });
 
       describe("handleUpdatePlant", () => {
