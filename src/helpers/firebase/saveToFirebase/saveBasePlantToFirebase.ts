@@ -1,5 +1,11 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getFirestore,
+  setDoc,
+} from "@react-native-firebase/firestore";
 
 import { IPlant } from "@/constants/IPlant";
 
@@ -8,8 +14,9 @@ const saveBasePlantToFirebase = async (
   user: FirebaseAuthTypes.User,
 ): Promise<boolean> => {
   const plantId = plantData.id;
-  const plantRef = firestore().collection("Plants").doc(plantId);
-  const plantDoc = await plantRef.get();
+  const db = getFirestore();
+  const plantRef = doc(collection(db, "Plants"), plantId);
+  const plantDoc = await getDoc(plantRef);
 
   // Save the base plant data if it doesn't exist
   if (!plantDoc.exists) {
@@ -18,8 +25,9 @@ const saveBasePlantToFirebase = async (
         ...plantData,
         contributed_by: user.displayName ?? user.email ?? user.uid,
         isVerified: plantData.isVerified ?? false,
+        slug: plantData.name ? plantData.name.toLowerCase() : "",
       };
-      await plantRef.set(basePlantData);
+      await setDoc(plantRef, basePlantData);
     } catch (error) {
       console.error("Error saving base plant data: ", error);
       return false;

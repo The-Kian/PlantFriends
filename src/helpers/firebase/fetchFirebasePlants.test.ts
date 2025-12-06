@@ -34,8 +34,8 @@ describe("fetchFirebasePlants", () => {
 
     expect(firestore).toHaveBeenCalled();
     expect(mockCollection).toHaveBeenCalledWith("Plants");
-    expect(mockWhere).toHaveBeenCalledWith("name", ">=", "Test Plant");
-    expect(mockWhere).toHaveBeenCalledWith("name", "<=", "Test Plant\uf8ff");
+    expect(mockWhere).toHaveBeenCalledWith("slug", ">=", "test plant");
+    expect(mockWhere).toHaveBeenCalledWith("slug", "<=", "test plant\uf8ff");
     expect(mockGet).toHaveBeenCalled();
     expect(result).toEqual([mockPlant, mockPlant2]);
   });
@@ -50,11 +50,11 @@ describe("fetchFirebasePlants", () => {
 
     expect(firestore).toHaveBeenCalled();
     expect(mockCollection).toHaveBeenCalledWith("Plants");
-    expect(mockWhere).toHaveBeenCalledWith("name", ">=", "Nonexistent Plant");
+    expect(mockWhere).toHaveBeenCalledWith("slug", ">=", "nonexistent plant");
     expect(mockWhere).toHaveBeenCalledWith(
-      "name",
+      "slug",
       "<=",
-      "Nonexistent Plant\uf8ff",
+      "nonexistent plant\uf8ff",
     );
     expect(mockGet).toHaveBeenCalled();
     expect(result).toEqual([]);
@@ -70,8 +70,8 @@ describe("fetchFirebasePlants", () => {
 
     expect(firestore).toHaveBeenCalled();
     expect(mockCollection).toHaveBeenCalledWith("Plants");
-    expect(mockWhere).toHaveBeenCalledWith("name", ">=", "Test Plant");
-    expect(mockWhere).toHaveBeenCalledWith("name", "<=", "Test Plant\uf8ff");
+    expect(mockWhere).toHaveBeenCalledWith("slug", ">=", "test plant");
+    expect(mockWhere).toHaveBeenCalledWith("slug", "<=", "test plant\uf8ff");
     expect(mockGet).toHaveBeenCalled();
   });
 });

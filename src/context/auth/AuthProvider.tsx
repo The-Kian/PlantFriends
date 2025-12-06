@@ -1,5 +1,10 @@
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import {
+  collection,
+  doc,
+  getFirestore,
+  setDoc,
+} from "@react-native-firebase/firestore";
 import { useState, createContext, useEffect } from "react";
 
 import { Alert } from "react-native";
@@ -60,14 +65,12 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         password,
       );
       const user = userCredential.user;
+      const db = getFirestore();
 
-      await firestore()
-        .collection("users")
-        .doc(user?.uid)
-        .set({
-          displayName: user?.displayName ?? email,
-          email: email,
-        });
+      await setDoc(doc(collection(db, "users"), user?.uid), {
+        displayName: user?.displayName ?? email,
+        email: email,
+      });
     } catch (error) {
       const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
       if (nativeError.code === "auth/email-already-in-use") {
@@ -92,16 +95,15 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         Alert.alert("Error updating profile:", nativeError.message);
       }
       try {
-        await firestore()
-          .collection("users")
-          .doc(user.uid)
-          .set(
-            {
-              displayName: displayName ?? user?.email,
-              email: user.email,
-            },
-            { merge: true },
-          );
+        const db = getFirestore();
+        await setDoc(
+          doc(collection(db, "users"), user.uid),
+          {
+            displayName: displayName ?? user?.email,
+            email: user.email,
+          },
+          { merge: true },
+        );
       } catch (error) {
         const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
         Alert.alert("Error updating Firestore:", nativeError.message);
