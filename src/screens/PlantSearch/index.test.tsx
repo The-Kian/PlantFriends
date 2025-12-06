@@ -11,7 +11,7 @@ import { screen, waitFor, fireEvent } from "@testing-library/react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
 import { AuthContext } from "@/context/auth/AuthProvider";
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
@@ -76,7 +76,7 @@ jest.mock("@/components/plant/CustomizationModal", () => {
 
 // Mock helper functions and hooks
 jest.mock("@/hooks/search/useCombinedPlantSearch");
-jest.mock("@/helpers/savePlantToFirebase");
+jest.mock("@/helpers/firebase/savePlantToFirebase");
 jest.mock("react-native-uuid", () => ({ v4: () => "mock-uuid-123" }));
 
 // --- Test Suite ---

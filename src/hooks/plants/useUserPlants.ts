@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 
 import { IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
-import fetchUserPlants from "@/helpers/fetchUserPlants";
+import fetchUserPlants from "@/helpers/plants/fetchUserPlants";
 import { setUserPlants } from "@/store/userPlantsSlice";
 
 export interface useUserPlantsProps {
