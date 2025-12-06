@@ -1,11 +1,11 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
 import { IPlant } from "@/constants/IPlant";
-import fetchFirebasePlants from "@/helpers/fetchFirebasePlants";
+import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
 
 import { useFirebasePlantSearch } from "./useFirebasePlantSearch";
 
-jest.mock("@/helpers/fetchFirebasePlants");
+jest.mock("@/helpers/firebase/fetchFirebasePlants");
 
 const mockedFetchFirebasePlants = fetchFirebasePlants as jest.Mock<
   Promise<IPlant[]>

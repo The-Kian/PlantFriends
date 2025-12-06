@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
 import { IPlant } from "@/constants/IPlant";
-import fetchFirebasePlants from "@/helpers/fetchFirebasePlants";
-import { fetchPerenualPlants } from "@/helpers/plantAPI/fetchPlantAPI";
+import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
+import { fetchPerenualPlants } from "@/helpers/plants/plantAPI/fetchPlantAPI";
 
 export const useCombinedPlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);

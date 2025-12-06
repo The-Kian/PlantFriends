@@ -1,17 +1,17 @@
 import { renderHook, waitFor } from "@testing-library/react-native";
 
-import fetchFirebasePlants from "@/helpers/fetchFirebasePlants";
-import { fetchPerenualPlants } from "@/helpers/plantAPI/fetchPlantAPI";
+import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
+import { fetchPerenualPlants } from "@/helpers/plants/plantAPI/fetchPlantAPI";
 import { mockPlant, mockPlant2 } from "@/test-utils/MockPlant";
 
 import { useCombinedPlantSearch } from "./useCombinedPlantSearch";
 
-jest.mock("@/helpers/plantAPI/fetchPlantAPI", () => ({
+jest.mock("@/helpers/plants/plantAPI/fetchPlantAPI", () => ({
   fetchOpenFarmPlants: jest.fn(),
   fetchPerenualPlants: jest.fn(),
 }));
 
-jest.mock("@/helpers/fetchFirebasePlants", () => jest.fn());
+jest.mock("@/helpers/firebase/fetchFirebasePlants", () => jest.fn());
 
 describe("useFetchAPIPlants", () => {
   it("should set loading to true when searchQuery is not empty", async () => {

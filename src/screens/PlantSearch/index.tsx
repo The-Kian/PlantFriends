@@ -12,7 +12,7 @@ import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 
 import styles from "./index.styles";
