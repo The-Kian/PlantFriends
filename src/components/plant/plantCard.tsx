@@ -1,31 +1,38 @@
-import React from 'react';
-import { Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useTheme } from '@/hooks/utils/useTheme';
-import { IPlant } from '@/constants/IPlant';
-import ThemedButton from '@/components/ui/Buttons/ThemedButton';
 import { Ionicons } from '@expo/vector-icons';
-import { ThemedView } from '@/components/ui/Views/ThemedView';
+import React from 'react';
+
+import { Image, StyleSheet, TouchableOpacity } from 'react-native';
+
+import ThemedButton from '@/components/ui/Buttons/ThemedButton';
 import { ThemedText } from '@/components/ui/Text/ThemedText';
+import { ThemedView } from '@/components/ui/Views/ThemedView';
+import { IUserPlant, IUserPlantMerged } from '@/constants/IPlant';
+import useMergedPlant from '@/hooks/plants/useMergedPlant';
+import { useTheme } from '@/hooks/utils/useTheme';
 
 interface PlantCardProps {
-    plant: IPlant;
+    plant: IUserPlant | IUserPlantMerged;
     onPress: () => void;
-    onDelete: (plant: IPlant) => void;
+    onDelete: (plant: IUserPlant | IUserPlantMerged) => void;
 }
 
 const PlantCard: React.FC<PlantCardProps> = ({ plant, onPress, onDelete }) => {
     const { colors } = useTheme();
+    const { mergedPlant } = useMergedPlant(plant);
+
+    const displayName = plant.custom_name || mergedPlant?.name || "Unnamed Plant";
+    const imageUri = (plant as IUserPlantMerged).images?.[0] || mergedPlant?.images?.[0] || null;
 
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.card, { backgroundColor: colors.tint }]}>
-            {plant.images && plant.images.length > 0 ? (
-                <Image source={{ uri: plant.images[0] }} style={styles.image} />
+        <TouchableOpacity onPress={onPress} style={[styles.card, { backgroundColor: colors.card }]}>
+            {imageUri ? (
+                <Image source={{ uri: imageUri }} style={styles.image} />
             ) : (
                 <Ionicons name="leaf-outline" size={80} color={colors.icon} style={styles.image} />
             )}
             <ThemedView style={styles.infoContainer}>
-                <ThemedText style={[styles.plantName, { color: colors.text }]}>{plant.name || "Unnamed Plant"}</ThemedText>
-            </ThemedView >
+                <ThemedText style={styles.plantName}>{displayName}</ThemedText>
+            </ThemedView>
             <ThemedButton
                 title="Delete"
                 onPress={() => onDelete(plant)}
@@ -48,16 +55,13 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     infoContainer: {
+        flex: 1,
         marginLeft: 15,
         justifyContent: 'center',
     },
     plantName: {
         fontSize: 18,
         fontWeight: 'bold',
-    },
-    plantPrice: {
-        fontSize: 16,
-        marginTop: 5,
     },
 });
 
