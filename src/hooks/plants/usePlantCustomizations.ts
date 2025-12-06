@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import { IPlant } from "@/constants/IPlant";
 
 const usePlantCustomizations = () => {

@@ -4,9 +4,9 @@ import * as reactRedux from "react-redux";
 import { act, renderHook, waitFor } from "@testing-library/react-native"; // No longer need waitFor
 
 import { AuthContext } from "@/context/auth/AuthProvider";
-import getUserPlantData from "@/helpers/firebase/getUserPlantData";
-import removeUserPlantFromFirebase from "@/helpers/firebase/removeUserPlantFromFirebase";
-import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
+import getUserPlantData from "@/helpers/getUserPlantData";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import removeUserPlantFromFirebase from "@/helpers/removeUserPlantFromFirebase";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
@@ -14,12 +14,12 @@ import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 import { usePlantManagement } from "./usePlantManagement";
 
 // Mock helpers and modules
-jest.mock("@/helpers/firebase/savePlantToFirebase");
-jest.mock("@/helpers/firebase/getUserPlantData", () => ({
+jest.mock("@/helpers/savePlantToFirebase");
+jest.mock("@/helpers/getUserPlantData", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-jest.mock("@/helpers/firebase/removeUserPlantFromFirebase", () => ({
+jest.mock("@/helpers/removeUserPlantFromFirebase", () => ({
   __esModule: true,
   default: jest.fn(),
 }));

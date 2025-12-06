@@ -5,10 +5,10 @@ import uuid from "react-native-uuid";
 
 import { IPlant, IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
-import getUserPlantData from "@/helpers/firebase/getUserPlantData";
-import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
-import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
+import getUserPlantData from "@/helpers/getUserPlantData";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
+import usePlantPersistence from "@/hooks/user/usePlantPersistence";
+import usePlantCustomizations from "@/hooks/user/usePlantCustomizations";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
@@ -21,7 +21,7 @@ export const usePlantManagement = () => {
   const { customizations, handlePlantAttributeChange } =
     usePlantCustomizations();
 
-  const { persistSavePlant, persistDeletePlant } =
+  const { persistSavePlant, persistDeletePlant, persistUpdatePlant } =
     usePlantPersistence(user);
 
   const handleSelectPlant = async (plant: IPlant) => {

@@ -1,16 +1,14 @@
 import { renderHook } from "@testing-library/react-native";
-
-import removeUserPlantFromFirebase from "@/helpers/firebase/removeUserPlantFromFirebase";
-import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
-import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
+import usePlantPersistence from "./usePlantPersistence";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import removeUserPlantFromFirebase from "@/helpers/removeUserPlantFromFirebase";
+import saveUserPlantToFirebase from "@/helpers/saveToFirebase/saveUserPlantToFirebase";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
-import usePlantPersistence from "./usePlantPersistence";
-
-jest.mock("@/helpers/firebase/savePlantToFirebase");
-jest.mock("@/helpers/firebase/removeUserPlantFromFirebase");
-jest.mock("@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase");
+jest.mock("@/helpers/savePlantToFirebase");
+jest.mock("@/helpers/removeUserPlantFromFirebase");
+jest.mock("@/helpers/saveToFirebase/saveUserPlantToFirebase");
 
 describe("usePlantPersistence", () => {
   beforeEach(() => {
@@ -44,7 +42,7 @@ describe("usePlantPersistence", () => {
       );
 
       expect(savePlantToFirebase).not.toHaveBeenCalled();
-      expect(savedPlant).toBeUndefined();
+      expect(savedPlant).toBeNull();
     });
 
     it("should propagate error from savePlantToFirebase", async () => {
