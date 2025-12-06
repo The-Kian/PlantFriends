@@ -31,10 +31,21 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
       setLoading(true);
       setError(null);
       try {
-        const firebasePlants =
-          (await fetchFirebasePlants(debouncedQuery)) || [];
+        const firebasePlants = (await fetchFirebasePlants(debouncedQuery)) || [];
 
-        const apiPlants = (await fetchPerenualPlants(debouncedQuery)) || [];
+        // Fetch external API but don't let it fail the whole search —
+        // if the external API errors (404, network, etc.) we still want
+        // to show Firebase results.
+        let apiPlants: IPlant[] = [];
+        try {
+          apiPlants = (await fetchPerenualPlants(debouncedQuery)) || [];
+        } catch (apiErr) {
+          console.warn(
+            "Perenual API fetch failed, continuing with Firebase results:",
+            apiErr,
+          );
+          setError(apiErr as Error);
+        }
 
         // Combine and deduplicate plants based on `id` or `name`
         const combinedPlants = [...firebasePlants, ...apiPlants];

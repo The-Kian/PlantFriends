@@ -1,9 +1,14 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import {
+  collection,
+  doc,
+  getFirestore,
+  setDoc,
+} from "@react-native-firebase/firestore";
 
 import uuid from "react-native-uuid";
 
-import { IUserPlant } from "@/constants/IPlant";
+import { IUserPlant, IPlant } from "@/constants/IPlant";
 
 const saveUserPlantToFirebase = async (
   userPlant: IUserPlant,
@@ -18,12 +23,26 @@ const saveUserPlantToFirebase = async (
   };
 
   try {
-    await firestore()
-      .collection("Users")
-      .doc(user.uid)
-      .collection("UserPlants")
-      .doc(userPlantId)
-      .set(userPlantData);
+    const db = getFirestore();
+
+    // Derive a searchable slug for user plants. Prefer a custom name
+    // (user-provided), otherwise fall back to any base name in custom_attributes.
+    const derivedName =
+      (userPlant.custom_name && userPlant.custom_name.trim()) ||
+      (userPlant.custom_attributes &&
+        (userPlant.custom_attributes as Partial<IPlant>).name) ||
+      "";
+
+    const docData = {
+      ...userPlantData,
+      slug: derivedName ? derivedName.toLowerCase() : "",
+    };
+
+    const userPlantRef = doc(
+      collection(doc(collection(db, "Users"), user.uid), "UserPlants"),
+      userPlantId,
+    );
+    await setDoc(userPlantRef, docData);
     return true;
   } catch (error) {
     console.error(

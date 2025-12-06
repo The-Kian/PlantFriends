@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import firestore from "@react-native-firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+} from "@react-native-firebase/firestore";
 
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant } from "@/test-utils/MockPlant";
@@ -15,23 +19,22 @@ describe("saveBasePlantToFirebase", () => {
     const plantData = mockPlant;
     const user = mockUser;
 
-    (firestore as any)._mockGet.mockResolvedValueOnce({ exists: false });
+    // Mock getDoc to simulate plant does not exist
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: false });
+    // Mock setDoc to resolve
+    (setDoc as jest.Mock).mockResolvedValueOnce(undefined);
 
     const result = await saveBasePlantToFirebase(plantData, user);
 
-    const mockFirestoreInstance = firestore();
-
-    expect(mockFirestoreInstance.collection("Plants").doc).toHaveBeenCalledWith(
-      plantData.id,
-    );
-    expect(
-      mockFirestoreInstance.collection("Plants").doc(plantData.id).set,
-    ).toHaveBeenCalledWith(
+    // Check that doc and setDoc were called with correct arguments
+    expect(doc).toHaveBeenCalledWith(expect.anything(), plantData.id);
+    expect(setDoc).toHaveBeenCalledWith(
+      expect.anything(),
       expect.objectContaining({
         ...plantData,
         contributed_by: mockUser.displayName ?? mockUser.email ?? mockUser.uid,
         isVerified: false,
-      }),
+      })
     );
     expect(result).toBe(true);
   });
@@ -40,18 +43,12 @@ describe("saveBasePlantToFirebase", () => {
     const plantData = mockPlant;
     const user = mockUser;
 
-    (firestore as any)._mockGet.mockResolvedValueOnce({ exists: true });
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: true });
 
     const result = await saveBasePlantToFirebase(plantData, user);
 
-    const mockFirestoreInstance = firestore();
-
-    expect(mockFirestoreInstance.collection("Plants").doc).toHaveBeenCalledWith(
-      plantData.id,
-    );
-    expect(
-      mockFirestoreInstance.collection("Plants").doc(plantData.id).set,
-    ).not.toHaveBeenCalled();
+    expect(doc).toHaveBeenCalledWith(expect.anything(), plantData.id);
+    expect(setDoc).not.toHaveBeenCalled();
     expect(result).toBe(true);
   });
 
@@ -60,13 +57,10 @@ describe("saveBasePlantToFirebase", () => {
     const plantData = mockPlant;
     const user = mockUser;
 
-    (firestore as any)._mockGet.mockResolvedValueOnce({ exists: false });
-    (firestore as any)._mockSet.mockRejectedValueOnce(
-      new Error("Failed to save"),
-    );
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: false });
+    (setDoc as jest.Mock).mockRejectedValueOnce(new Error("Failed to save"));
 
     const result = await saveBasePlantToFirebase(plantData, user);
-
     expect(result).toBe(false);
   });
 });

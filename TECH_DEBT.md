@@ -32,3 +32,5 @@
 - Architecture overview
 - Development workflow
 - Testing instructions
+
+Move to expo-router?

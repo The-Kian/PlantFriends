@@ -15,7 +15,6 @@ import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
 import useUserPlants from "@/hooks/plants/useUserPlants";
 import { RootState } from "@/store/store";
 import { Colors } from "@/theme/Colors";
-
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
