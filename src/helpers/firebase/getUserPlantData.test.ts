@@ -4,7 +4,6 @@ import {
   collection,
   doc,
   query,
-  where,
   getDocs,
 } from "@react-native-firebase/firestore";
 
@@ -38,14 +37,11 @@ describe("getUserPlantData", () => {
     // Check that query and getDocs were called with correct arguments
     const db = getFirestore();
     const expectedCollection = collection(doc(collection(db, "Users"), "testUser"), "UserPlants");
-    const expectedWhere = where("plantId", "==", "emptyCollectionPlant");
     // Find the call to query with expectedWhere for this test
     const queryCalls = (query as jest.Mock).mock.calls;
     // Compare key properties for structural equality
     expect(queryCalls[0][0].path).toBe(expectedCollection.path);
     expect(queryCalls[0][1]).toMatchObject({ field: "plantId", op: "==", val: "emptyCollectionPlant" });
-    // Find the call to getDocs with expectedCollection
-    const getDocsCalls = (getDocs as jest.Mock).mock.calls;
     // Assert that getDocs was called
     expect(getDocs).toHaveBeenCalled();
   });

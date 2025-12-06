@@ -1,8 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import {
-  getFirestore,
-  collection,
-  doc,
   getDocs,
 } from "@react-native-firebase/firestore";
 
@@ -22,9 +19,6 @@ describe("fetchUserPlants", () => {
 
     const result = await fetchUserPlants(userId);
 
-    // Check that doc and getDocs were called with correct arguments
-    const db = getFirestore();
-    const expectedCollection = collection(doc(collection(db, "Users"), userId), "UserPlants");
     // Assert that getDocs was called with a collection whose _path matches expected
     const getDocsCalls = (getDocs as jest.Mock).mock.calls;
     const calledWithUserPlants = getDocsCalls.some(call => {

@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
-  getFirestore,
-  collection,
   doc,
   getDoc,
   setDoc,

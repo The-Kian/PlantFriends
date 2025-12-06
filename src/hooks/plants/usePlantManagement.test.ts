@@ -5,8 +5,8 @@ import { act, renderHook, waitFor } from "@testing-library/react-native"; // No 
 
 import { AuthContext } from "@/context/auth/AuthProvider";
 import getUserPlantData from "@/helpers/getUserPlantData";
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
 import removeUserPlantFromFirebase from "@/helpers/removeUserPlantFromFirebase";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";

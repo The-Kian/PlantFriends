@@ -26,6 +26,7 @@ describe("saveUserPlantToFirebase", () => {
     }));
 
     // Re-import after mocking
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const saveUserPlantToFirebase = require("./saveUserPlantToFirebase").default;
 
     const result = await saveUserPlantToFirebase(mockUserPlant, user);

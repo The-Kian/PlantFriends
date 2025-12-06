@@ -1,10 +1,12 @@
 import { renderHook } from "@testing-library/react-native";
-import usePlantPersistence from "./usePlantPersistence";
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+
 import removeUserPlantFromFirebase from "@/helpers/removeUserPlantFromFirebase";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
 import saveUserPlantToFirebase from "@/helpers/saveToFirebase/saveUserPlantToFirebase";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
+
+import usePlantPersistence from "./usePlantPersistence";
 
 jest.mock("@/helpers/savePlantToFirebase");
 jest.mock("@/helpers/removeUserPlantFromFirebase");

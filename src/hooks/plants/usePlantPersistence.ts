@@ -1,9 +1,9 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
-import removeUserPlantFromFirebase from "@/helpers/removeUserPlantFromFirebase";
-import saveUserPlantToFirebase from "@/helpers/saveToFirebase/saveUserPlantToFirebase";
 import { IUserPlant, IPlant } from "@/constants/IPlant";
+import removeUserPlantFromFirebase from "@/helpers/removeUserPlantFromFirebase";
+import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import saveUserPlantToFirebase from "@/helpers/saveToFirebase/saveUserPlantToFirebase";
 
 const usePlantPersistence = (user: FirebaseAuthTypes.User | null) => {
 
@@ -12,7 +12,8 @@ const usePlantPersistence = (user: FirebaseAuthTypes.User | null) => {
     plant: IPlant,
   ): Promise<IUserPlant | null> => {
     if (!user) return null;
-    return await savePlantToFirebase(userPlant, plant, user);
+    const result = await savePlantToFirebase(userPlant, plant, user);
+    return result ?? null;
   };
 
   const persistDeletePlant = async (userPlantId: string): Promise<boolean> => {
