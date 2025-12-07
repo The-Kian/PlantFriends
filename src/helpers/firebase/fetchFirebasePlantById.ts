@@ -1,4 +1,5 @@
 import { getFirestore, doc, getDoc } from '@react-native-firebase/firestore';
+
 import { IPlant } from '@/constants/IPlant';
 
 async function fetchFirebasePlantById(plantId: string): Promise<IPlant | null> {
