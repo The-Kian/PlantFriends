@@ -105,7 +105,7 @@ PlantFriends/
 └── jest/                 # Jest configuration
 ```
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed documentation.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for detailed documentation. This project is a solo/hobby MVP — recommendations in `TECH_DEBT.md` are optional and intended as future improvements.
 
 ## 🏗️ Architecture
 
@@ -137,19 +137,9 @@ yarn lint           # Lint code with ESLint
 
 ## 🐛 Known Issues & Technical Debt
 
-See [TECH_DEBT.md](./TECH_DEBT.md) for complete list of:
-- Critical issues to fix before adding features
-- Code quality improvements needed
-- Modernization opportunities
-- Prioritized action plan
+See [TECH_DEBT.md](./TECH_DEBT.md) for a prioritized list of improvements. Because this is a solo/hobby MVP, some items (like adding a full error-tracking pipeline or strict env validation) are optional and can be postponed until you decide to share or ship the app.
 
-### ⚠️ Critical Items
-- Duplicate file structure in `src/helpers/`
-- Missing error boundaries
-- Console.log usage in production code
-- No environment variable validation
-
-**👉 Read TECH_DEBT.md before contributing or adding new features!**
+**👉 Read `TECH_DEBT.md` for recommendations, but treat non-blocking items as "nice to have" rather than blockers.**
 
 ## 🎯 Development Guidelines
 

@@ -5,9 +5,9 @@ import uuid from "react-native-uuid";
 
 import { IPlant, IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
-import getUserPlantData from "@/helpers/getUserPlantData";
-import usePlantCustomizations from "@/hooks/user/usePlantCustomizations";
-import usePlantPersistence from "@/hooks/user/usePlantPersistence";
+import getUserPlantData from "@/helpers/firebase/getUserPlantData";
+import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
+import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {

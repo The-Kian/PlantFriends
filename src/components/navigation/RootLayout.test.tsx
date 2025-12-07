@@ -7,7 +7,7 @@ import { AuthContext } from "@/context/auth/AuthProvider";
 import { AuthContextType } from "@/context/auth/AuthTypes";
 
 import RootLayout from "./RootLayout";
-import mockAuthContextValue from "../../test-utils/MockAuthContextValue";
+import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 
 describe("RootLayout", () => {
   const renderRootLayout = (contextValue: AuthContextType) =>

@@ -4,22 +4,21 @@ import * as reactRedux from "react-redux";
 import { act, renderHook, waitFor } from "@testing-library/react-native"; // No longer need waitFor
 
 import { AuthContext } from "@/context/auth/AuthProvider";
-import getUserPlantData from "@/helpers/getUserPlantData";
-import removeUserPlantFromFirebase from "@/helpers/removeUserPlantFromFirebase";
-import savePlantToFirebase from "@/helpers/savePlantToFirebase";
+import getUserPlantData from "@/helpers/firebase/getUserPlantData";
+import removeUserPlantFromFirebase from "@/helpers/firebase/removeUserPlantFromFirebase";
+import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
 import { usePlantManagement } from "./usePlantManagement";
 
-// Mock helpers and modules
-jest.mock("@/helpers/savePlantToFirebase");
-jest.mock("@/helpers/getUserPlantData", () => ({
+jest.mock("@/helpers/firebase/savePlantToFirebase");
+jest.mock("@/helpers/firebase/getUserPlantData", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-jest.mock("@/helpers/removeUserPlantFromFirebase", () => ({
+jest.mock("@/helpers/firebase/removeUserPlantFromFirebase", () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -40,22 +39,18 @@ describe("usePlantManagement", () => {
 
   describe("handleSelectPlant", () => {
     it("should set selected plant and fetch user plant data", async () => {
-      // Arrange
       (getUserPlantData as jest.Mock).mockResolvedValue(mockUserPlant);
       const { result } = renderHook(() => usePlantManagement());
 
-      // Act: Wrap the entire async action in act
       await act(async () => {
         await result.current.handleSelectPlant(mockPlant);
       });
 
-      // Assert: The state is fully updated after act completes
       expect(result.current.userPlant).toEqual(mockUserPlant);
       expect(result.current.selectedPlant).toEqual(mockPlant);
     });
 
     it("should set userPlant to null if no user data is found", async () => {
-      // Arrange
       (getUserPlantData as jest.Mock).mockResolvedValue(null);
       const { result } = renderHook(() => usePlantManagement());
 

@@ -61,12 +61,12 @@ PlantFriends/
 │   ├── hooks/            # Custom React hooks
 │   │   ├── plants/      # Plant-related hooks
 │   │   ├── search/      # Search-related hooks
-│   │   ├── user/        # User-related hooks (⚠️ duplicates, needs cleanup)
+│   │   ├── user/        # User-related hooks (some are simple re-exports)
 │   │   └── utils/       # Utility hooks
 │   │
 │   ├── helpers/          # Business logic & API calls
 │   │   ├── auth/        # Auth validation
-│   │   ├── firebase/    # Firebase operations (⚠️ some duplicates exist at root)
+│   │   ├── firebase/    # Firebase operations
 │   │   └── plants/      # Plant data fetching & mapping
 │   │
 │   ├── constants/        # TypeScript types & constants
