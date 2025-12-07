@@ -37,21 +37,3 @@ export const fetchPerenualPlants = async (
     throw error;
   }
 };
-
-// export const fetchOpenFarmPlants = async (searchQuery: string): Promise<IPlant[]> => {
-//     const URL = `https://openfarm.cc/api/v1/crops/?filter=${searchQuery}`;
-//     const response = await fetch(URL);
-//     if (!response.ok) {
-//       throw new Error(`API request failed with status ${response.status}`);
-//     }
-//     const data = await response.json();
-
-//     if (data.data && Array.isArray(data.data)) {
-//       const plantsData: IPlant[] = data.data.map((plant: any) =>
-//         mapOpenFarmPlantToIPlant(plant)
-//       );
-//       return plantsData;
-//     } else {
-//       throw new Error("No plants found");
-//     }
-//   };

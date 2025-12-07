@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { useContext, useEffect, useState } from "react";
 
 import { View, ScrollView } from "react-native";
@@ -74,14 +72,14 @@ const PlantForm = ({
     }
   }, [isAddingNewPlant, initialPlantData, initialUserPlantData, user]);
 
-  const handlePlantAttributeChange = (key: keyof IPlant, value: any) => {
+  const handlePlantAttributeChange = (key: keyof IPlant, value: IPlant[keyof IPlant]) => {
     setCustomizations((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const handleUserDataChange = (key: keyof IUserPlant, value: any) => {
+  const handleUserDataChange = (key: keyof IUserPlant, value: IUserPlant[keyof IUserPlant]) => {
     setUserData((prev) => ({
       ...prev,
       [key]: value,
@@ -104,9 +102,9 @@ const PlantForm = ({
 
     const finalUserData = {
       ...userData,
-      userId: user?.uid || "", // Ensure userId is set
-      plantId: finalPlantData.id, // Link user plant to the plant ID
-      id: userData.id || uuid.v4().toString(), // Ensure user data has an ID
+      userId: user?.uid || "", 
+      plantId: finalPlantData.id,
+      id: userData.id || uuid.v4().toString(), 
     } as IUserPlant;
 
     await onSave(finalUserData, finalPlantData);

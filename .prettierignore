@@ -1,0 +1,16 @@
+# Ignore build artifacts and dependencies
+node_modules/
+android/
+ios/
+.expo/
+.expo-shared/
+dist/
+build/
+coverage/
+
+# Ignore generated files
+*.generated.*
+*.d.ts
+
+# Keep markdown files
+!*.md

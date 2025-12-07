@@ -1,50 +1,52 @@
-# Welcome to your Expo app 👋
+# PlantFriends 🌱
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+React Native plant care management app with Firebase backend.
 
-## Get started
+> **Status:** 89.59% test coverage | Ready for features | [Full Review →](./CODEBASE_REVIEW_DEC2025.md)
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+Plant search • Personal collection • Room organization • Custom care schedules • Light/dark theme • Firebase auth
 
-2. Start the app
-
-   ```bash
-    npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Quick Start
 
 ```bash
-npm run reset-project
+# Install
+yarn install
+
+# Configure (copy .env.example to .env)
+# Add Firebase config files (see ARCHITECTURE.md)
+
+# Run
+yarn start
+yarn android  # or yarn ios
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Tech Stack
 
-## Learn more
+React Native 0.81 • Expo 54 • TypeScript 5.9 • Redux Toolkit • React Navigation • Firebase • Jest (89.59% coverage)
 
-To learn more about developing your project with Expo, look at the following resources:
+## Commands
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+yarn start / android / ios    # Development
+yarn test / test:coverage     # Testing
+yarn lint / type-check        # Quality checks
+yarn validate                 # Run all checks
+```
 
-## Join the community
+## Documentation
 
-Join our community of developers creating universal apps.
+- [**CODEBASE_REVIEW_DEC2025.md**](./CODEBASE_REVIEW_DEC2025.md) - Latest assessment & recommendations
+- [**ACTION_PLAN.md**](./ACTION_PLAN.md) - Weekend project ideas
+- [**ARCHITECTURE.md**](./ARCHITECTURE.md) - Patterns & structure
+- [**TECH_DEBT.md**](./TECH_DEBT.md) - Known issues (prioritized)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Next Steps
+
+**Foundation fixes** (2-3 hours): Error handling • Error boundary • Loading states  
+**Then**: Build features you want! See [ACTION_PLAN.md](./ACTION_PLAN.md)
+
+---
+
+Made with 🌿 for learning and fun
