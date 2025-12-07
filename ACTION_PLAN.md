@@ -1,86 +1,323 @@
+# PlantFriends Action Plan - Hobby Edition 🌱
 
-```typescript
-// src/context/auth/AuthProvider.tsx
-import { logError, showErrorToUser } from '@/services/errorLogger';
+> **Last Updated:** December 7, 2025  
+> **Status:** Ready to build features! 85% foundation complete  
+> **Test Coverage:** 89.59% (164 passing tests)
 
-const login = async ({ email, password }: LoginCredentials) => {
-  try {
-    await auth().signInWithEmailAndPassword(email, password);
-  } catch (error) {
-    const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-    const message = getAuthErrorMessage(nativeError.code);
-    
-    logError(error, { 
-      screen: 'Login',
-      action: 'login',
-      userId: email 
-    });
-    
-    showErrorToUser(message);
-  }
-};
+---
 
-const getAuthErrorMessage = (code: string): string => {
-  const messages: Record<string, string> = {
-    'auth/user-not-found': 'No account found with this email',
-    'auth/wrong-password': 'Incorrect password',
-    'auth/invalid-email': 'Invalid email address',
-    'auth/email-already-in-use': 'Email already in use',
-    'auth/weak-password': 'Password is too weak',
-    'auth/too-many-requests': 'Too many attempts. Try again later',
-    'auth/network-request-failed': 'Network error. Check your connection',
-  };
-  return messages[code] || 'An unexpected error occurred. Please try again.';
-};
-```
+## 🎯 Current State
 
-### Phase 2.2: Plant Management (2 hours)
+### ✅ What's Working Great
+- Strong architecture with clear patterns
+- Excellent test coverage (89.59%)
+- Auth & Firebase integration working
+- Basic plant CRUD operations
+- Custom hooks for all major features
+- Good documentation (ARCHITECTURE.md, TECH_DEBT.md)
+
+### 🔧 What Needs Work
+- Error handling (console.errors everywhere)
+- No error boundaries
+- Missing loading/empty states
+- Some fire-and-forget patterns
+
+---
+
+## 🚀 Build Plan (Pick What Excites You!)
+
+### **Weekend Project 1: Fix The Foundations (2-3 hours)**
+*Do this first - makes everything else easier*
+
+**Saturday Morning:**
 ```typescript
 // src/hooks/plants/usePlantManagement.ts
-import { logError, showErrorToUser } from '@/services/errorLogger';
+1. **Create Error Service** (30 min)
+   ```bash
+   # Create src/services/errorLogger.ts
+   ```
+   - Toast notifications for user feedback
+   - Console logging for development
+   - Optional: Sentry integration later
 
-const handleSavePlant = async (
-  updatedUserPlant: IUserPlant,
-  plant: IPlant,
-) => {
-  try {
-    const savedPlant = await persistSavePlant(updatedUserPlant, plant);
-    if (savedPlant) {
-      dispatch(addPlant(savedPlant));
-      setUserPlant(savedPlant);
-      setSelectedPlant(null);
-      return true;
-    }
-    
-    showErrorToUser('Failed to save plant. Please try again.');
-    return false;
-  } catch (error) {
-    logError(error, {
-      action: 'savePlant',
-      userId: user?.uid,
-      plantId: plant.id,
-    });
-    
-    showErrorToUser('Failed to save plant. Please try again.');
-    return false;
+2. **Add Error Boundary** (30 min)
+   - Wrap app root
+   - Show friendly error screen
+   - Log errors properly
+
+3. **Fix Delete Operation** (30 min)
+   - `src/hooks/plants/usePlantManagement.ts`
+   - Await deletion properly
+   - Handle rollback on failure
+
+4. **Add Loading/Empty States** (60 min)
+   - Create `<LoadingSpinner />` component
+   - Create `<EmptyState />` component
+   - Use in plant lists
+
+---
+
+### **Weekend Project 2: Code Cleanup (2-3 hours)**
+*Optional but feels good*
+
+**Sunday Afternoon:**
+1. Remove duplicate helpers (30 min)
+2. Delete unused `src/common/` folder (5 min)
+3. Clean up console.logs in tests (15 min)
+4. Add .prettierrc config (10 min)
+
+---
+
+### **Fun Feature Projects (Pick One Per Weekend!)**
+
+#### **Option A: Better Plant Cards** (3-4 hours)
+- Add plant images
+- Swipe to delete
+- Favorite toggle
+- Health status indicator
+*Great visual impact!*
+
+#### **Option B: Watering Tracker** (4-5 hours)
+- Mark as watered button
+- Show days since last watered
+- Simple reminder badge
+- Water history list
+*Most useful feature*
+
+#### **Option C: Room Organization** (3-4 hours)
+- Filter plants by room
+- Room badges on cards
+- Quick room switcher
+- Room statistics
+*Good for collections*
+
+#### **Option D: Plant Search Polish** (2-3 hours)
+- Better search results UI
+- Plant detail images
+- Add to favorites from search
+- Recent searches
+*Improves discovery*
+
+#### **Option E: Care Journal** (4-5 hours)
+- Add notes to plants
+- Timestamp entries
+- Edit/delete notes
+- Filter by date
+*Power user feature*
+
+---
+
+## 🛠️ Technical Debt (Do When Bored)
+
+### Quick Wins (< 30 min each)
+- [ ] Add .prettierrc file
+- [ ] Fix export consistency (all named OR all default)
+- [ ] Remove `src/common/defaultStyles.ts` (unused)
+- [ ] Add .env.example file
+
+### Medium Tasks (1-2 hours each)
+- [ ] Add accessibility labels to buttons
+- [ ] Set up husky pre-commit hooks
+- [ ] Migrate to expo-image for better performance
+- [ ] Add pagination to plant lists
+
+### Nice to Have (When You Feel Like It)
+- [ ] Add Sentry error tracking
+- [ ] Implement image caching strategy
+- [ ] Add plant import/export feature
+- [ ] Dark mode improvements
+
+---
+
+## 📚 Reference Implementation Code
+
+### Error Logger Service
+```typescript
+// src/services/errorLogger.ts
+import { Alert } from 'react-native';
+
+export interface ErrorContext {
+  screen?: string;
+  action?: string;
+  userId?: string;
+  [key: string]: any;
+}
+
+export function logError(error: unknown, context?: ErrorContext) {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  // Development: log to console
+  if (__DEV__) {
+    console.error('🔴 Error:', errorMessage, context);
   }
-};
+  
+  // Production: send to error tracking service (Sentry, etc.)
+  // TODO: Add Sentry.captureException(error, { contexts: { custom: context } });
+}
 
+export function showErrorToast(message: string) {
+  Alert.alert('Error', message, [{ text: 'OK' }]);
+}
+```
+
+### Error Boundary
+```tsx
+// src/components/ErrorBoundary.tsx
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { logError } from '@/services/errorLogger';
+
+interface Props {
+  children: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    logError(error, {
+      screen: 'ErrorBoundary',
+      componentStack: errorInfo.componentStack,
+    });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.container}>
+          <Text style={styles.title}>Oops! Something went wrong</Text>
+          <Text style={styles.message}>
+            {this.state.error?.message || 'Unknown error'}
+          </Text>
+          <Button
+            title="Try Again"
+            onPress={() => this.setState({ hasError: false, error: null })}
+          />
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  message: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+});
+```
+
+### Loading/Empty States
+```tsx
+// src/components/ui/LoadingSpinner.tsx
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
+
+export function LoadingSpinner() {
+  return (
+    <View style={styles.container}>
+      <ActivityIndicator size="large" color="#4CAF50" />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
+// src/components/ui/EmptyState.tsx
+import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+interface Props {
+  icon?: keyof typeof Ionicons.glyphMap;
+  message: string;
+  subMessage?: string;
+}
+
+export function EmptyState({ 
+  icon = 'leaf-outline', 
+  message, 
+  subMessage 
+}: Props) {
+  return (
+    <View style={styles.container}>
+      <Ionicons name={icon} size={64} color="#ccc" />
+      <Text style={styles.message}>{message}</Text>
+      {subMessage && <Text style={styles.subMessage}>{subMessage}</Text>}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  message: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+  },
+  subMessage: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+});
+```
+
+### Fixed Delete Operation
+```typescript
+// src/hooks/plants/usePlantManagement.ts
 const handleDeletePlant = async (plant: IUserPlant) => {
   try {
     // Optimistically remove from UI
     dispatch(deletePlant(plant.id));
     
-    // Try to delete from backend
+    // Await deletion (not fire-and-forget)
     const removed = await persistDeletePlant(plant.id);
     
     if (!removed) {
       // Rollback on failure
       dispatch(addPlant(plant));
-      showErrorToUser('Failed to delete plant from server');
-      logError(new Error('Failed to remove plant from Firebase'), {
+      showErrorToast('Failed to delete plant from server');
+      logError(new Error('Delete returned false'), {
         action: 'deletePlant',
-        userId: user?.uid,
         plantId: plant.id,
       });
       return false;
@@ -90,438 +327,38 @@ const handleDeletePlant = async (plant: IUserPlant) => {
   } catch (error) {
     // Rollback on error
     dispatch(addPlant(plant));
-    
     logError(error, {
       action: 'deletePlant',
-      userId: user?.uid,
       plantId: plant.id,
     });
-    
-    showErrorToUser('Failed to delete plant. Please try again.');
+    showErrorToast('Failed to delete plant');
     return false;
   }
 };
 ```
 
-### Phase 2.3: Firebase Helpers (2 hours)
-Replace all `console.error` in:
-- `src/helpers/firebase/fetchFirebasePlants.ts`
-- `src/helpers/firebase/saveToFirebase/*.ts`
-- `src/helpers/firebase/removeUserPlantFromFirebase.ts`
-- `src/helpers/firebase/fetchFirebasePlantById.ts`
+---
 
-### Phase 2.4: Search Hooks (1 hour)
-- `src/hooks/search/useCombinedPlantSearch.ts`
-- `src/hooks/search/useFirebasePlantSearch.ts`
+## 🎯 Hobby Development Tips
+
+1. **Pick one thing** - Don't try to do everything at once
+2. **Commit often** - Small wins feel good!
+3. **Test as you go** - Keeps the 89% coverage
+4. **Skip perfect** - Console.log is fine for now in some places
+5. **Document later** - Build first, clean up comments later
+6. **It's your hobby** - If you're not having fun, build something else!
 
 ---
 
-## 📅 Day 3: TypeScript Cleanup (6 hours)
-
-### Phase 3.1: Define External API Types (2 hours)
-
-```typescript
-// src/types/externalApis.ts
-
-export interface OpenFarmAttributes {
-  name: string;
-  slug: string;
-  binomial_name?: string;
-  common_names?: string[];
-  description?: string;
-  sun_requirements?: string;
-  sowing_method?: string;
-  spread?: number;
-  row_spacing?: number;
-  height?: number;
-  images?: Array<{
-    id: number;
-    image_url: string;
-    thumbnail_url: string;
-  }>;
-}
-
-export interface OpenFarmPlant {
-  id: string;
-  type: 'crops';
-  attributes: OpenFarmAttributes;
-}
-
-export interface OpenFarmResponse {
-  data: OpenFarmPlant[];
-  links: {
-    self: string;
-    first?: string;
-    last?: string;
-  };
-}
-
-export interface PerenualPlant {
-  id: number;
-  common_name: string;
-  scientific_name: string[];
-  other_name: string[];
-  cycle?: string;
-  watering?: string;
-  sunlight?: string[];
-  default_image?: {
-    thumbnail?: string;
-    small_url?: string;
-    medium_url?: string;
-    original_url?: string;
-  };
-}
-
-export interface PerenualAPIResponse {
-  data: PerenualPlant[];
-  to: number;
-  per_page: number;
-  current_page: number;
-  from: number;
-  last_page: number;
-  total: number;
-}
-```
-
-### Phase 3.2: Update Mappers (1 hour)
-```typescript
-// src/helpers/plants/plantAPI/mapOpenFarmPlantToIPlant.ts
-import { OpenFarmPlant } from '@/types/externalApis';
-import { IPlant } from '@/constants/IPlant';
-
-export const mapOpenFarmPlantToIPlant = (plant: OpenFarmPlant): IPlant => {
-  const { id, attributes } = plant;
-  
-  return {
-    id: id,
-    name: attributes.name,
-    slug: attributes.slug,
-    scientific_name: attributes.binomial_name ? [attributes.binomial_name] : undefined,
-    common_names: attributes.common_names,
-    description: attributes.description,
-    sun_requirements: attributes.sun_requirements,
-    images: attributes.images
-      ? attributes.images.map((img) => img.image_url).filter(Boolean)
-      : undefined,
-    contributedBy: 'openfarm',
-    isVerified: true,
-  };
-};
-```
-
-### Phase 3.3: Remove Type Assertions (2 hours)
-Find and fix all instances of:
-- `(variable as any)`
-- `as unknown as Type`
-- Functions with `any` parameters
-
-```bash
-# Find all any usage
-grep -r ": any" src/ --include="*.ts" --include="*.tsx"
-grep -r "as any" src/ --include="*.ts" --include="*.tsx"
-```
-
-### Phase 3.4: Remove React.FC (1 hour)
-```typescript
-// Before
-const PlantCard: React.FC<PlantCardProps> = ({ plant, onPress, onDelete }) => {
-
-// After
-const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
-```
-
----
-
-## 📅 Day 4: Code Quality & Consistency (6 hours)
-
-### Phase 4.1: Add Prettier (1 hour)
-```bash
-yarn add -D prettier
-```
-
-✅ Config already created
-
-```bash
-# Format all files
-yarn prettier --write "src/**/*.{ts,tsx,json,md}"
-
-# Add to package.json scripts
-"format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
-"format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\""
-```
-
-### Phase 4.2: Standardize Exports (2 hours)
-
-**Decision: Use named exports for everything except screens**
-
-```typescript
-// ✅ Components, hooks, helpers - named exports
-export const PlantCard = ({ ... }) => { ... };
-export const usePlantManagement = () => { ... };
-export const fetchFirebasePlants = async () => { ... };
-
-// ✅ Screens - default exports (React Navigation convention)
-export default function MyPlantsScreen() { ... }
-
-// ❌ No default exports for utilities
-```
-
-Update all files to follow this pattern.
-
-### Phase 4.3: Consolidate Theme Usage (1 hour)
-
-Audit all inline `StyleSheet.create`:
-- Move repeated styles to theme
-- Ensure consistent spacing/colors
-- Remove hardcoded values
-
-### Phase 4.4: Add Pre-commit Hooks (30 min)
-```bash
-yarn add -D husky lint-staged
-npx husky install
-npx husky add .husky/pre-commit "npx lint-staged"
-```
-
-```json
-// package.json
-{
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
-  }
-}
-```
-
-### Phase 4.5: Update Tests (1.5 hours)
-- Remove `/* eslint-disable @typescript-eslint/no-explicit-any */` from tests
-- Fix any types in test files
-- Ensure all tests still pass
-
----
-
-## 📅 Day 5: Loading & Error States (6 hours)
-
-### Phase 5.1: Create Loading Component (30 min)
-```tsx
-// src/components/ui/Loading/LoadingSpinner.tsx
-export const LoadingSpinner = ({ size = 'large' }: { size?: 'small' | 'large' }) => (
-  <View style={styles.container}>
-    <ActivityIndicator size={size} />
-  </View>
-);
-
-// src/components/ui/Empty/EmptyState.tsx
-export const EmptyState = ({ 
-  title, 
-  message, 
-  icon 
-}: EmptyStateProps) => (
-  <View style={styles.container}>
-    <Ionicons name={icon} size={64} />
-    <ThemedText type="title">{title}</ThemedText>
-    <ThemedText>{message}</ThemedText>
-  </View>
-);
-```
-
-### Phase 5.2: Add to All Screens (3 hours)
-Update each screen:
-- MyPlantsScreen
-- PlantSearchScreen
-- PlantSearchResults
-- ProfileSettingsScreen
-
-Pattern:
-```tsx
-if (loading) return <LoadingSpinner />;
-if (error) return <ErrorMessage error={error} />;
-if (data.length === 0) return <EmptyState />;
-return <DataView />;
-```
-
-### Phase 5.3: Image Optimization (2 hours)
-```bash
-yarn add expo-image
-```
-
-Replace all `<Image>` with `<ExpoImage>`:
-```tsx
-import { Image } from 'expo-image';
-
-<Image
-  source={imageUri}
-  placeholder={require('@assets/images/plant-placeholder.png')}
-  contentFit="cover"
-  transition={200}
-  onError={(error) => logError(error)}
-/>
-```
-
-### Phase 5.4: Test All Screens (30 min)
-
----
-
-## 📅 Day 6: Accessibility & Polish (4 hours)
-
-### Phase 6.1: Add Accessibility Labels (2 hours)
-
-Audit all interactive components:
-```tsx
-<TouchableOpacity
-  accessibilityRole="button"
-  accessibilityLabel="Delete plant"
-  accessibilityHint="Removes this plant from your collection"
-  onPress={handleDelete}
->
-```
-
-### Phase 6.2: Toast/Snackbar System (1 hour)
-```bash
-yarn add react-native-toast-message
-```
-
-Replace all `Alert.alert` with toast system.
-
-### Phase 6.3: Final Testing (1 hour)
-- Test all user flows
-- Test accessibility with TalkBack/VoiceOver
-- Verify all error states
-- Verify all loading states
-
----
-
-## 📅 Day 7: Documentation & CI/CD (4 hours)
-
-### Phase 7.1: Verify Documentation (1 hour)
-- ✅ README.md complete
-- ✅ ARCHITECTURE.md complete
-- ✅ TECH_DEBT.md complete
-- ✅ AMATEUR_SIGNALS.md complete
-- ✅ .env.example created
-- Add inline code comments where needed
-
-### Phase 7.2: Set Up CI/CD (2 hours)
-
-```yaml
-# .github/workflows/ci.yml
-name: CI
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: yarn install
-      - run: yarn lint
-      - run: yarn test
-      - run: yarn format:check
-```
-
-### Phase 7.3: Final Audit (1 hour)
-Run all checks:
-```bash
-yarn lint
-yarn test --coverage
-yarn format:check
-yarn android  # Full app test
-```
-
----
-
-## ✅ Success Checklist
-
-### Critical (Must Complete)
-- [ ] All duplicate files removed
-- [ ] All console.* replaced with logError
-- [ ] Error boundaries added
-- [ ] Redux store fixed
-- [ ] Environment validation added
-- [ ] All `any` types removed
-- [ ] React.FC removed
-- [ ] Commented code deleted
-
-### High Priority (Should Complete)
-- [ ] Prettier configured and run
-- [ ] Pre-commit hooks added
-- [ ] Export patterns standardized
-- [ ] Loading states added
-- [ ] Error states added
-- [ ] Image optimization (expo-image)
-- [ ] Fire-and-forget fixed
-
-### Medium Priority (Nice to Have)
-- [ ] Accessibility labels added
-- [ ] Toast system implemented
-- [ ] CI/CD pipeline set up
-- [ ] Test coverage > 80%
-- [ ] Dead code removed
-- [ ] Theme consolidated
-
----
-
-## 📊 Metrics to Track
-
-### Before Cleanup
-```bash
-# Count issues
-grep -r "console\." src/ | wc -l
-grep -r ": any" src/ | wc -l
-find src/helpers -name "*.ts" | sort | uniq -d
-yarn test --coverage  # Note coverage %
-```
-
-### After Cleanup
-```bash
-# Should be zero or near-zero
-grep -r "console\." src/ --exclude="*.test.*" | wc -l  # → 0
-grep -r ": any" src/ --exclude="*.test.*" | wc -l      # → 0
-find src/helpers -name "*.ts" | sort | uniq -d         # → empty
-yarn test --coverage                                    # → 80%+
-```
-
----
-
-## 🚨 Gotchas & Common Issues
-
-1. **Tests break after removing duplicates**: Update test imports first
-2. **Import cycles**: May surface after consolidating files
-3. **TypeScript errors**: May find real bugs when removing `any`
-4. **Performance**: App may be slower initially (add memoization later)
-5. **Breaking changes**: Some components may need prop updates
-
----
-
-## 💡 Pro Tips
-
-1. **Work in branches**: Create a branch for each day's work
-2. **Commit often**: Commit after each major change
-3. **Run tests frequently**: Catch issues early
-4. **Use git stash**: When switching between tasks
-5. **Take breaks**: This is intensive work!
-
----
-
-## 🎯 Final Result
-
-After 7 days, your codebase will:
-- ✅ Have zero duplicate files
-- ✅ Have proper error handling throughout
-- ✅ Be fully type-safe (no `any`)
-- ✅ Have consistent code style
-- ✅ Have loading/error/empty states
-- ✅ Have proper logging
-- ✅ Be accessible
-- ✅ Have professional documentation
-- ✅ Be ready for new features
-
-**You'll be proud to show this code in interviews or to other developers! 🚀**
+## 📊 Progress Tracker
+
+- [x] Foundation architecture
+- [x] Authentication system
+- [x] Basic plant CRUD
+- [x] Test infrastructure
+- [ ] Error handling service
+- [ ] Error boundaries
+- [ ] Loading states
+- [ ] Pick a fun feature!
+
+**Next Update:** When you finish Weekend Project 1!

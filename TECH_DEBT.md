@@ -1,67 +1,118 @@
+# PlantFriends Technical Debt
 
-## 🟡 HIGH PRIORITY - Modernization
+> **Last Updated:** December 7, 2025  
+> **Status:** 85% Ready for New Features  
+> **Test Coverage:** 89.59%
 
-### 7. **Use TypeScript `any` Throughout Code**
+This document tracks known issues, technical debt, and areas for improvement. Items are prioritized by impact on hobby development.
 
-**Location:** 26+ instances across codebase
-**Issue:** Type safety compromised
-**Files:**
-- `src/helpers/plants/plantAPI/mapOpenFarmPlantToIPlant.ts` - function parameter is `any`
-- `src/hooks/plants/useMergedPlant.ts` - type assertions with `any`
-- Multiple test files with `@typescript-eslint/no-explicit-any` disabled
+---
 
-**Fix:**
+## 🔴 HIGH PRIORITY - Do These First
+
+### 1. **No Error Handling Service**
+
+**Location:** Throughout codebase (30+ console.error calls)
+**Impact:** Users see no feedback when things fail
+**Effort:** 30 minutes
+**Priority:** 🔥 Critical for user experience
+
+**Files affected:**
+- `src/context/auth/AuthProvider.tsx`
+- `src/hooks/plants/usePlantManagement.ts`
+- `src/helpers/firebase/*.ts`
+- `src/hooks/search/*.ts`
+
+**Fix:** See ACTION_PLAN.md for implementation
+
+---
+
+### 2. **No Error Boundaries**
+
+**Impact:** App crashes completely if any component errors
+**Effort:** 30 minutes
+**Priority:** 🔥 Critical for stability
+
+**Fix:** See ACTION_PLAN.md for ErrorBoundary component
+
+---
+
+### 3. **Fire-and-Forget Delete Pattern**
+
+**Location:** `src/hooks/plants/usePlantManagement.ts:79`
+**Impact:** Delete failures are silent, no rollback
+**Effort:** 15 minutes
+**Priority:** 🔥 Data integrity issue
+
+**Current:**
 ```typescript
-// Define proper types for all external APIs
-interface OpenFarmPlant {
-  id: string;
-  type: string;
-  attributes: {
-    name: string;
-    images: Array<{ image_url: string }>;
-    // ... complete type definition
-  };
-}
-
-export const mapOpenFarmPlantToIPlant = (plant: OpenFarmPlant): IPlant => {
-  // Now type-safe
-};
+persistDeletePlant(plant.id).then((removed) => {
+  if (!removed) {
+    console.error("Failed to remove plant from firebase");
+  }
+});
 ```
 
-### 8. **React.FC Usage (Deprecated Pattern)**
+**Fix:** See ACTION_PLAN.md for proper async/await pattern
 
-**Location:** `src/components/plant/plantCard.tsx`
-**Issue:** React.FC is discouraged by React team, has issues with children prop
-**Fix:**
-```typescript
-// OLD
-const PlantCard: React.FC<PlantCardProps> = ({ plant, onPress, onDelete }) => {
+---
 
-// NEW
-const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
-```
+### 4. **Missing Loading & Empty States**
 
-### 9. **Inconsistent Export Patterns**
+**Location:** Most screens
+**Impact:** No feedback during operations
+**Effort:** 1 hour
+**Priority:** 🔥 Poor UX
+
+**Fix:** Create LoadingSpinner and EmptyState components (see ACTION_PLAN.md)
+
+---
+
+## 🟡 MEDIUM PRIORITY - Do When You Feel Like It
+
+### 6. **Duplicate Helper Files**
+
+**Location:** `src/helpers/` has redundant Firebase wrappers
+**Impact:** Confusing which function to use
+**Effort:** 30 minutes
+**Priority:** 🟡 Code cleanup
+
+**Files to review:**
+- Check for duplicate Firebase helper functions
+- Consolidate similar functions
+
+---
+
+### 7. **Unused Dead Code**
+
+**Location:** `src/common/defaultStyles.ts` - never imported
+**Impact:** Clutter, confusion
+**Effort:** 5 minutes
+**Priority:** 🟡 Quick win
+
+**Files to delete:**
+- `src/common/` folder (unused)
+
+---
+
+### 8. **Inconsistent Export Patterns**
 
 **Issue:** Mix of `export default` and named exports
-**Impact:** Inconsistent import styles, harder refactoring
-**Fix:**
-```typescript
-// Choose ONE pattern:
+**Impact:** Inconsistent import styles
+**Effort:** 2 hours (if you want perfection)
+**Priority:** 🟡 Consistency
 
-// OPTION 1: Named exports (recommended)
-export const PlantCard = () => { /* ... */ };
-export const usePlantManagement = () => { /* ... */ };
+**Recommendation:** Keep current pattern, just be consistent going forward
 
-// OPTION 2: Default exports
-// Keep only for pages/screens
-export default function MyPlantsScreen() { /* ... */ }
-```
+---
 
-### 10. **Missing Prettier Configuration**
+### 9. **Missing Prettier Configuration**
 
-**Issue:** No `.prettierrc` file, inconsistent formatting
-**Impact:** Code style inconsistencies, merge conflicts
+**Issue:** No `.prettierrc` file
+**Impact:** Manual formatting
+**Effort:** 5 minutes
+**Priority:** 🟡 Developer experience
+
 **Fix:**
 ```json
 // .prettierrc
@@ -86,67 +137,64 @@ export default function MyPlantsScreen() { /* ... */ }
 
 **Location:** Scattered theme files in `src/theme/`, inline styles
 **Issue:** 
-- `StyleSheet.create` used inline in components
-- Some components use theme, others use hardcoded colors
-- No consistent spacing/typography system
-
-**Fix:**
-```typescript
-// Consolidate all theme in one place
-// Create styled-components or use NativeWind/Tailwind
-import { createStyleSheet } from 'react-native-unistyles';
-
-const stylesheet = createStyleSheet(theme => ({
-  card: {
-    backgroundColor: theme.colors.card,
-    borderRadius: theme.borderRadius.medium,
-    padding: theme.spacing.medium,
-  }
-}));
-```
-
-### 13. **Unused/Dead Code**
-
-**Locations:**
-- `src/common/defaultStyles.ts` - unused hook
-- `src/common/styles.ts` - never imported
-- `src/hooks/user/` - all re-exports, should be deleted
-- Commented code in `fetchPlantAPI.ts`
-
-**Fix:** Run dead code elimination
-```bash
-npx ts-prune | grep -v test  # Find unused exports
+  "tabWidth": 2,
+  "arrowParens": "always"
+}
 ```
 
 ---
 
-## 🟢 MEDIUM PRIORITY - Code Quality
-
-### 14. **Missing Loading & Empty States**
-
-**Location:** Most screens
-**Issue:** No loading indicators, no empty state UI
-**Fix:**
-```tsx
-// Add to all data-fetching screens
-{loading && <LoadingSpinner />}
-{!loading && data.length === 0 && <EmptyState />}
-{!loading && data.length > 0 && <DataList />}
-```
-
-### 15. **No Pagination/Infinite Scroll**
+### 10. **No Pagination/Infinite Scroll**
 
 **Location:** Plant lists
-**Issue:** Could load hundreds of plants at once
+**Impact:** Could load hundreds of plants slowly
+**Effort:** 2 hours
+**Priority:** 🟡 Performance (do when you have 100+ plants)
+
 **Fix:** Implement FlatList with `onEndReached`
 
-### 16. **Fire-and-Forget Pattern in Delete**
+---
 
-**Location:** `src/hooks/plants/usePlantManagement.ts:79`
-**Issue:** Uses `.then()` instead of await, no proper error handling
-**Code:**
-```typescript
-persistDeletePlant(plant.id).then((removed) => {
+### 11. **No Accessibility Labels**
+
+**Location:** All interactive components
+**Impact:** Screen readers won't work
+**Effort:** 1-2 hours
+**Priority:** 🟡 Accessibility (important but can wait)
+
+**Fix:**
+```tsx
+<TouchableOpacity
+  accessibilityLabel="Delete plant"
+  accessibilityRole="button"
+  accessibilityHint="Removes this plant from your collection"
+>
+```
+
+---
+
+## 🔵 LOW PRIORITY - Someday/Maybe
+
+### 12. **No Image Optimization**
+
+**Impact:** Slow image loading, no caching
+**Effort:** 1 hour
+**When:** When you add lots of images
+
+**Fix:** Migrate to `expo-image`
+
+---
+
+### 13. **No Pre-commit Hooks**
+
+**Impact:** Can commit broken code
+**Effort:** 30 minutes
+**When:** If working with others
+
+**Fix:**
+```bash
+yarn add -D husky lint-staged
+npx husky install
   if (!removed) {
     console.error("Failed to remove plant from firebase");
   }
