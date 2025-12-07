@@ -12,10 +12,14 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "yarn": "4.12.0",
+      "corepack": true
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "yarn": "4.4.0",
+      "corepack": true
     }
   },
   "submit": {
