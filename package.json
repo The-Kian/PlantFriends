@@ -14,10 +14,10 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\"",
     "type-check": "tsc --noEmit",
-    "validate": "yarn type-check && yarn lint && yarn test",
-    "clean": "rm -rf node_modules && yarn install",
+    "validate": "pnpm type-check && pnpm lint && pnpm test",
+    "clean": "rm -rf node_modules && pnpm install",
     "clean:android": "cd android && ./gradlew clean && cd ..",
-    "reset-cache": "yarn start --reset-cache"
+    "reset-cache": "pnpm start --reset-cache"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",
@@ -67,5 +67,5 @@
     "typescript": "^5.9.3"
   },
   "private": true,
-  "packageManager": "yarn@4.12.0"
+  "packageManager": "pnpm@10.24.0"
 }
