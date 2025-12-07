@@ -21,7 +21,7 @@ export default function useMergedPlant(userPlant: IUserPlant | null) {
 
       // If the userPlant already contains base/species fields (merged in Redux), use it.
       if ((userPlant as IPlant).name || (userPlant as IPlant).images) {
-        setMergedPlant(userPlant as unknown as IPlant);
+        setMergedPlant(userPlant as IPlant);
         setLoading(false);
         return;
       }

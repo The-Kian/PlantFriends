@@ -16,7 +16,7 @@ interface PlantCardProps {
     onDelete: (plant: IUserPlant | IUserPlantMerged) => void;
 }
 
-const PlantCard: React.FC<PlantCardProps> = ({ plant, onPress, onDelete }) => {
+const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
     const { colors } = useTheme();
     const { mergedPlant } = useMergedPlant(plant);
 

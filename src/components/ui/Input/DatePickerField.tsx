@@ -1,6 +1,4 @@
-// DatePickerField.tsx
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import React, { useState } from "react";
 
 import { TouchableOpacity, Platform } from "react-native";
@@ -20,7 +18,7 @@ const DatePickerField = ({
 }: DatePickerFieldProps) => {
   const [showPicker, setShowPicker] = useState(false);
 
-  const handleChange = (event: any, selectedDate?: Date) => {
+  const handleChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowPicker(Platform.OS === "ios");
     if (selectedDate) {
       onDateChange(selectedDate);
