@@ -1,0 +1,159 @@
+# Dependabot configuration for PlantFriends
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+
+version: 2
+
+updates:
+  # npm/pnpm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      # Group all Expo-related updates together
+      expo:
+        patterns:
+          - "expo"
+          - "expo-*"
+          - "@expo/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group React Native updates
+      react-native:
+        patterns:
+          - "react-native"
+          - "react-native-*"
+          - "@react-native/*"
+          - "@react-native-*/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group React Navigation updates
+      navigation:
+        patterns:
+          - "@react-navigation/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group Redux updates
+      redux:
+        patterns:
+          - "@reduxjs/*"
+          - "react-redux"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group Firebase updates
+      firebase:
+        patterns:
+          - "@react-native-firebase/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group testing libraries
+      testing:
+        patterns:
+          - "@testing-library/*"
+          - "jest"
+          - "jest-*"
+          - "@types/jest"
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group linting/formatting tools
+      linting:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@typescript-eslint/*"
+          - "prettier"
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group TypeScript updates
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      # Group Babel updates
+      babel:
+        patterns:
+          - "@babel/*"
+          - "babel-*"
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    # Ignore major version bumps for critical dependencies (review manually)
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      # Group all GitHub Actions updates
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Gradle dependencies (Android)
+  - package-ecosystem: "gradle"
+    directory: "/android"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps(android)"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "android"
+    groups:
+      # Group all Gradle updates
+      gradle:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

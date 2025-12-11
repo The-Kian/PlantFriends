@@ -7,7 +7,6 @@ import { mockPlant, mockPlant2 } from "@/test-utils/MockPlant";
 import { useCombinedPlantSearch } from "./useCombinedPlantSearch";
 
 jest.mock("@/helpers/plants/plantAPI/fetchPlantAPI", () => ({
-  fetchOpenFarmPlants: jest.fn(),
   fetchPerenualPlants: jest.fn(),
 }));
 
@@ -38,10 +37,6 @@ describe("useFetchAPIPlants", () => {
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
-    console.log(
-      `🚀 - KP -  ~ it ~ result.current.plants:`,
-      result.current.plants,
-    );
     expect(result.current.plants).toEqual(
       expect.arrayContaining([expect.objectContaining(mockPlant)]),
     );

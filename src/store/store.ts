@@ -1,6 +1,5 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 
-// import devToolsEnhancer from "redux-devtools-expo-dev-plugin";
 import userPlantsReducer from "./userPlantsSlice";
 
 const rootReducer = combineReducers({
@@ -10,8 +9,6 @@ const rootReducer = combineReducers({
 export function setupStore(preloadedState?: Partial<RootState>) {
   return configureStore({
     devTools: true,
-    // enhancers: (getDefaultEnhancers) =>
-    //   getDefaultEnhancers().concat(devToolsEnhancer()),
     reducer: rootReducer,
     preloadedState,
   });
