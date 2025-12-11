@@ -5,7 +5,8 @@ module.exports = {
   },
   transformIgnorePatterns: [
     // Added: '|immer' and '|@react-native-firebase'
-    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@reduxjs/toolkit|react-redux|immer|@react-native-firebase)",
+    // Modified for pnpm: use node_modules/.pnpm pattern
+    "node_modules/(?!.pnpm|((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@reduxjs/toolkit|react-redux|immer|@react-native-firebase)",
   ],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",

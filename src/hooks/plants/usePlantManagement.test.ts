@@ -208,8 +208,13 @@ describe("usePlantManagement", () => {
       it("should log an error if handleDeletePlant fails", async () => {
         // Arrange
         const error = new Error("Failed to delete plant");
+        let callCount = 0;
         mockDispatch.mockImplementation(() => {
-          throw error;
+          callCount++;
+          // Only throw on the first call (deletePlant), not on rollback (addPlant)
+          if (callCount === 1) {
+            throw error;
+          }
         });
         const consoleErrorSpy = jest
           .spyOn(console, "error")
@@ -217,15 +222,15 @@ describe("usePlantManagement", () => {
         const { result } = renderHook(() => usePlantManagement());
 
         // Act
-        await waitFor(async () => {
-          await result.current.handleDeletePlant(mockUserPlant);
-        });
+        const deleteResult = await result.current.handleDeletePlant(mockUserPlant);
 
         // Assert
+        expect(deleteResult).toBe(false);
         expect(consoleErrorSpy).toHaveBeenCalledWith(
           "Error deleting plant:",
           error,
         );
+        expect(mockDispatch).toHaveBeenCalledTimes(2); // deletePlant + rollback addPlant
 
         // Cleanup
         consoleErrorSpy.mockRestore();

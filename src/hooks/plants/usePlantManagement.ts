@@ -75,16 +75,22 @@ export const usePlantManagement = () => {
       // Optimistic removal for immediate UI response
       dispatch(deletePlant(plant.id));
 
-      // Fire-and-forget backend removal; log failures for troubleshooting
-      persistDeletePlant(plant.id).then((removed) => {
-        if (!removed) {
-          console.error("Failed to remove plant from firebase");
-        }
-      });
+      // Properly await backend removal with error handling and rollback
+      const removed = await persistDeletePlant(plant.id);
+      
+      if (!removed) {
+        // Rollback the optimistic update if Firebase delete failed
+        dispatch(addPlant(plant));
+        console.error("Failed to remove plant from firebase");
+        return false;
+      }
 
       return true;
     } catch (error) {
+      // Rollback the optimistic update on error
+      dispatch(addPlant(plant));
       console.error("Error deleting plant:", error);
+      return false;
     }
   };
 
