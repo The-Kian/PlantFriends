@@ -83,17 +83,6 @@ persistDeletePlant(plant.id).then((removed) => {
 
 ---
 
-### 7. **Unused Dead Code**
-
-**Location:** `src/common/defaultStyles.ts` - never imported
-**Impact:** Clutter, confusion
-**Effort:** 5 minutes
-**Priority:** 🟡 Quick win
-
-**Files to delete:**
-- `src/common/` folder (unused)
-
----
 
 ### 8. **Inconsistent Export Patterns**
 
@@ -106,25 +95,6 @@ persistDeletePlant(plant.id).then((removed) => {
 
 ---
 
-### 9. **Missing Prettier Configuration**
-
-**Issue:** No `.prettierrc` file
-**Impact:** Manual formatting
-**Effort:** 5 minutes
-**Priority:** 🟡 Developer experience
-
-**Fix:**
-```json
-// .prettierrc
-{
-  "semi": true,
-  "trailingComma": "es5",
-  "singleQuote": false,
-  "printWidth": 80,
-  "tabWidth": 2,
-  "arrowParens": "always"
-}
-```
 
 ### 11. **Outdated React Native Navigation Pattern**
 
@@ -140,7 +110,6 @@ persistDeletePlant(plant.id).then((removed) => {
   "tabWidth": 2,
   "arrowParens": "always"
 }
-```
 
 ---
 
@@ -308,14 +277,6 @@ npx lint-staged
 - Tests
 - Build validation
 - EAS builds
-
-### 24. **Commented Out Code**
-
-**Locations:**
-- `src/helpers/plants/plantAPI/fetchPlantAPI.ts` - Old OpenFarm implementation
-- `src/store/store.ts` - Redux dev tools commented out
-
-**Fix:** Remove or properly feature-flag
 
 ### 25. **No Analytics/Monitoring**
 
