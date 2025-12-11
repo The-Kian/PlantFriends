@@ -49,7 +49,6 @@ const saveUserPlantToFirebase = async (
       "saveUserPlantToFirebase: Error saving user plant data: ",
       error,
     );
-    console.log(`🚀 - KP -  ~ userPlantData:`, userPlantData);
     return false;
   }
 };

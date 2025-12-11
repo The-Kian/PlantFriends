@@ -81,8 +81,6 @@ Your codebase is in **excellent shape** for a hobby project. The foundation is s
 ### Nice to Have (Optional)
 
 - Clean up duplicate helper files
-- Remove `src/common/` unused folder  
-- Add .prettierrc config
 - Add accessibility labels
 - Migrate to expo-image
 
@@ -202,10 +200,10 @@ Just fix the error handling and start building. Refactor when:
 - `App.tsx` - Clean entry point
 
 ### Quick Wins (< 30 min each) 🎯
-- Delete `src/common/` folder
-- Add `.prettierrc` file
-- Add `.env.example` file
-- Remove console.logs from production helpers
+- ✅ ~~Add `.prettierrc` file~~ (Already exists)
+- ✅ ~~Add `.env.example` file~~ (Already exists)
+- ✅ ~~Remove console.logs from production helpers~~ (Cleaned up)
+- Clean up duplicate helper files
 
 ### Needs Attention 🔧
 - `src/context/auth/AuthProvider.tsx` - Add error handling
