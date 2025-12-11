@@ -107,9 +107,6 @@ persistDeletePlant(plant.id).then((removed) => {
 
 **Location:** Scattered theme files in `src/theme/`, inline styles
 **Issue:** 
-  "tabWidth": 2,
-  "arrowParens": "always"
-}
 
 ---
 
