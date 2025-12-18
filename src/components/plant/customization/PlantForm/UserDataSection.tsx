@@ -28,8 +28,8 @@ const UserDataSection = ({
       />
       <DatePickerField
         label="Date Added"
-        date={userData?.date_added || new Date()}
-        onDateChange={(date) => onUserDataChange("date_added", date)}
+        date={userData?.date_added ? new Date(userData.date_added) : new Date()}
+        onDateChange={(date) => onUserDataChange("date_added", date.getTime())}
       />
       <PickerField
         label="Location"

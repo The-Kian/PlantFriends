@@ -60,12 +60,12 @@ export interface IUserPlant {
   custom_attributes?: Partial<IPlant>;
   /** Custom name given by the user */
   custom_name?: string;
-  /** Date when the plant was added */
-  date_added?: Date;
-  /** Last date the plant was watered */
-  last_watered_date?: Date | null;
-  /** Next scheduled watering date */
-  next_watering_date?: Date | null;
+  /** Timestamp (ms) when the plant was added */
+  date_added?: number;
+  /** Last watered timestamp (ms since epoch) */
+  last_watered_date?: number | null;
+  /** Next scheduled watering timestamp (ms since epoch) */
+  next_watering_date?: number | null;
   /** Whether reminders are enabled */
   reminders_enabled?: boolean;
   /** Custom watering schedule in days */

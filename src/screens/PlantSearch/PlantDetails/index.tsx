@@ -1,16 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useContext } from "react";
 
-import { StyleSheet, ScrollView, Image } from "react-native";
+import { StyleSheet, ScrollView, Image, Alert } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { WateringPrediction } from "@/components/plant/WateringPrediction";
 import { IPlant } from "@/constants/IPlant";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { RootState } from "@/store/store";
+import { updatePlant } from "@/store/userPlantsSlice";
+import { AuthContext } from "@/context/auth/AuthProvider";
+import {
+    calculateNextWateringDate,
+    getWateringFrequencyInDays,
+} from "@/helpers/plants/wateringCalculations";
+import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
 
 type PlantDetailsScreenRouteProp = RouteProp<RootStackParamList, "PlantDetails">;
 
@@ -18,6 +27,8 @@ const PlantDetailsScreen = () => {
     const route = useRoute<PlantDetailsScreenRouteProp>();
     const { plantId } = route.params;
     const { colors } = useTheme();
+    const dispatch = useDispatch();
+    const { user } = useContext(AuthContext);
 
     // Get the user plant from Redux store
     const userPlant = useSelector((state: RootState) => 
@@ -45,6 +56,41 @@ const PlantDetailsScreen = () => {
 
     const displayName = userPlant.custom_name || mergedPlant?.name || "Unnamed Plant";
     const imageUri = (userPlant as IPlant).images?.[0] || mergedPlant?.images?.[0] || null;
+
+    const handleLogWatering = async () => {
+        try {
+            const now = Date.now();
+            const frequency = getWateringFrequencyInDays(
+                userPlant.custom_watering_schedule ? Number(userPlant.custom_watering_schedule) : null,
+                mergedPlant?.watering_frequency
+            );
+            
+            if (!frequency) {
+                Alert.alert("Error", "Unable to calculate watering frequency");
+                return;
+            }
+
+            const nextDate = calculateNextWateringDate(now, frequency);
+            
+            const updatedPlant = {
+                ...userPlant,
+                last_watered_date: now,
+                next_watering_date: nextDate,
+            };
+            
+            // Update Redux state immediately for responsive UI
+            dispatch(updatePlant(updatedPlant));
+            
+            // Persist to Firebase
+            if (user) {
+                await saveUserPlantToFirebase(updatedPlant, user);
+                Alert.alert("Success", "Watering logged successfully!");
+            }
+        } catch (error) {
+            console.error("Error logging watering:", error);
+            Alert.alert("Error", "Failed to log watering. Please try again.");
+        }
+    };
 
     return (
         <ScrollView style={{ flex: 1 }}>
@@ -86,6 +132,13 @@ const PlantDetailsScreen = () => {
                         <ThemedText>Every {mergedPlant.watering_frequency} days</ThemedText>
                     </ThemedView>
                 )}
+
+                <WateringPrediction
+                    lastWatered={userPlant.last_watered_date ?? null}
+                    wateringFrequency={mergedPlant?.watering_frequency}
+                    customSchedule={userPlant.custom_watering_schedule ? Number(userPlant.custom_watering_schedule) : null}
+                    onLogWatering={handleLogWatering}
+                />
 
                 {userPlant.custom_notes && (
                     <ThemedView style={styles.section}>
