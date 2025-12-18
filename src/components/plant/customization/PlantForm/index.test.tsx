@@ -27,7 +27,9 @@ jest.mock("@/components/plant/customization/plantCustomization.styles", () => ({
 }));
 
 jest.mock("./GeneralInfoSection", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Button } = require("react-native");
   const MockGeneralInfoSection = ({ onAttributeChange }: { onAttributeChange: (key: string, value: IPlant[keyof IPlant]) => void }) => (
     <Button
@@ -41,7 +43,9 @@ jest.mock("./GeneralInfoSection", () => {
 });
 
 jest.mock("./UserDataSection", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Button } = require("react-native");
   const MockUserDataSection = ({ onUserDataChange }: { onUserDataChange: (key: string, value: IUserPlant[keyof IUserPlant]) => void })  => (
     <Button

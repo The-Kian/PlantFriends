@@ -1,18 +1,21 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
 
+import { View, StyleSheet } from 'react-native';
+
+import ThemedButton from '@/components/ui/Buttons/ThemedButton';
 import { ThemedText } from '@/components/ui/Text/ThemedText';
 import { ThemedView } from '@/components/ui/Views/ThemedView';
-import ThemedButton from '@/components/ui/Buttons/ThemedButton';
-import { useTheme } from '@/hooks/utils/useTheme';
 import {
   calculateNextWateringDate,
   getDaysUntilWatering,
   getWateringStatus,
   getWateringFrequencyInDays,
+  MILLIS_PER_DAY,
   type WateringUrgency,
 } from '@/helpers/plants/wateringCalculations';
+import { useTheme } from '@/hooks/utils/useTheme';
+import { lightTheme } from '@/theme';
 
 interface WateringPredictionProps {
   lastWatered: number | null;
@@ -33,10 +36,6 @@ export function WateringPrediction({
     customSchedule,
     wateringFrequency
   );
-
-  if (!frequencyInDays) {
-    return null;
-  }
 
   if (!lastWatered) {
     return (
@@ -72,8 +71,7 @@ export function WateringPrediction({
   const daysSinceWatered = Math.max(
     0,
     Math.floor(
-      (Date.now() - lastWatered) /
-        (1000 * 60 * 60 * 24)
+      (Date.now() - lastWatered) / MILLIS_PER_DAY
     )
   );
   const progress = Math.min(1, daysSinceWatered / frequencyInDays);
@@ -121,30 +119,21 @@ export function WateringPrediction({
         />
       </View>
 
-      {(status.urgency === 'urgent' || status.urgency === 'overdue') && (
-        <ThemedButton
-          title="Log Watering"
-          onPress={onLogWatering}
-          variant="accept"
-          additionalStyle={styles.button}
-        />
-      )}
-
-      {status.urgency !== 'urgent' && status.urgency !== 'overdue' && (
-        <ThemedButton
-          title="Log Watering"
-          onPress={onLogWatering}
-          variant="default"
-          additionalStyle={styles.buttonSecondary}
-        />
-      )}
+      <ThemedButton
+        title="Log Watering"
+        onPress={onLogWatering}
+        variant={(status.urgency === 'urgent' || status.urgency === 'overdue') ? 'accept' : 'default'}
+        additionalStyle={styles.button}
+      />
     </ThemedView>
   );
 }
 
+type ThemeColors = typeof lightTheme.colors;
+
 function getUrgencyColor(
   urgency: WateringUrgency,
-  colors: any
+  colors: ThemeColors
 ): string {
   switch (urgency) {
     case 'overdue':
@@ -152,7 +141,7 @@ function getUrgencyColor(
     case 'urgent':
       return colors.redButton || '#FF0000';
     case 'soon':
-      return '#FFA500'; // Orange
+      return colors.warning || '#FFA500';
     case 'ok':
       return colors.greenButton || '#00A86B';
     default:
@@ -215,9 +204,6 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 12,
-  },
-  buttonSecondary: {
-    marginTop: 8,
   },
   notWateredText: {
     textAlign: 'center',

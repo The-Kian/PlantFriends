@@ -24,17 +24,17 @@ jobs:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: 📦 Setup corepack
+        run: corepack enable
 
       - name: ⎔ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "pnpm"
+          cache: "yarn"
 
       - name: 📥 Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: yarn install --frozen-lockfile
 
       - name: 🏥 Run Expo Doctor
         run: npx expo-doctor
@@ -50,20 +50,21 @@ jobs:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
+        
+      - name: 📦 Setup corepack
+        run: corepack enable
 
       - name: ⎔ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "pnpm"
+          cache: "yarn"
 
       - name: 📥 Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: yarn install --frozen-lockfile
 
       - name: 🔷 Type check
-        run: pnpm type-check
+        run: yarn type-check
 
   lint:
     name: 🧹 Lint
@@ -72,21 +73,21 @@ jobs:
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
-
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
+        
+      - name: 📦 Setup corepack
+        run: corepack enable
 
       - name: ⎔ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "pnpm"
+          cache: "yarn"
 
       - name: 📥 Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: yarn install --frozen-lockfile
 
       - name: 🧹 Lint
-        run: pnpm lint
+        run: yarn lint
 
   test:
     name: 🧪 Test
@@ -96,20 +97,20 @@ jobs:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 📦 Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: 📦 Setup corepack
+        run: corepack enable
 
       - name: ⎔ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "pnpm"
+          cache: "yarn"
 
       - name: 📥 Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: yarn install --frozen-lockfile
 
       - name: 🧪 Run tests
-        run: pnpm test --coverage --ci
+        run: yarn test --coverage --ci
 
       - name: 📊 Upload coverage
         uses: actions/upload-artifact@v4

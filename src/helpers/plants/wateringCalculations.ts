@@ -1,3 +1,7 @@
+// Threshold and time constants to avoid magic numbers
+export const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
+export const SOON_THRESHOLD_DAYS = 3; // within 3 days is considered "soon"
+
 export type WateringUrgency = 'overdue' | 'urgent' | 'soon' | 'ok';
 
 export interface WateringStatus {
@@ -14,6 +18,14 @@ export function calculateNextWateringDate(
   return nextDate.getTime();
 }
 
+/**
+ * Computes days until the next watering using the device's local timezone.
+ * Both "today" and the target date are normalized to local midnight.
+ *
+ * Timezone note:
+ * - Using local time aligns with user expectations but can shift if the user travels.
+ * - For a timezone-agnostic approach, normalize to UTC midnight instead.
+ */
 export function getDaysUntilWatering(nextWateringDate: number): number {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -22,7 +34,7 @@ export function getDaysUntilWatering(nextWateringDate: number): number {
   nextDate.setHours(0, 0, 0, 0);
 
   const diffTime = nextDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.ceil(diffTime / MILLIS_PER_DAY);
 
   return diffDays;
 }
@@ -50,7 +62,7 @@ export function getWateringStatus(daysUntil: number): WateringStatus {
     };
   }
 
-  if (daysUntil <= 3) {
+  if (daysUntil <= SOON_THRESHOLD_DAYS) {
     return {
       message: `Water in ${daysUntil} days`,
       urgency: 'soon',
@@ -69,12 +81,12 @@ export function getWateringStatus(daysUntil: number): WateringStatus {
  *
  * @param customSchedule - Custom schedule in days (number)
  * @param baseFrequency - Base watering frequency from plant data
- * @returns Frequency in days, or null if unable to calculate
+ * @returns Frequency in days (always returns a number, defaults to 7)
  */
 export function getWateringFrequencyInDays(
   customSchedule?: number | null,
   baseFrequency?: number | null
-): number | null {
+): number {
   // Priority 1: Use custom schedule if provided
   if (customSchedule != null && customSchedule > 0) {
     return customSchedule;

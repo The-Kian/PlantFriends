@@ -1,8 +1,8 @@
 import auth from "@react-native-firebase/auth";
 
+import { IPlant, IUserPlant } from "@/constants/IPlant";
 import saveBasePlantToFirebase from "@/helpers/firebase/saveToFirebase/saveBasePlantToFirebase";
 import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
-import { IPlant, IUserPlant } from "@/constants/IPlant";
 
 const basePlants: IPlant[] = [
   {
@@ -103,7 +103,7 @@ const buildUserPlants = (userId: string): IUserPlant[] => [
     userId,
     plantId: "monstera-deliciosa",
     custom_name: "Office Monstera",
-    custom_watering_schedule: "Weekly",
+    custom_watering_schedule: 7,
     last_watered_date: new Date("2025-12-14T10:00:00.000Z").getTime(),
     next_watering_date: new Date("2025-12-21T10:00:00.000Z").getTime(),
     location: "Office window",
@@ -114,7 +114,7 @@ const buildUserPlants = (userId: string): IUserPlant[] => [
     userId,
     plantId: "sansevieria-trifasciata",
     custom_name: "Bedroom Snake Plant",
-    custom_watering_schedule: "Bi-weekly",
+    custom_watering_schedule: 14,
     last_watered_date: new Date("2025-12-10T10:00:00.000Z").getTime(),
     next_watering_date: new Date("2025-12-24T10:00:00.000Z").getTime(),
     location: "Bedroom dresser",
@@ -124,7 +124,7 @@ const buildUserPlants = (userId: string): IUserPlant[] => [
     userId,
     plantId: "spathiphyllum-wallisii",
     custom_name: "Lobby Peace Lily",
-    custom_watering_schedule: "Every 3 days",
+    custom_watering_schedule: 3,
     last_watered_date: new Date("2025-12-17T08:00:00.000Z").getTime(),
     next_watering_date: new Date("2025-12-20T08:00:00.000Z").getTime(),
     location: "Lobby shelf",

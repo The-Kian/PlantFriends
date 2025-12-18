@@ -1,25 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { useSelector, useDispatch } from "react-redux";
 import { useContext } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 import { StyleSheet, ScrollView, Image, Alert } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
+import { WateringPrediction } from "@/components/plant/WateringPrediction";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
-import { WateringPrediction } from "@/components/plant/WateringPrediction";
-import { IPlant } from "@/constants/IPlant";
-import useMergedPlant from "@/hooks/plants/useMergedPlant";
-import { useTheme } from "@/hooks/utils/useTheme";
-import { RootState } from "@/store/store";
-import { updatePlant } from "@/store/userPlantsSlice";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
 import {
     calculateNextWateringDate,
     getWateringFrequencyInDays,
 } from "@/helpers/plants/wateringCalculations";
-import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
+import useMergedPlant from "@/hooks/plants/useMergedPlant";
+import { useTheme } from "@/hooks/utils/useTheme";
+import { RootState } from "@/store/store";
+import { updatePlant } from "@/store/userPlantsSlice";
 
 type PlantDetailsScreenRouteProp = RouteProp<RootStackParamList, "PlantDetails">;
 
@@ -55,37 +54,35 @@ const PlantDetailsScreen = () => {
     }
 
     const displayName = userPlant.custom_name || mergedPlant?.name || "Unnamed Plant";
-    const imageUri = (userPlant as IPlant).images?.[0] || mergedPlant?.images?.[0] || null;
+    const imageUri = mergedPlant?.images?.[0] || null;
 
     const handleLogWatering = async () => {
         try {
-            const now = Date.now();
-            const frequency = getWateringFrequencyInDays(
-                userPlant.custom_watering_schedule ? Number(userPlant.custom_watering_schedule) : null,
-                mergedPlant?.watering_frequency
-            );
-            
-            if (!frequency) {
-                Alert.alert("Error", "Unable to calculate watering frequency");
+            if (!user) {
+                Alert.alert("Error", "You must be logged in to log watering");
                 return;
             }
 
+            const now = Date.now();
+            const frequency = getWateringFrequencyInDays(
+                userPlant.custom_watering_schedule ?? null,
+                mergedPlant?.watering_frequency
+            );
+
             const nextDate = calculateNextWateringDate(now, frequency);
-            
+
             const updatedPlant = {
                 ...userPlant,
                 last_watered_date: now,
                 next_watering_date: nextDate,
             };
-            
-            // Update Redux state immediately for responsive UI
+
+            // Persist to Firebase first to ensure data consistency
+            await saveUserPlantToFirebase(updatedPlant, user);
+
+            // Update Redux after successful save
             dispatch(updatePlant(updatedPlant));
-            
-            // Persist to Firebase
-            if (user) {
-                await saveUserPlantToFirebase(updatedPlant, user);
-                Alert.alert("Success", "Watering logged successfully!");
-            }
+            Alert.alert("Success", "Watering logged successfully!");
         } catch (error) {
             console.error("Error logging watering:", error);
             Alert.alert("Error", "Failed to log watering. Please try again.");
@@ -128,15 +125,26 @@ const PlantDetailsScreen = () => {
 
                 {mergedPlant?.watering_frequency && (
                     <ThemedView style={styles.section}>
-                        <ThemedText type="subtitle">Watering Frequency</ThemedText>
+                        <ThemedText type="subtitle">Base Watering Frequency</ThemedText>
                         <ThemedText>Every {mergedPlant.watering_frequency} days</ThemedText>
+                    </ThemedView>
+                )}
+
+                {typeof userPlant.custom_watering_schedule === 'number' && (
+                    <ThemedView style={styles.section}>
+                        <ThemedText type="subtitle">Your Watering Schedule</ThemedText>
+                        <ThemedText>
+                            {userPlant.custom_watering_schedule === null
+                              ? 'As needed'
+                              : `Every ${userPlant.custom_watering_schedule} days`}
+                        </ThemedText>
                     </ThemedView>
                 )}
 
                 <WateringPrediction
                     lastWatered={userPlant.last_watered_date ?? null}
                     wateringFrequency={mergedPlant?.watering_frequency}
-                    customSchedule={userPlant.custom_watering_schedule ? Number(userPlant.custom_watering_schedule) : null}
+                    customSchedule={userPlant.custom_watering_schedule ?? null}
                     onLogWatering={handleLogWatering}
                 />
 

@@ -80,7 +80,7 @@ describe("GeneralInfoSection", () => {
 
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "custom_watering_schedule",
-      "Weekly",
+      7,
     );
   });
 });

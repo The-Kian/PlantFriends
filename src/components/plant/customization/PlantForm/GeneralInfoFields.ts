@@ -30,11 +30,6 @@ export const generalInfoFields: FieldConfig[] = [
     type: "picker",
     options: ["Full Sun", "Partial Sun", "Partial Shade", "Full Shade"],
   },
-  {
-    label: "Watering Frequency (in days)",
-    field: "watering_frequency",
-    type: "number",
-  },
   { label: "Fertilizer Needs", field: "fertilizer_needs", type: "text" },
   {
     label: "Minimum Temperature",

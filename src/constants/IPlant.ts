@@ -69,7 +69,7 @@ export interface IUserPlant {
   /** Whether reminders are enabled */
   reminders_enabled?: boolean;
   /** Custom watering schedule in days */
-  custom_watering_schedule?: string;
+  custom_watering_schedule?: number | null;
   /** Custom notes added by the user */
   custom_notes?: string;
   /** Physical location or notes on where the plant is kept */
