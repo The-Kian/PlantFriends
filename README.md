@@ -22,6 +22,28 @@ yarn start
 yarn android  # or yarn ios
 ```
 
+## Package Manager
+
+- This repo uses Yarn 4 (Corepack) — see `packageManager` in package.json.
+- Prefer Yarn commands over pnpm or npm to avoid tooling mismatches.
+
+Common equivalents:
+
+```bash
+# Start Metro + dev client
+yarn start
+
+# Platforms
+yarn android
+yarn ios
+
+# Tests & checks
+yarn test
+yarn test:coverage
+yarn lint
+yarn type-check
+```
+
 ## Tech Stack
 
 React Native 0.81 • Expo 54 • TypeScript 5.9 • Redux Toolkit • React Navigation • Firebase • Jest (89.59% coverage)

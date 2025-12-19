@@ -56,7 +56,7 @@ describe("GeneralInfoSection", () => {
     const newDate = new Date(2023, 10, 1);
     fireEvent(datePickerField, "onDateChange", newDate);
 
-    expect(mockOnUserDataChange).toHaveBeenCalledWith("date_added", newDate);
+    expect(mockOnUserDataChange).toHaveBeenCalledWith("date_added", newDate.getTime());
   });
 
   it("calls onAttributeChange with correct arguments for picker input", () => {
@@ -80,7 +80,7 @@ describe("GeneralInfoSection", () => {
 
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "custom_watering_schedule",
-      "Weekly",
+      7,
     );
   });
 });
