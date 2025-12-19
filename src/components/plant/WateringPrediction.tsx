@@ -6,14 +6,8 @@ import { View, StyleSheet } from 'react-native';
 import ThemedButton from '@/components/ui/Buttons/ThemedButton';
 import { ThemedText } from '@/components/ui/Text/ThemedText';
 import { ThemedView } from '@/components/ui/Views/ThemedView';
-import {
-  calculateNextWateringDate,
-  getDaysUntilWatering,
-  getWateringStatus,
-  getWateringFrequencyInDays,
-  MILLIS_PER_DAY,
-  type WateringUrgency,
-} from '@/helpers/plants/wateringCalculations';
+import { getWateringProgress } from '@/helpers/plants/wateringProgress';
+import { type WateringUrgency } from '@/helpers/plants/wateringCalculations';
 import { useTheme } from '@/hooks/utils/useTheme';
 import { lightTheme } from '@/theme';
 
@@ -31,13 +25,14 @@ export function WateringPrediction({
   onLogWatering,
 }: WateringPredictionProps) {
   const theme = useTheme();
+  const wateringProgress = getWateringProgress({
+    custom_watering_schedule: customSchedule ?? null,
+    watering_frequency: wateringFrequency ?? null,
+    last_watered_date: lastWatered ?? null,
+    next_watering_date: null,
+  });
 
-  const frequencyInDays = getWateringFrequencyInDays(
-    customSchedule,
-    wateringFrequency
-  );
-
-  if (!lastWatered) {
+  if (!wateringProgress.lastWatered) {
     return (
       <ThemedView style={styles.container}>
         <View style={styles.header}>
@@ -59,25 +54,18 @@ export function WateringPrediction({
     );
   }
 
-  const nextWateringDate = calculateNextWateringDate(
-    lastWatered,
-    frequencyInDays
-  );
-  const daysUntil = getDaysUntilWatering(nextWateringDate);
-  const status = getWateringStatus(daysUntil);
+  const {
+    nextWateringDate,
+    status,
+    progressPercent,
+    lastWatered: lastWateredDate,
+  } = wateringProgress;
 
   const urgencyColor = getUrgencyColor(status.urgency, theme.colors);
-
-  const daysSinceWatered = Math.max(
-    0,
-    Math.floor(
-      (Date.now() - lastWatered) / MILLIS_PER_DAY
-    )
-  );
-  const progress = Math.min(1, daysSinceWatered / frequencyInDays);
-
-  const lastWateredFormatted = formatDate(lastWatered);
-  const nextWateringFormatted = formatDate(nextWateringDate);
+  const lastWateredFormatted = formatDate(lastWateredDate);
+  const nextWateringFormatted = nextWateringDate
+    ? formatDate(nextWateringDate)
+    : 'Not scheduled';
 
   return (
     <ThemedView style={styles.container}>
@@ -112,7 +100,7 @@ export function WateringPrediction({
           style={[
             styles.progressBarFill,
             {
-              width: `${progress * 100}%`,
+              width: progressPercent,
               backgroundColor: urgencyColor,
             },
           ]}
@@ -131,7 +119,7 @@ export function WateringPrediction({
 
 type ThemeColors = typeof lightTheme.colors;
 
-function getUrgencyColor(
+export function getUrgencyColor(
   urgency: WateringUrgency,
   colors: ThemeColors
 ): string {
@@ -152,7 +140,7 @@ function getUrgencyColor(
 
 function formatDate(epochMs: number): string {
   const dateObj = new Date(epochMs);
-  return dateObj.toLocaleDateString('en-US', {
+  return dateObj.toLocaleDateString('en-GB', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

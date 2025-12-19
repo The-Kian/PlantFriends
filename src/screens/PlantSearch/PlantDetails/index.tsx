@@ -123,7 +123,7 @@ const PlantDetailsScreen = () => {
                     </ThemedView>
                 )}
 
-                {mergedPlant?.watering_frequency && (
+                {mergedPlant?.watering_frequency != null && mergedPlant.watering_frequency > 0 && (
                     <ThemedView style={styles.section}>
                         <ThemedText type="subtitle">Base Watering Frequency</ThemedText>
                         <ThemedText>Every {mergedPlant.watering_frequency} days</ThemedText>
