@@ -9,7 +9,7 @@ import { IUserPlant, IUserPlantMerged } from '@/constants/IPlant';
 import useMergedPlant from '@/hooks/plants/useMergedPlant';
 import { useTheme } from '@/hooks/utils/useTheme';
 import { getWateringProgress } from '@/helpers/plants/wateringProgress';
-import { getUrgencyColor } from './WateringPrediction';
+import { getUrgencyColor } from '../watering/WateringPrediction';
 
 interface PlantCardProps {
     plant: IUserPlant | IUserPlantMerged;
