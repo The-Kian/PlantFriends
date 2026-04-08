@@ -82,8 +82,8 @@ const PlantDetailsScreen = () => {
         next_watering_date: nextDate,
       };
       setShowSplash(true);
-      dispatch(updatePlant(updatedPlant));
       await saveUserPlantToFirebase(updatedPlant, user);
+      dispatch(updatePlant(updatedPlant));
     } catch (error) {
       console.error("Error logging watering:", error);
       Alert.alert("Error", "Failed to log watering. Please try again.");

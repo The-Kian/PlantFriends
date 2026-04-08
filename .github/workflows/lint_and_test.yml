@@ -31,10 +31,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "yarn"
+          cache: "pnpm"
 
       - name: 📥 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --config.minimumReleaseAge=0
 
       - name: 🏥 Run Expo Doctor
         run: npx expo-doctor
@@ -49,7 +49,6 @@ jobs:
     steps:
       - name: 🏗 Checkout repository
         uses: actions/checkout@v4
-
         
       - name: 📦 Setup corepack
         run: corepack enable
@@ -58,13 +57,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "yarn"
+          cache: "pnpm"
 
       - name: 📥 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --config.minimumReleaseAge=0
 
       - name: 🔷 Type check
-        run: yarn type-check
+        run: pnpm type-check
 
   lint:
     name: 🧹 Lint
@@ -81,13 +80,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "yarn"
+          cache: "pnpm"
 
       - name: 📥 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --config.minimumReleaseAge=0
 
       - name: 🧹 Lint
-        run: yarn lint
+        run: pnpm lint
 
   test:
     name: 🧪 Test
@@ -104,13 +103,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          cache: "yarn"
+          cache: "pnpm"
 
       - name: 📥 Install dependencies
-        run: yarn install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --config.minimumReleaseAge=0
 
       - name: 🧪 Run tests
-        run: yarn test --coverage --ci
+        run: pnpm test --coverage --ci
 
       - name: 📊 Upload coverage
         uses: actions/upload-artifact@v4
