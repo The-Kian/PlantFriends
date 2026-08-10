@@ -19,6 +19,25 @@ const UserDataSection = ({
   userData,
   onUserDataChange,
 }: UserDataSectionProps) => {
+  // Map human-readable schedule labels to numeric days (or null for as-needed)
+  const scheduleOptions: { label: string; days: number | null }[] = [
+    { label: "Daily", days: 1 },
+    { label: "Every 3 days", days: 3 },
+    { label: "Weekly", days: 7 },
+    { label: "Bi-weekly", days: 14 },
+    { label: "Monthly", days: 30 },
+    { label: "As needed (check soil)", days: null },
+  ];
+
+  const scheduleLabels = scheduleOptions.map((o) => o.label);
+
+  const selectedScheduleLabel = (() => {
+    const current = userData?.custom_watering_schedule;
+    if (current == null) return ""; // no custom schedule selected
+    const match = scheduleOptions.find((o) => o.days === current);
+    return match ? match.label : "";
+  })();
+
   return (
     <View>
       <TextInputField
@@ -28,8 +47,8 @@ const UserDataSection = ({
       />
       <DatePickerField
         label="Date Added"
-        date={userData?.date_added || new Date()}
-        onDateChange={(date) => onUserDataChange("date_added", date)}
+        date={userData?.date_added ? new Date(userData.date_added) : new Date()}
+        onDateChange={(date) => onUserDataChange("date_added", date.getTime())}
       />
       <PickerField
         label="Location"
@@ -50,18 +69,15 @@ const UserDataSection = ({
       />
       <PickerField
         label="Watering Schedule"
-        value={userData?.custom_watering_schedule || ""}
-        onValueChange={(schedule) =>
-          onUserDataChange("custom_watering_schedule", schedule)
-        }
-        options={[
-          "Daily",
-          "Every 2-3 days",
-          "Weekly",
-          "Bi-weekly",
-          "Monthly",
-          "As needed (check soil)",
-        ]}
+        value={selectedScheduleLabel}
+        onValueChange={(label) => {
+          const found = scheduleOptions.find((o) => o.label === label);
+          onUserDataChange(
+            "custom_watering_schedule",
+            found ? (found.days as number | null) : null,
+          );
+        }}
+        options={scheduleLabels}
         placeholder="Select a watering schedule"
       />
     </View>

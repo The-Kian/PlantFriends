@@ -1,18 +1,18 @@
 // jest/setup.js
 
 /* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 import "@testing-library/jest-native/extend-expect";
 
 // include this line for mocking react-native-gesture-handler
 import "react-native-gesture-handler/jestSetup";
 
-import { setUpTests } from "react-native-reanimated";
-setUpTests();
-
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require("dotenv").config(); // load .env into process.env
 
 jest.mock("@/components/ui/Text/ThemedText", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Text } = require("react-native");
   return {
     ThemedText: ({ children }) => <Text>{children}</Text>,
@@ -20,6 +20,7 @@ jest.mock("@/components/ui/Text/ThemedText", () => {
 });
 
 jest.mock("@/components/ui/Views/ThemedView", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require("react-native");
   return {
     ThemedView: ({ children, style, ...props }) => (
@@ -29,10 +30,6 @@ jest.mock("@/components/ui/Views/ThemedView", () => {
     ),
   };
 });
-
-jest.mock("@expo/vector-icons", () => ({
-  Ionicons: "",
-}));
 
 jest.mock("react-native-uuid", () => ({
   v4: jest.fn(() => "test-uuid"),

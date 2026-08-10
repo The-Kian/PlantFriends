@@ -15,7 +15,7 @@ describe("ProfileButton", () => {
     render(
       <NavigationContainer>
         <ProfileButton />
-      </NavigationContainer>,
+      </NavigationContainer>
     );
 
     const button = await screen.findByTestId("profile-button");
@@ -27,7 +27,7 @@ describe("ProfileButton", () => {
     render(
       <NavigationContainer>
         <ProfileButton />
-      </NavigationContainer>,
+      </NavigationContainer>
     );
 
     const icon = await screen.findByTestId("profile-icon");
@@ -40,7 +40,7 @@ describe("ProfileButton", () => {
     render(
       <NavigationContainer>
         <ProfileButton />
-      </NavigationContainer>,
+      </NavigationContainer>
     );
 
     const icon = await screen.findByTestId("profile-icon");
@@ -61,7 +61,7 @@ describe("ProfileButton", () => {
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
-      </NavigationContainer>,
+      </NavigationContainer>
     );
 
     fireEvent.press(screen.getByTestId("profile-button"));

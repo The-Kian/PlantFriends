@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { fetchPerenualPlants } from "./fetchPlantAPI";
-import { mapPerenualPlantToIPlant, PerenualPlant } from "./mapPerenualPlantToIPlant";
+import {
+  mapPerenualPlantToIPlant,
+  PerenualPlant,
+} from "./mapPerenualPlantToIPlant";
 
 jest.mock("./mapPerenualPlantToIPlant", () => ({
   __esModule: true,
@@ -14,7 +17,6 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-
 describe("fetchPerenualPlants", () => {
   it("should return an array of IPlant when API returns valid data", async () => {
     const searchQuery = "banana";
@@ -25,14 +27,14 @@ describe("fetchPerenualPlants", () => {
       ],
     };
 
-    global.fetch = jest.fn().mockResolvedValue({
+    (globalThis as any).fetch = jest.fn().mockResolvedValue({
       json: jest.fn().mockResolvedValue(fakeData),
       ok: true,
     } as any);
 
     const plants = await fetchPerenualPlants(searchQuery);
-    expect(global.fetch).toHaveBeenCalledWith(
-      `https://perenual.com/api/species-list?key=API_KEY&q=${searchQuery}`,
+    expect((globalThis as any).fetch).toHaveBeenCalledWith(
+      `https://perenual.com/api/species-list?key=API_KEY&q=${searchQuery}`
     );
     expect(plants).toEqual([
       expect.objectContaining({
@@ -45,7 +47,7 @@ describe("fetchPerenualPlants", () => {
       }),
     ]);
     expect(mapPerenualPlantToIPlant).toHaveBeenCalledTimes(
-      fakeData.data.length,
+      fakeData.data.length
     );
   });
 
@@ -56,12 +58,12 @@ describe("fetchPerenualPlants", () => {
       data: "invalid data",
     };
 
-    global.fetch = jest.fn().mockResolvedValue({
+    (globalThis as any).fetch = jest.fn().mockResolvedValue({
       json: jest.fn().mockResolvedValue(fakeData),
     } as any);
 
     await expect(fetchPerenualPlants(searchQuery)).rejects.toThrow(
-      "API request failed with status undefined",
+      "API request failed with status undefined"
     );
   });
 
@@ -72,13 +74,13 @@ describe("fetchPerenualPlants", () => {
       data: "invalid data",
     };
 
-    global.fetch = jest.fn().mockResolvedValue({
+    (globalThis as any).fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: jest.fn().mockResolvedValue(fakeData),
     } as any);
 
     await expect(fetchPerenualPlants(searchQuery)).rejects.toThrow(
-      "No plants found in API response",
+      "No plants found in API response"
     );
   });
 });

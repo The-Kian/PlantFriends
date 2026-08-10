@@ -13,7 +13,6 @@ import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import LoginScreen from "./login";
 
 describe("LoginScreen", () => {
-  
   const renderLoginScreen = () => {
     return render(
       <NavigationContainer>
@@ -22,7 +21,7 @@ describe("LoginScreen", () => {
         </AuthContext.Provider>
       </NavigationContainer>
     );
-  }
+  };
 
   const mockLogin = jest.fn();
 
@@ -40,13 +39,19 @@ describe("LoginScreen", () => {
 
   it("renders LoadingOverlay when authenticating", async () => {
     mockAuthContextValue.login.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 100))
+      () => new Promise<void>((resolve) => setTimeout(() => resolve(), 100))
     );
 
     renderLoginScreen();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Email Address"),
+      "test@example.com"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Password"),
+      "password123"
+    );
 
     const loginButton = screen.getByText("Log In");
     fireEvent.press(loginButton);
@@ -61,8 +66,14 @@ describe("LoginScreen", () => {
 
     renderLoginScreen();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Email Address"),
+      "test@example.com"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Password"),
+      "password123"
+    );
 
     const loginButton = screen.getByText("Log In");
     fireEvent.press(loginButton);

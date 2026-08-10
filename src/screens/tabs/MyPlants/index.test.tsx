@@ -85,7 +85,7 @@ describe("MyPlantsScreen", () => {
     expect(await screen.findByText("Living Room Plant")).toBeVisible();
 
     // Simulate deleting the plant
-    const deleteButton = screen.getByText("Delete");
+    const deleteButton = screen.getByLabelText("Delete");
     fireEvent.press(deleteButton);
 
     // Verify the plant is no longer visible

@@ -5,7 +5,7 @@ const tintColorDark = "#fff";
 export const Colors = {
   light: {
     text: "#11181C",
-    background: "#fff",
+    background: "transparent",
     tint: tintColorLight,
     icon: "#34a1eb",
     tabIconDefault: "#687076",
@@ -13,6 +13,7 @@ export const Colors = {
     headerBackground: "#A1CEDC",
     card: "#008d07ff",
     error: "#FF5252",
+    warning: "#FFA500",
     border: "#E2E8F0",
     greenButton: "#00A86B",
     redButton: "#FF0000",
@@ -27,6 +28,7 @@ export const Colors = {
     headerBackground: "#1D3D47",
     card: "rgba(5, 235, 43, 1)",
     error: "#FF5252",
+    warning: "#FFA500",
     border: "#39424E",
     greenButton: "#00A86B",
     redButton: "#FF0000",

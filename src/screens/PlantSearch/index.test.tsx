@@ -25,6 +25,7 @@ jest.mock("./Results", () => {
     plants: any[];
     onSelectPlant: (plant: any) => void;
   }) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { View, Button } = require("react-native");
     return (
       <View>
@@ -51,6 +52,7 @@ jest.mock("@/components/plant/CustomizationModal", () => {
     onClose: () => void;
     isAddingNewPlant: boolean;
   }) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { View, Button, Text } = require("react-native");
     const handleSave = () => {
       // This mock behaves differently depending on if we are adding or editing
