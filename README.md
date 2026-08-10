@@ -12,14 +12,36 @@ Plant search • Personal collection • Room organization • Custom care sched
 
 ```bash
 # Install
-yarn install
+pnpm install
 
 # Configure (copy .env.example to .env)
 # Add Firebase config files (see ARCHITECTURE.md)
 
 # Run
-yarn start
-yarn android  # or yarn ios
+pnpm start
+pnpm android  # or pnpm ios
+```
+
+## Package Manager
+
+- This repo uses pnpm and Corepack — see `packageManager` in package.json.
+- Prefer pnpm commands for consistent tooling.
+
+Common equivalents:
+
+```bash
+# Start Metro + dev client
+pnpm start
+
+# Platforms
+pnpm android
+pnpm ios
+
+# Tests & checks
+pnpm test
+pnpm test:coverage
+pnpm lint
+pnpm type-check
 ```
 
 ## Tech Stack

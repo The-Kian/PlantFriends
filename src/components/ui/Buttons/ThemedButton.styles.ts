@@ -10,12 +10,7 @@ export const useThemedButtonStyles = () => {
       borderRadius: 6,
       justifyContent: "center",
       paddingHorizontal: theme.spacing.medium,
-      backgroundColor: theme.colors.background,
-      elevation: 2,
-      shadowColor: theme.colors.text,
-      shadowOffset: { width: 1, height: 1 },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
+      backgroundColor: theme.colors.card,
       marginTop: theme.spacing.small,
     },
     iconButton: {

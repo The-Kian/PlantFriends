@@ -38,22 +38,37 @@ describe("SignupScreen", () => {
 
   it("should show loading overlay when authentication starts", async () => {
     mockAuthContextValue.register.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 100))
+      () => new Promise<void>((resolve) => setTimeout(() => resolve(), 100))
     );
 
     renderSignUpScreen();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Email Address"), "test@example.com");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Display Name"), "PlantFriend");
-    
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Email Address"),
+      "test@example.com"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Confirm Email Address"),
+      "test@example.com"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Display Name"),
+      "PlantFriend"
+    );
+
     const dobInput = screen.queryByPlaceholderText("Enter Date of Birth");
     if (dobInput) {
-      fireEvent.changeText(dobInput, "01/01/2000"); 
+      fireEvent.changeText(dobInput, "01/01/2000");
     }
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Password"), "password123");
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Password"),
+      "password123"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Confirm Password"),
+      "password123"
+    );
 
     const signUpButton = screen.getByText("Sign Up");
     fireEvent.press(signUpButton);
@@ -69,17 +84,32 @@ describe("SignupScreen", () => {
 
     renderSignUpScreen();
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Email Address"), "test@example.com");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Email Address"), "test@example.com");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Display Name"), "PlantFriend");
-    
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Email Address"),
+      "test@example.com"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Confirm Email Address"),
+      "test@example.com"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Display Name"),
+      "PlantFriend"
+    );
+
     const dobInput = screen.queryByPlaceholderText("Enter Date of Birth");
     if (dobInput) {
-      fireEvent.changeText(dobInput, "01/01/2000"); 
+      fireEvent.changeText(dobInput, "01/01/2000");
     }
 
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Password"), "password123");
-    fireEvent.changeText(screen.getByPlaceholderText("Enter Confirm Password"), "password123");
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Password"),
+      "password123"
+    );
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Enter Confirm Password"),
+      "password123"
+    );
 
     const signUpButton = screen.getByText("Sign Up");
     fireEvent.press(signUpButton);

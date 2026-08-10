@@ -3,7 +3,7 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 
-import { StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
 import PlantCard from "@/components/plant/plantCard";
@@ -41,16 +41,18 @@ export default function MyPlantsScreen() {
     });
 
     return (
-      <ThemedView>
-        {plantsInLocation.map((item) => (
-          <PlantCard
-            key={item.id}
-            plant={item}
-            onPress={() => navigation.navigate("PlantDetails", { plantId: item.id })}
-            onDelete={() => handleDeletePlant(item)}
-          />
-        ))}
-      </ThemedView>
+        <ThemedView>
+          {plantsInLocation.map((item) => (
+            <PlantCard
+              key={item.id}
+              plant={item}
+              onPress={() =>
+                navigation.navigate("PlantDetails", { plantId: item.id })
+              }
+              onDelete={() => handleDeletePlant(item)}
+            />
+          ))}
+        </ThemedView>
     );
   };
 

@@ -3,7 +3,7 @@ import {
   getDocs,
 } from "@react-native-firebase/firestore";
 
-import { mockPlant, mockPlant2 } from "@/test-utils/MockPlant";
+import { mockUserPlant, mockUserPlant2 } from "@/test-utils/MockPlant";
 
 import fetchUserPlants from "./fetchUserPlants";
 
@@ -14,7 +14,7 @@ describe("fetchUserPlants", () => {
     // Setup mock to return specific data
     (getDocs as jest.Mock).mockResolvedValueOnce({
       empty: false,
-      docs: [{ data: () => mockPlant }, { data: () => mockPlant2 }],
+      docs: [mockUserPlant, mockUserPlant2].map((p) => ({ data: () => p })),
     });
 
     const result = await fetchUserPlants(userId);
@@ -29,7 +29,7 @@ describe("fetchUserPlants", () => {
     expect(calledWithUserPlants).toBe(true);
 
     // Check that we got the expected plants back
-    expect(result).toEqual([mockPlant, mockPlant2]);
+    expect(result).toEqual([mockUserPlant, mockUserPlant2]);
   });
 
   it("should return an empty array if no plants are found", async () => {

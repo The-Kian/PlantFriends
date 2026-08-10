@@ -15,14 +15,14 @@ export default function TabNavigator() {
       }}
     >
       <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ tabBarLabel: "Home" }}
-      />
-      <Tab.Screen
         name="MyPlants"
         component={MyPlantsScreen}
         options={{ tabBarLabel: "My Plants" }}
+      />
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ tabBarLabel: "Home" }}
       />
     </Tab.Navigator>
   );

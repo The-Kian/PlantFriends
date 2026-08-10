@@ -55,16 +55,19 @@ yarn-error.*
 .env
 
 # Firebase configuration files (contain sensitive API keys)
-google-services.json
-GoogleService-Info.plist
-**/google-services.json
-**/GoogleService-Info.plist
+# google-services.json
+# GoogleService-Info.plist
+# **/google-services.json
+# **/GoogleService-Info.plist
 
 # typescript
 *.tsbuildinfo
 
 expo-env.d.ts
 # @end expo-cli
+
+.github/prompts/*
+.github/instructions/*
 
 .yarn/*
 !.yarn/patches

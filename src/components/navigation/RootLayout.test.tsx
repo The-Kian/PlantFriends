@@ -1,17 +1,18 @@
 import { NavigationContainer } from "@react-navigation/native";
 import React from "react";
 
-import { render, screen } from "@testing-library/react-native";
+import { screen } from "@testing-library/react-native";
 
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { AuthContextType } from "@/context/auth/AuthTypes";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
+import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
 import RootLayout from "./RootLayout";
 
 describe("RootLayout", () => {
   const renderRootLayout = (contextValue: AuthContextType) =>
-    render(
+    renderWithProviders(
       <AuthContext.Provider value={contextValue}>
         <NavigationContainer>
           <RootLayout />
@@ -28,6 +29,6 @@ describe("RootLayout", () => {
   it("shows Tab, Profile, PlantSearch & SubmitPlant screens when user is logged in", async () => {
     renderRootLayout(mockAuthContextValue);
     expect(screen.getByTestId("profile-button")).toBeTruthy();
-    expect(await screen.findByText("Plant Friends!")).toBeTruthy();
+    expect(await screen.findByText("Manage Your Plants")).toBeTruthy();
   });
 });
