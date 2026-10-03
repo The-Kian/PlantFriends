@@ -10,6 +10,7 @@ import { useState, createContext, useEffect } from "react";
 import { Alert } from "react-native";
 
 import { ProviderProps } from "@/constants/genericTypes";
+import ErrorService from "@/services/ErrorService";
 
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
 
@@ -47,7 +48,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       if (nativeError.code === "auth/user-not-found") {
         Alert.alert("User not found");
       } else {
-        console.error("Login error:", nativeError);
+        ErrorService.handleError(nativeError, "Login");
       }
     }
   };
@@ -78,7 +79,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       } else if (nativeError.code === "auth/invalid-email") {
         Alert.alert("That email address is invalid!");
       } else {
-        console.error("Registration error:", nativeError);
+        ErrorService.handleError(nativeError, "Registration");
       }
     }
   };

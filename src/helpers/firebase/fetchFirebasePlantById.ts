@@ -1,6 +1,7 @@
 import { getFirestore, doc, getDoc } from '@react-native-firebase/firestore';
 
 import { IPlant } from '@/constants/IPlant';
+import ErrorService from '@/services/ErrorService';
 
 async function fetchFirebasePlantById(plantId: string): Promise<IPlant | null> {
   try {
@@ -17,7 +18,7 @@ async function fetchFirebasePlantById(plantId: string): Promise<IPlant | null> {
       id: snap.id,
     } as IPlant;
   } catch (error) {
-    console.error('Error fetching plant by id:', error);
+    ErrorService.handleError(error, 'Fetch Plant By ID');
     return null;
   }
 }

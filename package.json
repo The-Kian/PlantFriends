@@ -2,7 +2,7 @@
   "name": "plantfriends",
   "main": "index.js",
   "version": "1.0.0",
-"scripts": {
+  "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -22,6 +22,7 @@
   "dependencies": {
     "@babel/runtime": "^7.28.4",
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/datetimepicker": "8.6.0",
     "@react-native-firebase/app": "^21.13.0",
     "@react-native-firebase/auth": "^21.13.0",

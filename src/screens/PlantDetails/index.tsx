@@ -20,6 +20,7 @@ import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { RootState } from "@/store/store";
 import { updatePlant } from "@/store/userPlantsSlice";
+import ErrorService from "@/services/ErrorService";
 
 type PlantDetailsScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -85,7 +86,7 @@ const PlantDetailsScreen = () => {
       await saveUserPlantToFirebase(updatedPlant, user);
       dispatch(updatePlant(updatedPlant));
     } catch (error) {
-      console.error("Error logging watering:", error);
+      ErrorService.handleError(error, "Log Watering");
       Alert.alert("Error", "Failed to log watering. Please try again.");
     }
   };

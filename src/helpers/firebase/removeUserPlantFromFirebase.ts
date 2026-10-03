@@ -7,14 +7,14 @@ import {
 } from "@react-native-firebase/firestore";
 
 import { Alert } from "react-native";
+import ErrorService from "@/services/ErrorService";
 
 const removeUserPlantFromFirebase = async (
   userPlantId: string,
   user: FirebaseAuthTypes.User | null,
 ): Promise<boolean> => {
   if (!user) {
-    console.error("removeUserPlantFromFirebase: User not authenticated");
-    Alert.alert("Error", "User is not authenticated.");
+    ErrorService.handleError("User is not authenticated", "Remove Plant");
     return false;
   }
 
@@ -27,7 +27,7 @@ const removeUserPlantFromFirebase = async (
     await deleteDoc(userPlantRef);
     return true;
   } catch (error) {
-    console.error("removeUserPlantFromFirebase: Error deleting user plant:", error);
+    ErrorService.handleError(error, "Remove Plant");
     return false;
   }
 };

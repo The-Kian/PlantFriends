@@ -3,6 +3,7 @@
 import { PERENUAL_API_KEY } from "@env";
 
 import { IPlant } from "@/constants/IPlant";
+import ErrorService from "@/services/ErrorService";
 
 import { mapPerenualPlantToIPlant, PerenualPlant } from "./mapPerenualPlantToIPlant";
 
@@ -33,7 +34,7 @@ export const fetchPerenualPlants = async (
       throw new Error("No plants found in API response");
     }
   } catch (error) {
-    console.error("Error fetching Perenual plants:", error);
+    ErrorService.handleError(error, "Fetch Plants API");
     throw error;
   }
 };
