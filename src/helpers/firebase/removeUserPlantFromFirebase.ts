@@ -6,7 +6,6 @@ import {
   getFirestore,
 } from "@react-native-firebase/firestore";
 
-import { Alert } from "react-native";
 import ErrorService from "@/services/ErrorService";
 
 const removeUserPlantFromFirebase = async (

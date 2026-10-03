@@ -5,8 +5,8 @@ import { useContext } from "react";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import LoginScreen from "@/screens/auth/login";
 import SignupScreen from "@/screens/auth/signup";
-import PlantSearchScreen from "@/screens/PlantSearch";
 import PlantDetailsScreen from "@/screens/PlantDetails";
+import PlantSearchScreen from "@/screens/PlantSearch";
 import ProfileSettingsScreen from "@/screens/settings/profile";
 
 import TabNavigator from "./TabNavigator";

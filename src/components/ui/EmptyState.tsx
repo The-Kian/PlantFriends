@@ -1,8 +1,9 @@
 import React from "react";
+
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-import { Spacing } from "@/theme/Spacing";
 import { Fonts } from "@/theme/Fonts";
+import { Spacing } from "@/theme/Spacing";
 
 interface EmptyStateProps {
   icon?: string;

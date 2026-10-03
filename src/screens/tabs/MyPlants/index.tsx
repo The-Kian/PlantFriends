@@ -3,7 +3,7 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 
-import { ScrollView, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
 import PlantCard from "@/components/plant/plantCard";

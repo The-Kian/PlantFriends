@@ -1,12 +1,6 @@
 /* eslint-disable import/no-unresolved */
 
-// Import token - add TREFLE_API_KEY to your .env file
-let TREFLE_API_KEY: string;
-try {
-  ({ TREFLE_API_KEY } = require("@env"));
-} catch {
-  TREFLE_API_KEY = "";
-}
+import { TREFLE_API_KEY } from "@env";
 
 import { IPlant } from "@/constants/IPlant";
 import ErrorService from "@/services/ErrorService";

@@ -26,7 +26,7 @@ export interface TreflePlant {
   average_height_value?: number | null;
   average_height_unit?: string | null;
   maximum_height?: { cm: number } | null;
-  hardiness_zones?: any;
+  hardiness_zones?: unknown;
   temperature_minimum?: { deg_c: number } | null;
   temperature_maximum?: { deg_c: number } | null;
   growth_rate?: string | null;
@@ -38,8 +38,8 @@ export interface TreflePlant {
   restrictions?: string | null;
   invasive?: boolean | null;
   propagation?: string[] | null;
-  distributions?: any[];
-  images?: Array<{ url: string; caption?: string }>;
+  distributions?: unknown[];
+  images?: { url: string; caption?: string }[];
 }
 
 /**

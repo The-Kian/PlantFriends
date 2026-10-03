@@ -6,10 +6,10 @@ import { useSelector, useDispatch } from "react-redux";
 import { StyleSheet, ScrollView, Image, Alert } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
-import { WateringPrediction } from "@/components/watering/WateringPrediction";
-import { WateringSplash } from "@/components/watering/WateringSplash";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { WateringPrediction } from "@/components/watering/WateringPrediction";
+import { WateringSplash } from "@/components/watering/WateringSplash";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
 import {
@@ -18,9 +18,9 @@ import {
 } from "@/helpers/plants/wateringCalculations";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
+import ErrorService from "@/services/ErrorService";
 import { RootState } from "@/store/store";
 import { updatePlant } from "@/store/userPlantsSlice";
-import ErrorService from "@/services/ErrorService";
 
 type PlantDetailsScreenRouteProp = RouteProp<
   RootStackParamList,
@@ -82,12 +82,17 @@ const PlantDetailsScreen = () => {
         last_watered_date: now,
         next_watering_date: nextDate,
       };
-      setShowSplash(true);
-      await saveUserPlantToFirebase(updatedPlant, user);
+      const saved = await saveUserPlantToFirebase(updatedPlant, user);
+      if (!saved) {
+        throw new Error("Failed to save watering data");
+      }
+
       dispatch(updatePlant(updatedPlant));
+      setShowSplash(true);
     } catch (error) {
-      ErrorService.handleError(error, "Log Watering");
-      Alert.alert("Error", "Failed to log watering. Please try again.");
+      ErrorService.handleError(error, "Log Watering", {
+        userMessage: "Failed to log watering. Please try again.",
+      });
     }
   };
 

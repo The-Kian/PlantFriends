@@ -1,5 +1,4 @@
 import { NavigationContainer } from "@react-navigation/native";
-import "@testing-library/jest-native/extend-expect";
 import React from "react";
 
 import {

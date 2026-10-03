@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       const user = userCredential.user;
       const db = getFirestore();
 
-      await setDoc(doc(collection(db, "users"), user?.uid), {
+      await setDoc(doc(collection(db, "Users"), user?.uid), {
         displayName: user?.displayName ?? email,
         email: email,
       });
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       try {
         const db = getFirestore();
         await setDoc(
-          doc(collection(db, "users"), user.uid),
+          doc(collection(db, "Users"), user.uid),
           {
             displayName: displayName ?? user?.email,
             email: user.email,
@@ -116,8 +116,6 @@ export const AuthProvider = ({ children }: ProviderProps) => {
 
   const logout = async () => {
     try {
-      // await removeTokenFromDatabase(token, user.uid);
-      // await firebase.messaging().deleteToken();
       await auth().signOut();
     } catch (error) {
       const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;

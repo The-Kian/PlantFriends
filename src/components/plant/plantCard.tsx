@@ -6,9 +6,10 @@ import { Image, Pressable, StyleSheet, TouchableOpacity, View } from 'react-nati
 import { ThemedText } from '@/components/ui/Text/ThemedText';
 import { ThemedView } from '@/components/ui/Views/ThemedView';
 import { IUserPlant, IUserPlantMerged } from '@/constants/IPlant';
+import { getWateringProgress } from '@/helpers/plants/wateringProgress';
 import useMergedPlant from '@/hooks/plants/useMergedPlant';
 import { useTheme } from '@/hooks/utils/useTheme';
-import { getWateringProgress } from '@/helpers/plants/wateringProgress';
+
 import { getUrgencyColor } from '../watering/WateringPrediction';
 
 interface PlantCardProps {

@@ -10,7 +10,7 @@ function validateCredentials(
   email = email.trim();
   password = password.trim();
 
-  const emailIsValid = email.includes("@");
+  const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const passwordIsValid = password.length > 6;
   const emailsAreEqual = email === confirmEmail;
   const passwordsAreEqual = password === confirmPassword;
