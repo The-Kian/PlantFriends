@@ -13,12 +13,12 @@
       "android": {
         "buildType": "apk"
       },
-      "pnpm": "11.9.0",
+      "pnpm": "9.15.4",
       "corepack": true
     },
     "production": {
       "autoIncrement": true,
-      "pnpm": "11.9.0",
+      "pnpm": "9.15.4",
       "corepack": true
     }
   },
