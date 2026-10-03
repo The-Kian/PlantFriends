@@ -1,11 +1,16 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { Provider } from "react-redux";
 
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import RootLayout from "@/components/navigation/RootLayout";
 import { AuthProvider } from "@/context/auth/AuthProvider";
+import { initSentry } from "@/services/SentryService";
 import { setupStore } from "@/store/store";
 
 import "./gesture-handler";
+
+// Initialize crash reporting as early as possible.
+initSentry();
 
 if (__DEV__) {
   import("./src/dev/seedFakePlants")
@@ -23,12 +28,14 @@ const store = setupStore();
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <NavigationContainer>
-          <RootLayout />
-        </NavigationContainer>
-      </AuthProvider>
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <AuthProvider>
+          <NavigationContainer>
+            <RootLayout />
+          </NavigationContainer>
+        </AuthProvider>
+      </Provider>
+    </ErrorBoundary>
   );
 }

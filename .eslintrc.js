@@ -13,6 +13,7 @@ module.exports = {
     "ios/**",
     "metro.config.js",
     "**/__mocks__/**",
+    "functions/**",
   ],
   settings: {
     "import/resolver": {

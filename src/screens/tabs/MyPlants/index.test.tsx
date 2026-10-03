@@ -55,12 +55,12 @@ describe("MyPlantsScreen", () => {
     jest.clearAllMocks();
   });
 
-  it("Should render correctly", () => {
+  it("Should render correctly", async () => {
     renderWithNavigation();
-    const title = screen.getByText("Manage Your Plants");
-    const navigationButton = screen.getByText("Add plant");
-    const livingRoomCollapsible = screen.getByText("Living Room");
-    const kitchenCollapsible = screen.getByText("Kitchen");
+    const title = await screen.findByText("Manage Your Plants");
+    const navigationButton = await screen.findByText("Add plant");
+    const livingRoomCollapsible = await screen.findByText("Living Room");
+    const kitchenCollapsible = await screen.findByText("Kitchen");
 
     expect(title).toBeVisible();
     expect(navigationButton).toBeVisible();
@@ -70,7 +70,7 @@ describe("MyPlantsScreen", () => {
 
   it("Should navigate to PlantSearch", async () => {
     renderWithNavigation();
-    const navigationButton = screen.getByText("Add plant");
+    const navigationButton = await screen.findByText("Add plant");
 
     fireEvent.press(navigationButton);
 
@@ -81,7 +81,8 @@ describe("MyPlantsScreen", () => {
   it("should delete a plant", async () => {
     renderWithNavigation();
 
-    fireEvent.press(screen.getByText("Living Room"));
+    const livingRoomCollapsible = await screen.findByText("Living Room");
+    fireEvent.press(livingRoomCollapsible);
     expect(await screen.findByText("Living Room Plant")).toBeVisible();
 
     // Simulate deleting the plant
