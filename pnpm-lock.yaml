@@ -30,8 +30,8 @@ importers:
         specifier: ^21.13.0
         version: 21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@3.1.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))
       '@react-native-firebase/functions':
-        specifier: ^21.13.0
-        version: 21.13.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@3.1.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))
+        specifier: ^21.14.0
+        version: 21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@3.1.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))
       '@react-native-picker/picker':
         specifier: 2.11.4
         version: 2.11.4(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
@@ -114,6 +114,9 @@ importers:
       babel-plugin-module-resolver:
         specifier: ^5.0.2
         version: 5.0.3
+      babel-preset-expo:
+        specifier: ~55.0.23
+        version: 55.0.23(@babel/core@7.29.7)(@babel/runtime@7.29.7)(expo@55.0.27)(react-refresh@0.14.2)
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
@@ -1396,10 +1399,10 @@ packages:
     peerDependencies:
       '@react-native-firebase/app': 21.14.0
 
-  '@react-native-firebase/functions@21.13.0':
-    resolution: {integrity: sha512-gezHxtpb7nfaMYqChWdtdzFlTqhgGjygVzZdshVyiPlF3KsMhWbVhzSMIzAIzA+0/ZxFOkpwhMt6v1WJtsEPJA==}
+  '@react-native-firebase/functions@21.14.0':
+    resolution: {integrity: sha512-7GGyYfMmsDL+GCdiMPG6duZnV5+Prm372C+N5/RRL6qCn1ZBM2agw9DBIw2L/0Vs1nxFSDGqSCBWqCaBPUlGiQ==}
     peerDependencies:
-      '@react-native-firebase/app': 21.13.0
+      '@react-native-firebase/app': 21.14.0
 
   '@react-native-picker/picker@2.11.4':
     resolution: {integrity: sha512-Kf8h1AMnBo54b1fdiVylP2P/iFcZqzpMYcglC28EEFB1DEnOjsNr6Ucqc+3R9e91vHxEDnhZFbYDmAe79P2gjA==}
@@ -7193,7 +7196,7 @@ snapshots:
     dependencies:
       '@react-native-firebase/app': 21.14.0(@react-native-async-storage/async-storage@3.1.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
 
-  '@react-native-firebase/functions@21.13.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@3.1.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))':
+  '@react-native-firebase/functions@21.14.0(@react-native-firebase/app@21.14.0(@react-native-async-storage/async-storage@3.1.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))':
     dependencies:
       '@react-native-firebase/app': 21.14.0(@react-native-async-storage/async-storage@3.1.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
 
