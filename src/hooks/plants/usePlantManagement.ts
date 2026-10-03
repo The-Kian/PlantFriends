@@ -9,6 +9,7 @@ import getUserPlantData from "@/helpers/firebase/getUserPlantData";
 import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
+import ErrorService from "@/services/ErrorService";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
@@ -65,7 +66,7 @@ export const usePlantManagement = () => {
       }
       return false;
     } catch (error) {
-      console.error("Error saving plant:", error);
+      ErrorService.handleError(error, "Save Plant");
       return false;
     }
   };
@@ -81,7 +82,7 @@ export const usePlantManagement = () => {
       if (!removed) {
         // Rollback the optimistic update if Firebase delete failed
         dispatch(addPlant(plant));
-        console.error("Failed to remove plant from firebase");
+        ErrorService.handleError("Failed to remove plant from firebase", "Delete Plant");
         return false;
       }
 
@@ -89,7 +90,7 @@ export const usePlantManagement = () => {
     } catch (error) {
       // Rollback the optimistic update on error
       dispatch(addPlant(plant));
-      console.error("Error deleting plant:", error);
+      ErrorService.handleError(error, "Delete Plant");
       return false;
     }
   };
@@ -100,7 +101,7 @@ export const usePlantManagement = () => {
         dispatch(updatePlant(updatedPlant));
       }
     } catch (error) {
-      console.error("Error updating plant:", error);
+      ErrorService.handleError(error, "Update Plant");
     }
   };
 

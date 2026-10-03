@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { IPlant } from "@/constants/IPlant";
 import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
+import ErrorService from "@/services/ErrorService";
 
 export const useFirebasePlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
@@ -16,7 +17,7 @@ export const useFirebasePlantSearch = (searchQuery: string) => {
       setPlants(fetchedPlants);
     } catch (err) {
       setError("Failed to fetch plants");
-      console.error(err);
+      ErrorService.handleError(err, "Search Plants");
     } finally {
       setLoading(false);
     }

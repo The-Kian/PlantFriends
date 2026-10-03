@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 
 import { IPlant } from "@/constants/IPlant";
 import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
-import { fetchPerenualPlants } from "@/helpers/plants/plantAPI/fetchPlantAPI";
+import { fetchTreflePlants } from "@/helpers/plants/plantAPI/fetchTreflePlants";
+import ErrorService from "@/services/ErrorService";
 
 export const useCombinedPlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
@@ -33,15 +34,15 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
       try {
         const firebasePlants = (await fetchFirebasePlants(debouncedQuery)) || [];
 
-        // Fetch external API but don't let it fail the whole search —
+        // Fetch from Trefle API but don't let it fail the whole search —
         // if the external API errors (404, network, etc.) we still want
-        // to show Firebase results.
+        // to show Firebase results. Cached results will be used if available.
         let apiPlants: IPlant[] = [];
         try {
-          apiPlants = (await fetchPerenualPlants(debouncedQuery)) || [];
+          apiPlants = (await fetchTreflePlants(debouncedQuery)) || [];
         } catch (apiErr) {
           console.warn(
-            "Perenual API fetch failed, continuing with Firebase results:",
+            "Trefle API fetch failed, continuing with Firebase results:",
             apiErr,
           );
           setError(apiErr as Error);
@@ -58,7 +59,7 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
         setPlants(uniquePlants);
       } catch (err) {
         setError(err as Error);
-        console.error(err);
+        ErrorService.handleError(err, "Search Plants");
       } finally {
         setLoading(false);
       }
