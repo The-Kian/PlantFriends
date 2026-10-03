@@ -1,101 +1,80 @@
-import { Alert } from "react-native";
-
-import { IUserPlant, IPlant } from "@/constants/IPlant";
+import ErrorService from "@/services/ErrorService";
 import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
 import savePlantToFirebase from "./savePlantToFirebase";
 import saveBasePlantToFirebase from "./saveToFirebase/saveBasePlantToFirebase";
 import saveUserPlantToFirebase from "./saveToFirebase/saveUserPlantToFirebase";
 
-// Mock dependencies
-jest.mock("react-native", () => ({
-  Alert: {
-    alert: jest.fn(),
-  },
-}));
-
+jest.mock("@/services/ErrorService");
 jest.mock("./saveToFirebase/saveBasePlantToFirebase", () => jest.fn());
 jest.mock("./saveToFirebase/saveUserPlantToFirebase", () => jest.fn());
 
 describe("savePlantToFirebase", () => {
-  // Spy on console.error
-  const consoleErrorSpy = jest.spyOn(console, "error");
-
   beforeEach(() => {
-    // Clear all mocks before each test
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    jest.mocked(saveBasePlantToFirebase).mockResolvedValue(true);
+    jest.mocked(saveUserPlantToFirebase).mockResolvedValue(true);
   });
 
-  it("should show alert and return early if user is null", async () => {
-    const mockUserPlant = {} as IUserPlant;
-    const mockPlantData = {} as IPlant;
-    const mockUser = null;
+  it("returns null and reports unauthenticated saves without writing", async () => {
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, null);
 
-    console.error = jest.fn();
-
-    await savePlantToFirebase(mockUserPlant, mockPlantData, mockUser);
-
-    expect(Alert.alert).toHaveBeenCalledWith(
-      "Error",
-      "User is not authenticated.",
+    expect(result).toBeNull();
+    expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
+    expect(ErrorService.handleError).toHaveBeenCalledWith(
+      "User is not authenticated", "Save Plant",
     );
     expect(saveBasePlantToFirebase).not.toHaveBeenCalled();
     expect(saveUserPlantToFirebase).not.toHaveBeenCalled();
   });
 
-  it("should return early if base plant saving fails", async () => {
-    const mockUserPlant = {} as IUserPlant;
-    const mockPlantData = {} as IPlant;
+  it("returns null and skips the user write when the base write returns false", async () => {
+    jest.mocked(saveBasePlantToFirebase).mockResolvedValue(false);
 
-    console.error = jest.fn();
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
 
-    (saveBasePlantToFirebase as jest.Mock).mockResolvedValueOnce(false);
-
-    await savePlantToFirebase(mockUserPlant, mockPlantData, mockUser);
-
-    expect(saveBasePlantToFirebase).toHaveBeenCalledWith(
-      mockPlantData,
-      mockUser,
-    );
+    expect(result).toBeNull();
+    expect(saveBasePlantToFirebase).toHaveBeenCalledWith(mockPlant, mockUser);
     expect(saveUserPlantToFirebase).not.toHaveBeenCalled();
-  });
-
-  it("should log error if user plant saving fails", async () => {
-    const mockUserPlant = {} as IUserPlant;
-    const mockPlantData = {} as IPlant;
-
-    (saveBasePlantToFirebase as jest.Mock).mockResolvedValueOnce(true);
-    (saveUserPlantToFirebase as jest.Mock).mockResolvedValueOnce(false);
-
-    await savePlantToFirebase(mockUserPlant, mockPlantData, mockUser);
-
-    expect(saveBasePlantToFirebase).toHaveBeenCalledWith(
-      mockPlantData,
-      mockUser,
-    );
-    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(
-      mockUserPlant,
-      mockUser,
+    expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
+    expect(ErrorService.handleError).toHaveBeenCalledWith(
+      "Failed to save base plant", "Save Plant",
     );
   });
 
-  it("should save both plants successfully", async () => {
-    const mockUserPlant = {} as IUserPlant;
-    const mockPlantData = {} as IPlant;
+  it("returns null rather than the plant when the user write returns false", async () => {
+    jest.mocked(saveUserPlantToFirebase).mockResolvedValue(false);
 
-    (saveBasePlantToFirebase as jest.Mock).mockResolvedValueOnce(true);
-    (saveUserPlantToFirebase as jest.Mock).mockResolvedValueOnce(true);
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
 
-    await savePlantToFirebase(mockUserPlant, mockPlantData, mockUser);
-
-    expect(saveBasePlantToFirebase).toHaveBeenCalledWith(
-      mockPlantData,
-      mockUser,
+    expect(result).toBeNull();
+    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockUser);
+    expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
+    expect(ErrorService.handleError).toHaveBeenCalledWith(
+      "Failed to save user plant", "Save Plant",
     );
-    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(
-      mockUserPlant,
-      mockUser,
-    );
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  it.each(["base", "user"])("returns null and reports a rejected %s write once", async (stage) => {
+    const error = new Error("Write rejected");
+    const save = stage === "base" ? saveBasePlantToFirebase : saveUserPlantToFirebase;
+    jest.mocked(save).mockRejectedValue(error);
+
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
+
+    expect(result).toBeNull();
+    expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
+    expect(ErrorService.handleError).toHaveBeenCalledWith(error, "Save Plant");
+    expect(saveUserPlantToFirebase).toHaveBeenCalledTimes(stage === "base" ? 0 : 1);
+  });
+
+  it("returns the plant only after both writes succeed", async () => {
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
+
+    expect(result).toBe(mockUserPlant);
+    expect(saveBasePlantToFirebase).toHaveBeenCalledWith(mockPlant, mockUser);
+    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockUser);
+    expect(ErrorService.handleError).not.toHaveBeenCalled();
   });
 });

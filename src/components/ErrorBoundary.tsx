@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, useColorScheme } from "react-native";
+
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 
 import { Colors } from "@/theme/Colors";
-import { Spacing } from "@/theme/Spacing";
 import { Fonts } from "@/theme/Fonts";
+import { Spacing } from "@/theme/Spacing";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -56,8 +57,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   render(): React.ReactNode {
     if (this.state.hasError) {
-      const colorScheme = (this as any)._colorScheme || "light";
-      const colors = Colors[colorScheme as keyof typeof Colors];
+      const colors = Colors.light;
 
       return (
         <View style={[styles.container, { backgroundColor: colors.background }]}>

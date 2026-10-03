@@ -13,8 +13,6 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import mockUser from "@/test-utils/MockFirebaseUser";
-
 import { AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
 
@@ -83,9 +81,7 @@ describe("AuthProvider", () => {
     );
     // Wait for the user state to be updated before logout
     await waitFor(() => {
-      expect(screen.getByTestId("user")).toHaveTextContent(
-        mockUser.email as string,
-      );
+      expect(screen.getByTestId("user")).toHaveTextContent("user.email");
     });
     fireEvent.press(screen.getByTestId("logout"));
     await waitFor(() => {
@@ -245,7 +241,7 @@ describe("AuthProvider error handling", () => {
 
     await waitFor(() => {
       expect(console.error).toHaveBeenCalledWith(
-        "Login error:",
+        "[Login] auth/unknown-error:",
         expect.objectContaining({ code: "auth/unknown-error" }),
       );
     });

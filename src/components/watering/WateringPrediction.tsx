@@ -6,8 +6,8 @@ import { View, StyleSheet } from 'react-native';
 import ThemedButton from '@/components/ui/Buttons/ThemedButton';
 import { ThemedText } from '@/components/ui/Text/ThemedText';
 import { ThemedView } from '@/components/ui/Views/ThemedView';
-import { getWateringProgress } from '@/helpers/plants/wateringProgress';
 import { type WateringUrgency } from '@/helpers/plants/wateringCalculations';
+import { getWateringProgress } from '@/helpers/plants/wateringProgress';
 import { useTheme } from '@/hooks/utils/useTheme';
 import { lightTheme } from '@/theme';
 

@@ -2,7 +2,7 @@
 
 React Native plant care management app with Firebase backend.
 
-> **Status:** 89.59% test coverage | Ready for features | [Full Review →](./CODEBASE_REVIEW_DEC2025.md)
+> **Status:** Type check, lint, and 202 tests passing | Ready for features
 
 ## Features
 
@@ -46,28 +46,25 @@ pnpm type-check
 
 ## Tech Stack
 
-React Native 0.81 • Expo 54 • TypeScript 5.9 • Redux Toolkit • React Navigation • Firebase • Jest (89.59% coverage)
+React Native 0.83 • Expo 55 • TypeScript 5.9 • Redux Toolkit • React Navigation • Firebase • Jest
 
 ## Commands
 
 ```bash
-yarn start / android / ios    # Development
-yarn test / test:coverage     # Testing
-yarn lint / type-check        # Quality checks
-yarn validate                 # Run all checks
+pnpm start / android / ios    # Development
+pnpm test / test:coverage     # Testing
+pnpm lint / type-check        # Quality checks
+pnpm validate                 # Run all checks
 ```
 
 ## Documentation
 
-- [**CODEBASE_REVIEW_DEC2025.md**](./CODEBASE_REVIEW_DEC2025.md) - Latest assessment & recommendations
-- [**ACTION_PLAN.md**](./ACTION_PLAN.md) - Weekend project ideas
 - [**ARCHITECTURE.md**](./ARCHITECTURE.md) - Patterns & structure
-- [**TECH_DEBT.md**](./TECH_DEBT.md) - Known issues (prioritized)
 
 ## Next Steps
 
-**Foundation fixes** (2-3 hours): Error handling • Error boundary • Loading states  
-**Then**: Build features you want! See [ACTION_PLAN.md](./ACTION_PLAN.md)
+**Foundation fixes**: Error handling • Error boundary • Loading states
+**Then**: Build features you want! See [ARCHITECTURE.md](./ARCHITECTURE.md)
 
 ---
 

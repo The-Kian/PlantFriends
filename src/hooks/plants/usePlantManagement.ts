@@ -8,8 +8,8 @@ import { AuthContext } from "@/context/auth/AuthProvider";
 import getUserPlantData from "@/helpers/firebase/getUserPlantData";
 import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
-import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 import ErrorService from "@/services/ErrorService";
+import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
@@ -22,7 +22,7 @@ export const usePlantManagement = () => {
   const { customizations, handlePlantAttributeChange } =
     usePlantCustomizations();
 
-  const { persistSavePlant, persistDeletePlant } =
+  const { persistSavePlant, persistDeletePlant, persistUpdatePlant } =
     usePlantPersistence(user);
 
   const handleSelectPlant = async (plant: IPlant) => {
@@ -97,11 +97,18 @@ export const usePlantManagement = () => {
 
   const handleUpdatePlant = async (updatedPlant: IUserPlant) => {
     try {
-      if (user) {
-        dispatch(updatePlant(updatedPlant));
+      const updated = await persistUpdatePlant(updatedPlant);
+      if (!updated) {
+        ErrorService.handleError("Failed to update plant in firebase", "Update Plant");
+        return false;
       }
+
+      dispatch(updatePlant(updatedPlant));
+      setUserPlant(updatedPlant);
+      return true;
     } catch (error) {
       ErrorService.handleError(error, "Update Plant");
+      return false;
     }
   };
 

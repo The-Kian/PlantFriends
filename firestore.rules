@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles: each user can read and write only their own profile.
+    match /Users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // User plants: nested under each user; only the owner may read or write.
+    match /Users/{uid}/UserPlants/{userPlantId} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Base plants: shared catalog. Any authenticated user can read and
+    // contribute a new plant, but existing shared plants cannot be edited
+    // or deleted by clients.
+    match /Plants/{plantId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,4 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect } from "react";
+
 import { StyleSheet, View, Text } from "react-native";
 import Animated, {
   useSharedValue,
@@ -6,7 +8,6 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { runOnJS } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
 
 interface WateringSplashProps {
   visible: boolean;
@@ -33,7 +34,7 @@ export const WateringSplash = ({
     }
 
     overlayOpacity.value = 0;
-  }, [visible]);
+  }, [visible, onComplete, overlayOpacity]);
 
   const overlayStyle = useAnimatedStyle(() => ({
     opacity: overlayOpacity.value,
