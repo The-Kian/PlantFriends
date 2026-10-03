@@ -35,13 +35,6 @@ jest.mock("react-native-uuid", () => ({
   v4: jest.fn(() => "test-uuid"),
 }));
 
-jest.mock("@sentry/react-native", () => ({
-  init: jest.fn(),
-  withScope: jest.fn((cb) => cb({ setTag: jest.fn() })),
-  captureException: jest.fn(),
-  captureMessage: jest.fn(),
-}));
-
 jest.mock("expo-notifications", () => ({
   setNotificationHandler: jest.fn(),
   getPermissionsAsync: jest.fn(async () => ({ status: "granted" })),

@@ -1,6 +1,5 @@
 packages:
   - '.'
-  - 'functions'
 
 allowBuilds:
   '@sentry/cli': true

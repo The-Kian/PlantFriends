@@ -368,8 +368,7 @@ yarn lint          # Lint code
 2. **NativeWind/Tailwind**: Utility-first styling
 3. **React Query**: Better async state management
 4. **Expo Image**: Better image performance
-5. **Sentry**: Error tracking
-6. **Reanimated**: Better animations
+5. **Reanimated**: Better animations
 
 ### Feature Ideas
 - Push notifications for watering reminders

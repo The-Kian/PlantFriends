@@ -2,7 +2,6 @@ import React from "react";
 
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 
-import { captureException } from "@/services/SentryService";
 import { Colors } from "@/theme/Colors";
 import { Fonts } from "@/theme/Fonts";
 import { Spacing } from "@/theme/Spacing";
@@ -38,8 +37,6 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     console.error("ErrorBoundary caught error:", error, errorInfo);
-
-    captureException(error, "ErrorBoundary");
 
     this.setState({
       errorInfo,

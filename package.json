@@ -34,8 +34,6 @@
     "@react-navigation/native-stack": "^7.8.5",
     "@react-navigation/stack": "^7.6.11",
     "@reduxjs/toolkit": "^2.6.1",
-    "@sentry/cli": "^2.58.4",
-    "@sentry/react-native": "~7.11.0",
     "expo": "^55.0.12",
     "expo-font": "~55.0.6",
     "expo-notifications": "~55.0.27",
