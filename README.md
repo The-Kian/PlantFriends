@@ -46,7 +46,7 @@ pnpm type-check
 
 ## Tech Stack
 
-React Native 0.83 • Expo 55 • TypeScript 5.9 • Redux Toolkit • React Navigation • Firebase (Auth, Firestore, Functions) • Sentry • expo-notifications • Jest
+React Native 0.83 • Expo 55 • TypeScript 5.9 • Redux Toolkit • React Navigation • Firebase (Auth, Firestore, Functions) • expo-notifications • Jest
 
 ## Commands
 
@@ -61,7 +61,6 @@ pnpm validate                 # Run all checks
 
 - **Firestore security rules** — `firestore.rules` (deploy with `firebase deploy --only firestore:rules`)
 - **Cloud Function proxy** — `functions/` hosts `searchPlants`, which proxies the Trefle plant API so the Trefle token never ships in the client bundle. Set the secret with `firebase functions:secrets:set TREFLE_API_KEY` and deploy with `firebase deploy --only functions`.
-- **Sentry** — crash/error reporting via `EXPO_PUBLIC_SENTRY_DSN`. See `.env.example`.
 - **Notifications** — local watering reminders via `expo-notifications` (see `src/services/NotificationService.ts`). Push notifications require a development/production build (not Expo Go).
 
 ## Documentation

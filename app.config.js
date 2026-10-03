@@ -38,14 +38,6 @@ export default {
       "@react-native-community/datetimepicker",
       "expo-font",
       "expo-notifications",
-      [
-        "@sentry/react-native/expo",
-        {
-          url: "https://sentry.io/",
-          project: process.env.SENTRY_PROJECT,
-          organization: process.env.SENTRY_ORG,
-        },
-      ],
     ]
   }
 };

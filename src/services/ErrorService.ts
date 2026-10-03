@@ -1,7 +1,5 @@
 import { Alert } from "react-native";
 
-import { captureException } from "@/services/SentryService";
-
 export type ErrorSeverity = "error" | "warning" | "info";
 
 interface ErrorConfig {
@@ -82,9 +80,6 @@ class ErrorService {
 
     // Log technical details for debugging
     console.error(`[${context || "Error"}] ${errorCode}:`, error);
-
-    // Report to Sentry for production error tracking.
-    captureException(error, context);
 
     // Show user-friendly alert
     this.showAlert(finalConfig, context);
