@@ -1,3 +1,7 @@
+packages:
+  - '.'
+  - 'functions'
+
 allowBuilds:
   '@sentry/cli': true
   protobufjs: true
