@@ -35,6 +35,25 @@ jest.mock("react-native-uuid", () => ({
   v4: jest.fn(() => "test-uuid"),
 }));
 
+jest.mock("@sentry/react-native", () => ({
+  init: jest.fn(),
+  withScope: jest.fn((cb) => cb({ setTag: jest.fn() })),
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+}));
+
+jest.mock("expo-notifications", () => ({
+  setNotificationHandler: jest.fn(),
+  getPermissionsAsync: jest.fn(async () => ({ status: "granted" })),
+  requestPermissionsAsync: jest.fn(async () => ({ status: "granted" })),
+  scheduleNotificationAsync: jest.fn(async () => "notification-id"),
+  cancelScheduledNotificationAsync: jest.fn(async () => {}),
+  SchedulableTriggerInputTypes: {
+    DATE: "date",
+    TIME_INTERVAL: "timeInterval",
+  },
+}));
+
 // const CONSOLE_FAIL_TYPES = ['error', 'warn']
 
 // // Throw errors when a `console.error` or `console.warn` happens

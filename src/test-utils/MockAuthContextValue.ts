@@ -9,5 +9,6 @@ const mockAuthContextValue = {
   register: jest.fn(),
   resetPassword: jest.fn(),
   update: jest.fn(),
+  deleteAccount: jest.fn(),
 };
 export default mockAuthContextValue;

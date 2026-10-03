@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 import { StyleSheet } from "react-native";
@@ -10,6 +10,7 @@ import PlantCard from "@/components/plant/plantCard";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { Collapsible } from "@/components/ui/Views/Collapsible";
+import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
 import ParallaxScrollView from "@/components/ui/Views/ParallaxScrollView";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
@@ -24,8 +25,30 @@ export default function MyPlantsScreen() {
   const { getPlants } = useUserPlants();
   const { handleDeletePlant } = usePlantManagement();
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    getPlants();
+    let active = true;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        await getPlants();
+      } catch {
+        if (active) {
+          setError("Failed to load your plants. Please try again.");
+        }
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+    load();
+    return () => {
+      active = false;
+    };
   }, [getPlants]);
 
   const navigateToPlantSearch = () => {
@@ -56,6 +79,10 @@ export default function MyPlantsScreen() {
     );
   };
 
+  if (loading) {
+    return <LoadingOverlay message="Loading your plants..." />;
+  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{
@@ -70,6 +97,17 @@ export default function MyPlantsScreen() {
         <ThemedText type="title">Manage Your Plants</ThemedText>
       </ThemedView>
       <ThemedButton onPress={navigateToPlantSearch} title="Add plant" />
+
+      {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
+
+      {!error && userPlants.length === 0 && (
+        <ThemedView style={styles.emptyContainer}>
+          <Ionicons name="leaf-outline" size={64} color={Colors.light.icon} />
+          <ThemedText style={styles.emptyText}>
+            No plants yet. Tap "Add plant" to grow your collection!
+          </ThemedText>
+        </ThemedView>
+      )}
 
       <Collapsible title="Living Room">
         {renderPlantsByLocation("Living Room")}
@@ -96,5 +134,19 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     gap: 8,
+  },
+  errorText: {
+    color: Colors.light.error,
+    textAlign: "center",
+    marginVertical: 12,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: 32,
+    gap: 12,
+  },
+  emptyText: {
+    textAlign: "center",
+    opacity: 0.7,
   },
 });

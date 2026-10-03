@@ -19,6 +19,10 @@ import {
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
 import ErrorService from "@/services/ErrorService";
+import {
+  requestNotificationPermissions,
+  scheduleWateringReminder,
+} from "@/services/NotificationService";
 import { RootState } from "@/store/store";
 import { updatePlant } from "@/store/userPlantsSlice";
 
@@ -89,6 +93,12 @@ const PlantDetailsScreen = () => {
 
       dispatch(updatePlant(updatedPlant));
       setShowSplash(true);
+
+      // Schedule the next watering reminder (asks for permission if needed).
+      const granted = await requestNotificationPermissions();
+      if (granted) {
+        await scheduleWateringReminder(updatedPlant);
+      }
     } catch (error) {
       ErrorService.handleError(error, "Log Watering", {
         userMessage: "Failed to log watering. Please try again.",

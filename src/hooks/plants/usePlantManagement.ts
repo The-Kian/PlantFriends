@@ -9,6 +9,10 @@ import getUserPlantData from "@/helpers/firebase/getUserPlantData";
 import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import ErrorService from "@/services/ErrorService";
+import {
+  cancelWateringReminder,
+  scheduleWateringReminder,
+} from "@/services/NotificationService";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
@@ -62,6 +66,8 @@ export const usePlantManagement = () => {
         dispatch(addPlant(savedPlant));
         setUserPlant(savedPlant);
         setSelectedPlant(null);
+        // Schedule a watering reminder if one was set during customization.
+        await scheduleWateringReminder(savedPlant);
         return true;
       }
       return false;
@@ -85,6 +91,9 @@ export const usePlantManagement = () => {
         ErrorService.handleError("Failed to remove plant from firebase", "Delete Plant");
         return false;
       }
+
+      // Cancel any scheduled watering reminder for this plant.
+      await cancelWateringReminder(plant.id);
 
       return true;
     } catch (error) {

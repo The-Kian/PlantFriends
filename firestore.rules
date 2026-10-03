@@ -14,9 +14,16 @@ service cloud.firestore {
     // Base plants: shared catalog. Any authenticated user can read and
     // contribute a new plant, but existing shared plants cannot be edited
     // or deleted by clients.
+    //
+    // `create` requires a non-empty name (or scientific_name) so the catalog
+    // can't be filled with empty/garbage documents. All other writes are
+    // denied to clients (managed by admins/server only).
     match /Plants/{plantId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAny(["name", "scientific_name"])
+        && (request.resource.data.name is string && request.resource.data.name.size() > 0
+          || request.resource.data.scientific_name is list && request.resource.data.scientific_name.size() > 0);
       allow update, delete: if false;
     }
   }

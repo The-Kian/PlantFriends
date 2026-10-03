@@ -1,6 +1,7 @@
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import {
   collection,
+  deleteDoc,
   doc,
   getFirestore,
   setDoc,
@@ -123,6 +124,35 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     }
   };
 
+  const resetPassword = async ({ email }: { email: string }) => {
+    try {
+      await auth().sendPasswordResetEmail(email);
+      Alert.alert(
+        "Password reset email sent",
+        "Check your inbox for instructions to reset your password.",
+      );
+    } catch (error) {
+      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+      ErrorService.handleError(nativeError, "Reset Password");
+    }
+  };
+
+  const deleteAccount = async () => {
+    const user = auth().currentUser;
+    if (!user) return;
+
+    try {
+      // Delete the user's Firestore profile document first.
+      const db = getFirestore();
+      await deleteDoc(doc(collection(db, "Users"), user.uid));
+      await user.delete();
+      Alert.alert("Account deleted", "Your account has been removed.");
+    } catch (error) {
+      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
+      ErrorService.handleError(nativeError, "Delete Account");
+    }
+  };
+
   const value: AuthContextType = {
     initializing,
     user,
@@ -131,6 +161,8 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     register,
     logout,
     update,
+    resetPassword,
+    deleteAccount,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

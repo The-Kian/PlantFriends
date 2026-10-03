@@ -30,6 +30,8 @@ export interface AuthContextType {
   register: (props: { email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   update: (props: { displayName: string }) => Promise<void>;
+  resetPassword: (props: { email: string }) => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const defaultAuthContext: AuthContextType = {
@@ -40,4 +42,6 @@ export const defaultAuthContext: AuthContextType = {
   register: async () => {},
   logout: async () => {},
   update: async () => {},
+  resetPassword: async () => {},
+  deleteAccount: async () => {},
 };
