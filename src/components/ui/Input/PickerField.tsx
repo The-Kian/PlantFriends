@@ -24,13 +24,14 @@ const PickerField = ({
   const styles = useInputStyles();
 
   return (
-    <View>
+    <View style={styles.fieldContainer}>
       <ThemedText style={styles.inputLabel}>{label}</ThemedText>
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={value}
           onValueChange={onValueChange}
           style={styles.picker}
+          dropdownIconColor={styles.placeholder.color}
           accessibilityLabel={`${label} input field`}
         >
           <Picker.Item label={placeholder} value="" />

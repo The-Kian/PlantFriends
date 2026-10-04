@@ -5,22 +5,22 @@ import { useSelector } from "react-redux";
 
 import { StyleSheet, View } from "react-native";
 
+import ProfileButton from "@/components/navigation/ProfileButton";
 import { RootStackParamList } from "@/components/navigation/types";
 import PlantCard from "@/components/plant/plantCard";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
-import ParallaxScrollView from "@/components/ui/Views/ParallaxScrollView";
-import { ThemedView } from "@/components/ui/Views/ThemedView";
+import ScreenScrollView from "@/components/ui/Views/ScreenScrollView";
 import { getWateringProgress } from "@/helpers/plants/wateringProgress";
 import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
 import useUserPlants from "@/hooks/plants/useUserPlants";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { RootState } from "@/store/store";
-import { Colors } from "@/theme/Colors";
+import { Spacing } from "@/theme/Spacing";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { colors } = useTheme();
+  const { colors, radius } = useTheme();
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
   const { getPlants } = useUserPlants();
@@ -40,106 +40,121 @@ export default function HomeScreen() {
     .sort((a, b) => (a.progress.daysUntil ?? 0) - (b.progress.daysUntil ?? 0));
 
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{
-        light: Colors["light"].headerBackground,
-        dark: Colors["dark"].headerBackground,
-      }}
-      headerImage={
-        <Ionicons size={200} name="leaf" style={styles.headerImage} />
-      }
+    <ScreenScrollView
+      title="Plant Friends!"
+      // Becomes the household name once sharing lands.
+      eyebrow="Today"
+      right={<ProfileButton />}
     >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Plant Friends!</ThemedText>
-      </ThemedView>
-
-      <ThemedView style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+      <View style={styles.statsRow}>
+        <View
+          style={[
+            styles.statCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              borderRadius: radius.large,
+            },
+          ]}
+        >
+          <Ionicons name="leaf-outline" size={18} color={colors.primary} />
           <ThemedText style={styles.statNumber}>{userPlants.length}</ThemedText>
-          <ThemedText style={styles.statLabel}>Plants</ThemedText>
+          <ThemedText style={[styles.statLabel, { color: colors.textMuted }]}>
+            Plants
+          </ThemedText>
         </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
-          <ThemedText style={styles.statNumber}>{needsWatering.length}</ThemedText>
-          <ThemedText style={styles.statLabel}>Need water</ThemedText>
+        <View
+          style={[
+            styles.statCard,
+            {
+              backgroundColor: colors.waterMuted,
+              borderColor: colors.waterMuted,
+              borderRadius: radius.large,
+            },
+          ]}
+        >
+          <Ionicons name="water-outline" size={18} color={colors.water} />
+          <ThemedText style={styles.statNumber}>
+            {needsWatering.length}
+          </ThemedText>
+          <ThemedText style={[styles.statLabel, { color: colors.textMuted }]}>
+            Need water
+          </ThemedText>
         </View>
-      </ThemedView>
+      </View>
+
+      <View>
+        <ThemedText type="subtitle" style={styles.sectionTitle}>
+          {needsWatering.length > 0 ? "Needs watering" : "All caught up"}
+        </ThemedText>
+
+        {needsWatering.length > 0 ? (
+          needsWatering.map(({ plant }) => (
+            <PlantCard
+              key={plant.id}
+              plant={plant}
+              onPress={() =>
+                navigation.navigate("PlantDetails", { plantId: plant.id })
+              }
+              onDelete={() => handleDeletePlant(plant)}
+            />
+          ))
+        ) : (
+          <View
+            style={[
+              styles.emptyContainer,
+              { backgroundColor: colors.primaryMuted, borderRadius: radius.large },
+            ]}
+          >
+            <Ionicons name="checkmark-circle" size={28} color={colors.primary} />
+            <ThemedText style={[styles.emptyText, { color: colors.primary }]}>
+              No plants need watering right now.
+            </ThemedText>
+          </View>
+        )}
+      </View>
 
       <ThemedButton
         onPress={() => navigation.navigate("PlantSearch")}
         title="Add a plant"
-        additionalStyle={styles.addButton}
+        icon="add"
+        variant="secondary"
       />
-
-      <ThemedText type="subtitle" style={styles.sectionTitle}>
-        {needsWatering.length > 0 ? "Needs watering" : "All caught up! 🌱"}
-      </ThemedText>
-
-      {needsWatering.length > 0 ? (
-        needsWatering.map(({ plant }) => (
-          <PlantCard
-            key={plant.id}
-            plant={plant}
-            onPress={() =>
-              navigation.navigate("PlantDetails", { plantId: plant.id })
-            }
-            onDelete={() => handleDeletePlant(plant)}
-          />
-        ))
-      ) : (
-        <ThemedView style={styles.emptyContainer}>
-          <ThemedText style={styles.emptyText}>
-            No plants need watering right now.
-          </ThemedText>
-        </ThemedView>
-      )}
-    </ParallaxScrollView>
+    </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: "green",
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-  },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
-  },
   statsRow: {
     flexDirection: "row",
-    gap: 12,
-    marginVertical: 12,
+    gap: Spacing.small + 4,
   },
   statCard: {
     flex: 1,
-    borderRadius: 15,
-    padding: 16,
-    alignItems: "center",
-    gap: 4,
+    padding: Spacing.medium,
+    gap: 2,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   statNumber: {
-    fontSize: 28,
-    fontWeight: "bold",
+    fontSize: 26,
+    lineHeight: 32,
+    fontWeight: "700",
+    marginTop: Spacing.xs,
   },
   statLabel: {
     fontSize: 14,
-    opacity: 0.8,
-  },
-  addButton: {
-    marginVertical: 8,
   },
   sectionTitle: {
-    marginTop: 12,
-    marginBottom: 8,
+    marginBottom: Spacing.small + 4,
   },
   emptyContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 24,
+    gap: Spacing.small + 4,
+    padding: Spacing.medium,
   },
   emptyText: {
-    opacity: 0.7,
-    textAlign: "center",
+    flex: 1,
+    fontWeight: "600",
   },
 });

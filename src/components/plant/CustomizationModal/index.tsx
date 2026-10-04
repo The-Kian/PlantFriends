@@ -1,6 +1,6 @@
 // PlantCustomizationModal.tsx
 
-import { Modal, ScrollView } from "react-native";
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from "react-native";
 import uuid from "react-native-uuid";
 
 import { useCustomizationStyles } from "@/components/plant/customization/plantCustomization.styles";
@@ -46,21 +46,41 @@ const PlantCustomizationModal = ({
   };
 
   return (
-    <Modal animationType="slide" transparent={true} onRequestClose={onClose}>
+    <Modal
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+      statusBarTranslucent
+    >
       <ThemedView
         style={styles.modalOverlay}
         testID="plant-customization-modal"
       >
-        <ScrollView contentContainerStyle={styles.modal}>
-          <PlantForm
-            initialPlantData={initialPlantData}
-            initialUserPlantData={initialUserPlantData}
-            onSave={handleSave}
-            displayUserPlantData={displayUserPlantData}
-            isAddingNewPlant={isAddingNewPlant} // Pass the new prop
-          />
-          <ThemedButton title="Close" onPress={onClose} />
-        </ScrollView>
+        {/* Tapping the dimmed backdrop dismisses the sheet. */}
+        <Pressable
+          style={{ flex: 1 }}
+          onPress={onClose}
+          accessibilityLabel="Dismiss"
+        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={styles.sheet}
+        >
+          <View style={styles.handle} />
+          <ScrollView
+            contentContainerStyle={styles.modal}
+            keyboardShouldPersistTaps="handled"
+          >
+            <PlantForm
+              initialPlantData={initialPlantData}
+              initialUserPlantData={initialUserPlantData}
+              onSave={handleSave}
+              displayUserPlantData={displayUserPlantData}
+              isAddingNewPlant={isAddingNewPlant} // Pass the new prop
+            />
+            <ThemedButton title="Close" onPress={onClose} variant="ghost" />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </ThemedView>
     </Modal>
   );

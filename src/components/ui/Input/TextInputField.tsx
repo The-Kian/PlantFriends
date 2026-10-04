@@ -1,6 +1,6 @@
 // TextInputField.tsx
 
-import React from "react";
+import React, { useState } from "react";
 
 import { TextInput, TextInputProps, View } from "react-native";
 
@@ -12,18 +12,33 @@ interface TextInputFieldProps extends TextInputProps {
   label: string;
 }
 
-const TextInputField = ({ label, ...props }: TextInputFieldProps) => {
+const TextInputField = ({
+  label,
+  onFocus,
+  onBlur,
+  placeholder,
+  ...props
+}: TextInputFieldProps) => {
   const styles = useInputStyles();
+  const [focused, setFocused] = useState(false);
 
   return (
-    <View>
+    <View style={styles.fieldContainer}>
       <ThemedText style={styles.inputLabel}>{label}</ThemedText>
       <TextInput
         {...props}
         accessibilityLabel={`${label} input field`}
-        style={styles.textInput}
-        placeholder={`Enter ${label}`}
-        placeholderTextColor={styles.inputLabel.color}
+        style={[styles.textInput, focused && styles.textInputFocused]}
+        placeholder={placeholder ?? `Enter ${label}`}
+        placeholderTextColor={styles.placeholder.color}
+        onFocus={(e) => {
+          setFocused(true);
+          onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          onBlur?.(e);
+        }}
       />
     </View>
   );

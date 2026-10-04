@@ -5,11 +5,10 @@ import { View, StyleSheet } from 'react-native';
 
 import ThemedButton from '@/components/ui/Buttons/ThemedButton';
 import { ThemedText } from '@/components/ui/Text/ThemedText';
-import { ThemedView } from '@/components/ui/Views/ThemedView';
-import { type WateringUrgency } from '@/helpers/plants/wateringCalculations';
+import { MILLIS_PER_DAY, type WateringUrgency } from '@/helpers/plants/wateringCalculations';
 import { getWateringProgress } from '@/helpers/plants/wateringProgress';
 import { useTheme } from '@/hooks/utils/useTheme';
-import { lightTheme } from '@/theme';
+import { type ThemeColors } from '@/theme/Colors';
 
 interface WateringPredictionProps {
   lastWatered: number | null;
@@ -24,7 +23,7 @@ export function WateringPrediction({
   customSchedule,
   onLogWatering,
 }: WateringPredictionProps) {
-  const theme = useTheme();
+  const { colors, radius, shadow } = useTheme();
   const wateringProgress = getWateringProgress({
     custom_watering_schedule: customSchedule ?? null,
     watering_frequency: wateringFrequency ?? null,
@@ -32,25 +31,37 @@ export function WateringPrediction({
     next_watering_date: null,
   });
 
+  const cardStyle = [
+    styles.container,
+    shadow,
+    { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.large },
+  ];
+
+  const header = (
+    <View style={styles.header}>
+      <View style={[styles.headerIcon, { backgroundColor: colors.waterMuted, borderRadius: radius.pill }]}>
+        <Ionicons name="water" size={18} color={colors.water} />
+      </View>
+      <ThemedText type="subtitle" style={styles.headerText}>
+        Watering Schedule
+      </ThemedText>
+    </View>
+  );
+
   if (!wateringProgress.lastWatered) {
     return (
-      <ThemedView style={styles.container}>
-        <View style={styles.header}>
-          <Ionicons name="water" size={24} color={theme.colors.icon} />
-          <ThemedText type="subtitle" style={styles.headerText}>
-            Watering Schedule
-          </ThemedText>
-        </View>
-        <ThemedText style={styles.notWateredText}>
+      <View style={cardStyle}>
+        {header}
+        <ThemedText style={[styles.notWateredText, { color: colors.textMuted }]}>
           This plant hasn't been watered yet
         </ThemedText>
         <ThemedButton
           title="Log First Watering"
           onPress={onLogWatering}
+          icon="water-outline"
           variant="accept"
-          additionalStyle={styles.button}
         />
-      </ThemedView>
+      </View>
     );
   }
 
@@ -58,66 +69,64 @@ export function WateringPrediction({
     nextWateringDate,
     status,
     progressPercent,
+    frequencyInDays,
     lastWatered: lastWateredDate,
   } = wateringProgress;
 
-  const urgencyColor = getUrgencyColor(status.urgency, theme.colors);
-  const lastWateredFormatted = formatDate(lastWateredDate);
-  const nextWateringFormatted = nextWateringDate
-    ? formatDate(nextWateringDate)
-    : 'Not scheduled';
+  const urgencyColor = getUrgencyColor(status.urgency, colors);
+  const needsWater = status.urgency === 'urgent' || status.urgency === 'overdue';
+
+  const rows: [string, string][] = [
+    ['Last watered', formatDate(lastWateredDate)],
+    ['Next watering', nextWateringDate ? formatDate(nextWateringDate) : 'Not scheduled'],
+  ];
+  if (frequencyInDays > 0) {
+    rows.push(['Frequency', `Every ${frequencyInDays} day${frequencyInDays === 1 ? '' : 's'}`]);
+  }
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <Ionicons name="water" size={24} color={theme.colors.icon} />
-        <ThemedText type="subtitle" style={styles.headerText}>
-          Watering Schedule
-        </ThemedText>
-      </View>
+    <View style={cardStyle}>
+      {header}
 
-      <View style={styles.infoRow}>
-        <ThemedText style={styles.label}>Last watered:</ThemedText>
-        <ThemedText style={styles.value}>{lastWateredFormatted}</ThemedText>
-      </View>
-
-      <View style={styles.infoRow}>
-        <ThemedText style={styles.label}>Next watering:</ThemedText>
-        <ThemedText style={styles.value}>{nextWateringFormatted}</ThemedText>
-      </View>
-
-      <View style={styles.statusContainer}>
-        <ThemedText
-          style={[styles.statusText, { color: urgencyColor }]}
-          type="defaultSemiBold"
+      {status.message ? (
+        <View
+          style={[
+            styles.statusPill,
+            { backgroundColor: needsWater ? colors.errorMuted : colors.surfaceMuted, borderRadius: radius.small },
+          ]}
         >
-          {status.message}
-        </ThemedText>
-      </View>
+          <ThemedText style={[styles.statusText, { color: urgencyColor }]}>
+            {status.message}
+          </ThemedText>
+        </View>
+      ) : null}
 
-      <View style={[styles.progressBarContainer, { borderColor: theme.colors.border }]}>
+      <View style={[styles.progressBarContainer, { backgroundColor: colors.surfaceMuted }]}>
         <View
           style={[
             styles.progressBarFill,
-            {
-              width: progressPercent,
-              backgroundColor: urgencyColor,
-            },
+            { width: progressPercent, backgroundColor: urgencyColor },
           ]}
         />
       </View>
 
+      {rows.map(([label, value]) => (
+        <View key={label} style={styles.infoRow}>
+          <ThemedText style={[styles.label, { color: colors.textMuted }]}>{label}</ThemedText>
+          <ThemedText style={styles.value}>{value}</ThemedText>
+        </View>
+      ))}
+
       <ThemedButton
         title="Log Watering"
         onPress={onLogWatering}
-        variant={(status.urgency === 'urgent' || status.urgency === 'overdue') ? 'accept' : 'default'}
+        icon="water-outline"
+        variant={needsWater ? 'accept' : 'secondary'}
         additionalStyle={styles.button}
       />
-    </ThemedView>
+    </View>
   );
 }
-
-type ThemeColors = typeof lightTheme.colors;
 
 export function getUrgencyColor(
   urgency: WateringUrgency,
@@ -125,18 +134,27 @@ export function getUrgencyColor(
 ): string {
   switch (urgency) {
     case 'overdue':
-      return colors.error || '#FF5252';
     case 'urgent':
-      return colors.redButton || '#FF0000';
+      return colors.error;
     case 'soon':
-      return colors.warning || '#FFA500';
+      return colors.warning;
     case 'ok':
-      return colors.greenButton || '#00A86B';
+      return colors.success;
     default:
       return colors.text;
   }
 }
 
+/** Short relative description, e.g. "Watered today" / "Watered 3 days ago". */
+export function formatLastWatered(epochMs: number | null, now: number = Date.now()): string {
+  if (!epochMs) {
+    return 'Not watered yet';
+  }
+  const days = Math.floor((now - epochMs) / MILLIS_PER_DAY);
+  if (days <= 0) return 'Watered today';
+  if (days === 1) return 'Watered yesterday';
+  return `Watered ${days} days ago`;
+}
 
 function formatDate(epochMs: number): string {
   const dateObj = new Date(epochMs);
@@ -150,52 +168,58 @@ function formatDate(epochMs: number): string {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    borderRadius: 8,
-    marginVertical: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: 8,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    gap: 10,
+    marginBottom: 4,
+  },
+  headerIcon: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerText: {
-    marginLeft: 8,
+    fontSize: 18,
+  },
+  statusPill: {
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  statusText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  progressBarContainer: {
+    height: 6,
+    borderRadius: 99,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 99,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
   },
   label: {
-    opacity: 0.7,
+    fontSize: 15,
   },
   value: {
+    fontSize: 15,
     fontWeight: '600',
   },
-  statusContainer: {
-    marginVertical: 12,
-    alignItems: 'center',
-  },
-  statusText: {
-    fontSize: 18,
-  },
-  progressBarContainer: {
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginVertical: 12,
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
   button: {
-    marginTop: 12,
+    marginTop: 8,
   },
   notWateredText: {
     textAlign: 'center',
-    marginVertical: 16,
-    opacity: 0.7,
+    marginVertical: 8,
   },
 });

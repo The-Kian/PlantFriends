@@ -1,7 +1,6 @@
 import { FlatList } from "react-native";
 
 import SearchResultComponent from "@/components/ui/Buttons/SearchResult";
-import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { IPlant } from "@/constants/IPlant";
 
 import styles from "../index.styles";
@@ -17,18 +16,19 @@ function PlantSearchResults({
   onSelectPlant,
 }: PlantSearchResultsProps) {
   return (
-    <ThemedView style={styles.container}>
-      <FlatList
-        data={plants}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <SearchResultComponent
-            onSelect={() => onSelectPlant(item)}
-            plant={item}
-          />
-        )}
-      />
-    </ThemedView>
+    <FlatList
+      style={styles.results}
+      contentContainerStyle={styles.resultsContent}
+      keyboardShouldPersistTaps="handled"
+      data={plants}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <SearchResultComponent
+          onSelect={() => onSelectPlant(item)}
+          plant={item}
+        />
+      )}
+    />
   );
 }
 

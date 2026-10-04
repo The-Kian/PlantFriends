@@ -29,6 +29,7 @@ describe("RootLayout", () => {
   it("shows Tab, Profile, PlantSearch & SubmitPlant screens when user is logged in", async () => {
     renderRootLayout(mockAuthContextValue);
     expect(screen.getByTestId("profile-button")).toBeTruthy();
-    expect(await screen.findByText("Manage Your Plants")).toBeTruthy();
+    // Home is the first tab.
+    expect(await screen.findByText("Plant Friends!")).toBeTruthy();
   });
 });

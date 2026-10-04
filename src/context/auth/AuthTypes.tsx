@@ -20,6 +20,8 @@ export type AuthProps = {
   authScreenType: "login" | "signUp" | "update";
   onSubmit: (credentials: CredentialsType) => void;
   credentialsInvalid?: CredentialsInvalidType;
+  /** Extra content rendered directly under the form (e.g. "Forgot password?"). */
+  children?: React.ReactNode;
 };
 
 export interface AuthContextType {

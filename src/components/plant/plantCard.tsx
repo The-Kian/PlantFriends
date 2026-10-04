@@ -1,16 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 
-import { Image, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ui/Text/ThemedText';
-import { ThemedView } from '@/components/ui/Views/ThemedView';
 import { IUserPlant, IUserPlantMerged } from '@/constants/IPlant';
 import { getWateringProgress } from '@/helpers/plants/wateringProgress';
 import useMergedPlant from '@/hooks/plants/useMergedPlant';
 import { useTheme } from '@/hooks/utils/useTheme';
 
-import { getUrgencyColor } from '../watering/WateringPrediction';
+import { formatLastWatered, getUrgencyColor } from '../watering/WateringPrediction';
 
 interface PlantCardProps {
     plant: IUserPlant | IUserPlantMerged;
@@ -19,72 +18,113 @@ interface PlantCardProps {
 }
 
 const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
-    const { colors } = useTheme();
+    const { colors, radius, shadow } = useTheme();
     const { mergedPlant } = useMergedPlant(plant);
 
     const displayName = plant.custom_name || mergedPlant?.name || "Unnamed Plant";
     const imageUri = (plant as IUserPlantMerged).images?.[0] || mergedPlant?.images?.[0] || null;
-    const { status, progressPercent } = getWateringProgress(plant, mergedPlant);
+    const { status, progressPercent, lastWatered } = getWateringProgress(plant, mergedPlant);
     const urgencyColor = getUrgencyColor(status.urgency, colors);
 
+    // Once households land this line becomes "Last: Sam, 2 days ago".
+    const lastWateredText = formatLastWatered(lastWatered);
+
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.card, { backgroundColor: colors.card }]}>
-            <ThemedView style={styles.mainContent}>
-                {imageUri ? (
-                    <Image source={{ uri: imageUri }} style={styles.image} />
-                ) : (
-                    <Ionicons name="leaf-outline" size={80} color={colors.icon} style={styles.image} />
-                )}
-                <ThemedView style={styles.infoContainer}>
-                    <ThemedText style={styles.plantName}>{displayName}</ThemedText>
-                </ThemedView>
-                <Pressable accessibilityLabel="Delete" accessibilityRole="button" onPress={() => onDelete(plant)}>
-                    <Ionicons name="trash-outline" size={24} color={colors.error} />
-                </Pressable>
-            </ThemedView>
-            <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
-                <View style={[styles.progressFill, { width: progressPercent, backgroundColor: urgencyColor }]} />
+        <Pressable
+            onPress={onPress}
+            accessibilityRole="button"
+            style={({ pressed }) => [
+                styles.card,
+                shadow,
+                { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.large },
+                pressed && styles.pressed,
+            ]}
+        >
+            {imageUri ? (
+                <Image source={{ uri: imageUri }} style={[styles.image, { borderRadius: radius.medium }]} />
+            ) : (
+                <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: colors.primaryMuted, borderRadius: radius.medium }]}>
+                    <Ionicons name="leaf" size={26} color={colors.primary} />
+                </View>
+            )}
+            <View style={styles.info}>
+                <ThemedText style={styles.plantName} numberOfLines={1}>{displayName}</ThemedText>
+                {status.message ? (
+                    <ThemedText style={[styles.status, { color: urgencyColor }]} numberOfLines={1}>
+                        {status.message}
+                    </ThemedText>
+                ) : null}
+                <ThemedText style={[styles.meta, { color: colors.textMuted }]} numberOfLines={1}>
+                    {lastWateredText}
+                </ThemedText>
+                <View style={[styles.progressTrack, { backgroundColor: colors.surfaceMuted }]}>
+                    <View style={[styles.progressFill, { width: progressPercent, backgroundColor: urgencyColor }]} />
+                </View>
             </View>
-        </TouchableOpacity>
+            <Pressable
+                accessibilityLabel="Delete"
+                accessibilityRole="button"
+                hitSlop={10}
+                onPress={() => onDelete(plant)}
+                style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
+            >
+                <Ionicons name="trash-outline" size={20} color={colors.textMuted} />
+            </Pressable>
+        </Pressable>
     );
 };
 
 const styles = StyleSheet.create({
     card: {
-        borderRadius: 15,
-        padding: 10,
-        gap: 8,
-        marginBottom: 10,
-    },
-    mainContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        width: '100%',
         gap: 12,
+        padding: 12,
+        marginBottom: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+    },
+    pressed: {
+        opacity: 0.8,
     },
     image: {
-        width: 80,
-        height: 80,
-        borderRadius: 10,
+        width: 56,
+        height: 56,
     },
-    infoContainer: {
-        flex: 1,
-        marginLeft: 15,
+    imagePlaceholder: {
+        alignItems: 'center',
         justifyContent: 'center',
     },
+    info: {
+        flex: 1,
+        gap: 1,
+    },
     plantName: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontSize: 16,
+        lineHeight: 22,
+        fontWeight: '600',
+    },
+    status: {
+        fontSize: 13,
+        lineHeight: 18,
+        fontWeight: '600',
+    },
+    meta: {
+        fontSize: 12,
+        lineHeight: 16,
     },
     progressTrack: {
-        height: 6,
+        height: 5,
         width: '100%',
         borderRadius: 99,
         overflow: 'hidden',
+        marginTop: 6,
     },
     progressFill: {
         height: '100%',
         borderRadius: 99,
+    },
+    deleteButton: {
+        padding: 6,
     },
 });
 

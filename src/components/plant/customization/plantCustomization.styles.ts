@@ -6,52 +6,60 @@ export const useCustomizationStyles = () => {
   const theme = useTheme();
 
   return StyleSheet.create({
+    // Bottom sheet: dimmed backdrop with the form sliding up from the bottom.
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
-      justifyContent: "center",
+      backgroundColor: theme.colors.overlay,
+      justifyContent: "flex-end",
+    },
+    sheet: {
+      maxHeight: "92%",
+      backgroundColor: theme.colors.background,
+      borderTopLeftRadius: theme.radius.xl,
+      borderTopRightRadius: theme.radius.xl,
+      overflow: "hidden",
+    },
+    handle: {
+      alignSelf: "center",
+      width: 40,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: theme.colors.border,
+      marginTop: theme.spacing.small + 2,
+    },
+    sheetHeader: {
+      flexDirection: "row",
       alignItems: "center",
+      paddingHorizontal: theme.spacing.large - 4,
+      paddingTop: theme.spacing.small,
     },
     modal: {
-      width: "85%",
-      borderRadius: 12,
-      padding: 20,
-      // Shadows for iOS
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      // Elevation for Android
-      elevation: 5,
-      backgroundColor: theme.colors.background,
+      paddingHorizontal: theme.spacing.large - 4,
+      paddingBottom: theme.spacing.xl,
     },
     content: {
-      backgroundColor: theme.colors.tint,
+      paddingTop: theme.spacing.small,
     },
     title: {
-      fontSize: theme.fonts.sizeLarge,
-      fontWeight: theme.fonts.weightBold as "700",
-      marginBottom: 20,
-      textAlign: "left",
+      flex: 1,
+      fontSize: theme.fonts.sizeXLarge,
+      fontWeight: theme.fonts.weightBold,
       color: theme.colors.text,
     },
-    textInput: {
-      borderWidth: 1,
-      borderColor: theme.colors.border,
-      borderRadius: 8,
-      padding: 12,
-      fontSize: theme.fonts.sizeMedium,
-      color: theme.colors.text,
-      marginBottom: 20,
-      backgroundColor: theme.colors.background,
+    closeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: theme.radius.pill,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.colors.surfaceMuted,
     },
     buttonContainer: {
       flexDirection: "row",
-      justifyContent: "space-between",
+      marginTop: theme.spacing.small,
     },
     button: {
       flex: 1,
-      marginHorizontal: 5,
     },
   });
 };
