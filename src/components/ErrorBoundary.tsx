@@ -77,7 +77,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             {__DEV__ && this.state.error && (
               <>
                 <Text style={[styles.devLabel, { color: colors.error }]}>Technical Details (Dev Only):</Text>
-                <View style={[styles.detailsContainer, { backgroundColor: colors.card }]}>
+                <View style={[styles.detailsContainer, { backgroundColor: colors.surfaceMuted }]}>
                   <Text style={[styles.errorMessage, { color: colors.error }]}>{this.state.error.toString()}</Text>
                   {this.state.errorInfo && (
                     <Text style={[styles.stackTrace, { color: colors.text }]}>{this.state.errorInfo.componentStack}</Text>

@@ -1,19 +1,24 @@
 import { NavigationProp } from "@react-navigation/native";
 import React, { useState, useContext, useEffect } from "react";
 
-import { Text } from "react-native";
+import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import uuid from "react-native-uuid";
 
 import { RootStackParamList } from "@/components/navigation/types";
 import PlantCustomizationModal from "@/components/plant/CustomizationModal";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import TextInputField from "@/components/ui/Input/TextInputField";
-import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ThemedText } from "@/components/ui/Text/ThemedText";
+import ScreenHeader from "@/components/ui/Views/ScreenHeader";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
+import { useTheme } from "@/hooks/utils/useTheme";
+import { Spacing } from "@/theme/Spacing";
 
 import styles from "./index.styles";
 import PlantSearchResults from "./Results";
@@ -29,6 +34,8 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
   const { user } = useContext(AuthContext);
   const [userPlant, setUserPlant] = useState<IUserPlant | null>(null);
   const [isAddingNewPlant, setIsAddingNewPlant] = useState(false);
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (selectedPlant && user) {
@@ -72,20 +79,43 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
 
   return (
     <ThemedView style={styles.container}>
-      <TextInputField
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        label={"Search for a plant"}
-      />
-      {loading && <LoadingOverlay message={`Searching for ${searchQuery}`} />}
-      {error && <Text>Error fetching plants</Text>}
-      <PlantSearchResults plants={plants} onSelectPlant={handleSelectPlant} />
+      <ScreenHeader title="Add a plant" />
+      <View style={styles.body}>
+        <TextInputField
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          label={"Search for a plant"}
+          placeholder="Monstera, pothos, fern..."
+          autoCorrect={false}
+          returnKeyType="search"
+        />
+        {loading && (
+          <LoadingSpinner size="small" message={`Searching for ${searchQuery}`} />
+        )}
+        {error && (
+          <ThemedText style={[styles.status, { color: colors.error }]}>
+            Error fetching plants
+          </ThemedText>
+        )}
+        <PlantSearchResults plants={plants} onSelectPlant={handleSelectPlant} />
+      </View>
 
-      <ThemedButton
-        title="Add a new plant (not in search results)"
-        onPress={handleAddNewPlant}
-        additionalStyle={styles.addPlantButton}
-      />
+      <View
+        style={[
+          styles.footer,
+          {
+            paddingBottom: insets.bottom + Spacing.small,
+            borderTopColor: colors.border,
+          },
+        ]}
+      >
+        <ThemedButton
+          title="Add a new plant (not in search results)"
+          onPress={handleAddNewPlant}
+          icon="create-outline"
+          variant="secondary"
+        />
+      </View>
 
       {(selectedPlant || isAddingNewPlant) && (
         <PlantCustomizationModal
@@ -97,12 +127,6 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
           isAddingNewPlant={isAddingNewPlant}
         />
       )}
-
-      <ThemedButton
-        title="Go Back"
-        onPress={() => navigation.goBack()}
-        additionalStyle={styles.goBackButton}
-      />
     </ThemedView>
   );
 };

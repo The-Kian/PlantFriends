@@ -194,13 +194,13 @@ describe("PlantSearchScreen", () => {
     expect(screen.getByText("You are on the Tab screen")).toBeVisible();
   });
 
-  it("navigates back when 'Go Back' is pressed", async () => {
+  it("navigates back when the header back button is pressed", async () => {
     renderComponent("Initial");
 
     fireEvent.press(screen.getByText("Go to Search"));
-    await screen.findByText("Go Back");
+    await screen.findByTestId("screen-header-back");
 
-    fireEvent.press(screen.getByText("Go Back"));
+    fireEvent.press(screen.getByTestId("screen-header-back"));
 
     await waitFor(() => {
       expect(screen.getByText("Go to Search")).toBeVisible();

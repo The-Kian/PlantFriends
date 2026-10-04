@@ -19,9 +19,16 @@ import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
 import PlantDetailsScreen from "./index";
 
-jest.mock("@react-navigation/native", () => ({ useRoute: jest.fn() }));
+jest.mock("@react-navigation/native", () => ({
+  useRoute: jest.fn(),
+  useNavigation: () => ({ goBack: jest.fn() }),
+}));
 jest.mock("@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase");
 jest.mock("@/hooks/plants/useMergedPlant");
+// Plain functions (not jest.fn) so resetAllMocks below leaves the insets intact.
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+}));
 jest.mock("@/components/watering/WateringSplash", () => ({
   WateringSplash: jest.fn(),
 }));

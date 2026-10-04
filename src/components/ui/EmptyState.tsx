@@ -1,12 +1,15 @@
-import React from "react";
+import { Ionicons } from "@expo/vector-icons";
+import React, { type ComponentProps } from "react";
 
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet } from "react-native";
 
-import { Fonts } from "@/theme/Fonts";
+import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import { ThemedText } from "@/components/ui/Text/ThemedText";
+import { useTheme } from "@/hooks/utils/useTheme";
 import { Spacing } from "@/theme/Spacing";
 
 interface EmptyStateProps {
-  icon?: string;
+  icon?: ComponentProps<typeof Ionicons>["name"];
   title: string;
   message?: string;
   actionLabel?: string;
@@ -14,21 +17,39 @@ interface EmptyStateProps {
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
-  icon = "📭",
+  icon = "leaf-outline",
   title,
   message,
   actionLabel,
   onAction,
 }) => {
+  const { colors, radius } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.title}>{title}</Text>
-      {message && <Text style={styles.message}>{message}</Text>}
+      <View
+        style={[
+          styles.iconCircle,
+          { backgroundColor: colors.primaryMuted, borderRadius: radius.pill },
+        ]}
+      >
+        <Ionicons name={icon} size={36} color={colors.primary} />
+      </View>
+      <ThemedText type="subtitle" style={styles.title}>
+        {title}
+      </ThemedText>
+      {message && (
+        <ThemedText type="caption" style={styles.message}>
+          {message}
+        </ThemedText>
+      )}
       {actionLabel && onAction && (
-        <TouchableOpacity style={styles.button} onPress={onAction}>
-          <Text style={styles.buttonText}>{actionLabel}</Text>
-        </TouchableOpacity>
+        <ThemedButton
+          title={actionLabel}
+          onPress={onAction}
+          icon="add"
+          additionalStyle={styles.button}
+        />
       )}
     </View>
   );
@@ -36,40 +57,26 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: Spacing.large,
-    paddingVertical: Spacing.large,
+    paddingVertical: Spacing.xl,
   },
-  icon: {
-    fontSize: 56,
+  iconCircle: {
+    width: 80,
+    height: 80,
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: Spacing.medium,
   },
   title: {
-    fontSize: Fonts.sizeLarge,
-    fontWeight: "600",
-    marginBottom: Spacing.small,
     textAlign: "center",
-    color: "#11181C",
+    marginBottom: Spacing.xs,
   },
   message: {
-    fontSize: Fonts.sizeMedium,
-    color: "#666",
     textAlign: "center",
-    marginBottom: Spacing.large,
-    lineHeight: 22,
+    maxWidth: 280,
   },
   button: {
-    backgroundColor: "#0a7ea4",
-    paddingVertical: Spacing.medium,
-    paddingHorizontal: Spacing.large,
-    borderRadius: 8,
-    marginTop: Spacing.medium,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: Fonts.sizeMedium,
-    fontWeight: "600",
+    marginTop: Spacing.large,
   },
 });

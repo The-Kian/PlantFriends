@@ -7,30 +7,50 @@ export const useThemedButtonStyles = () => {
 
   return StyleSheet.create({
     button: {
-      borderRadius: 6,
+      minHeight: 50,
+      borderRadius: theme.radius.medium,
+      flexDirection: "row",
+      alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: theme.spacing.medium,
-      backgroundColor: theme.colors.card,
+      gap: theme.spacing.small,
+      paddingHorizontal: theme.spacing.large,
+      paddingVertical: theme.spacing.small,
+      backgroundColor: theme.colors.primary,
       marginTop: theme.spacing.small,
     },
-    iconButton: {
-      margin: theme.spacing.small,
-      borderRadius: 20,
-    },
     buttonPressed: {
-      opacity: 0.7,
+      opacity: 0.8,
+      transform: [{ scale: 0.98 }],
+    },
+    buttonDisabled: {
+      opacity: 0.5,
     },
     buttonText: {
       textAlign: "center",
-      color: theme.colors.text,
+      color: theme.colors.onPrimary,
       fontSize: theme.fonts.sizeMedium,
-      fontWeight: theme.fonts.weightBold as "700",
+      fontWeight: theme.fonts.weightSemiBold,
     },
     acceptButton: {
-      backgroundColor: theme.colors.greenButton,
+      backgroundColor: theme.colors.primary,
     },
     cancelButton: {
-      backgroundColor: theme.colors.redButton,
+      backgroundColor: theme.colors.errorMuted,
+    },
+    cancelButtonText: {
+      color: theme.colors.error,
+    },
+    secondaryButton: {
+      backgroundColor: theme.colors.primaryMuted,
+    },
+    secondaryButtonText: {
+      color: theme.colors.primary,
+    },
+    ghostButton: {
+      backgroundColor: "transparent",
+    },
+    ghostButtonText: {
+      color: theme.colors.primary,
     },
   });
 };

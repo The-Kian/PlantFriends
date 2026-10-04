@@ -81,12 +81,13 @@ describe("MyPlantsScreen", () => {
   it("should delete a plant", async () => {
     renderWithNavigation();
 
-    const livingRoomCollapsible = await screen.findByText("Living Room");
-    fireEvent.press(livingRoomCollapsible);
+    // Room groups start expanded.
+    await screen.findByText("Living Room");
     expect(await screen.findByText("Living Room Plant")).toBeVisible();
 
     // Simulate deleting the plant
-    const deleteButton = screen.getByLabelText("Delete");
+    // Living Room is the first group, so its plant has the first delete button.
+    const deleteButton = screen.getAllByLabelText("Delete")[0];
     fireEvent.press(deleteButton);
 
     // Verify the plant is no longer visible

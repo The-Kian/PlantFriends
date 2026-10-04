@@ -1,15 +1,11 @@
 import React from "react";
 
-import { View } from "react-native";
-
 import { screen } from "@testing-library/react-native";
 
-import ParallaxScrollView from "@/components/ui/Views/ParallaxScrollView";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
 import HomeScreen from "./index";
 
-jest.mock("@/components/ui/Views/ParallaxScrollView");
 jest.mock("@react-navigation/native", () => {
   const actual = jest.requireActual("@react-navigation/native");
   return {
@@ -22,15 +18,6 @@ jest.mock("@/hooks/plants/useUserPlants", () => ({
   default: () => ({ getPlants: jest.fn(async () => []) }),
 }));
 
-(ParallaxScrollView as jest.Mock).mockImplementation(
-  ({ children, headerBackgroundColor, headerImage }) => (
-    <>
-      <View testID="parallax-header-image">{headerImage}</View>
-      <View testID="parallax-content">{children}</View>
-    </>
-  ),
-);
-
 describe("HomeScreen", () => {
   const renderHome = () => renderWithProviders(<HomeScreen />);
 
@@ -38,5 +25,12 @@ describe("HomeScreen", () => {
     renderHome();
 
     expect(screen.getByText("Plant Friends!")).toBeTruthy();
+  });
+
+  it("shows the all-caught-up state when nothing needs water", () => {
+    renderHome();
+
+    expect(screen.getByText("All caught up")).toBeTruthy();
+    expect(screen.getByTestId("profile-button")).toBeTruthy();
   });
 });

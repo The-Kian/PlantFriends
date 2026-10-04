@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 
-import { View, ScrollView } from "react-native";
+import { View } from "react-native";
 import uuid from "react-native-uuid";
 
 import { useCustomizationStyles } from "@/components/plant/customization/plantCustomization.styles";
@@ -113,7 +113,7 @@ const PlantForm = ({
   const styles = useCustomizationStyles();
 
   return (
-    <ScrollView>
+    <View>
       <ThemedView style={styles.content}>
         <ThemedText style={styles.title}>
           {isAddingNewPlant ? "Add New Plant" : "Customize Plant"}
@@ -137,7 +137,7 @@ const PlantForm = ({
           />
         </View>
       </ThemedView>
-    </ScrollView>
+    </View>
   );
 };
 

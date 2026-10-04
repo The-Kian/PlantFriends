@@ -1,25 +1,45 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 
+import ProfileButton from "@/components/navigation/ProfileButton";
 import { RootStackParamList } from "@/components/navigation/types";
 import PlantCard from "@/components/plant/plantCard";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { Collapsible } from "@/components/ui/Views/Collapsible";
 import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
-import ParallaxScrollView from "@/components/ui/Views/ParallaxScrollView";
-import { ThemedView } from "@/components/ui/Views/ThemedView";
+import ScreenScrollView from "@/components/ui/Views/ScreenScrollView";
+import { IUserPlant } from "@/constants/IPlant";
 import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
 import useUserPlants from "@/hooks/plants/useUserPlants";
+import { useTheme } from "@/hooks/utils/useTheme";
 import { RootState } from "@/store/store";
-import { Colors } from "@/theme/Colors";
+import { Spacing } from "@/theme/Spacing";
+
+const OTHER_LOCATION = "Other Rooms";
+
+// Group plants by the room they're in, keeping rooms in first-seen order
+// and putting unassigned plants last.
+function groupByLocation(plants: IUserPlant[]): [string, IUserPlant[]][] {
+  const groups = new Map<string, IUserPlant[]>();
+  for (const plant of plants) {
+    const location = plant.houseLocation?.trim() || OTHER_LOCATION;
+    groups.set(location, [...(groups.get(location) ?? []), plant]);
+  }
+  const other = groups.get(OTHER_LOCATION);
+  groups.delete(OTHER_LOCATION);
+  const entries = [...groups.entries()];
+  if (other) entries.push([OTHER_LOCATION, other]);
+  return entries;
+}
 
 export default function MyPlantsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { colors, radius } = useTheme();
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
   const { getPlants } = useUserPlants();
@@ -55,17 +75,49 @@ export default function MyPlantsScreen() {
     navigation.navigate("PlantSearch");
   };
 
-  const renderPlantsByLocation = (location: string) => {
-    const plantsInLocation = userPlants.filter((plant) => {
-      if (location === "Other") {
-        return !plant.houseLocation || plant.houseLocation === "";
-      }
-      return plant.houseLocation === location;
-    });
+  if (loading) {
+    return <LoadingOverlay message="Loading your plants..." />;
+  }
 
-    return (
-        <ThemedView>
-          {plantsInLocation.map((item) => (
+  const groups = groupByLocation(userPlants);
+
+  return (
+    <ScreenScrollView title="Manage Your Plants" right={<ProfileButton />}>
+      <ThemedButton
+        onPress={navigateToPlantSearch}
+        title="Add plant"
+        icon="add"
+        variant="secondary"
+      />
+
+      {error && (
+        <View
+          style={[
+            styles.errorBox,
+            { backgroundColor: colors.errorMuted, borderRadius: radius.medium },
+          ]}
+        >
+          <ThemedText style={[styles.errorText, { color: colors.error }]}>
+            {error}
+          </ThemedText>
+        </View>
+      )}
+
+      {!error && userPlants.length === 0 && (
+        <EmptyState
+          title="No plants yet"
+          message={'Tap "Add plant" to grow your collection!'}
+        />
+      )}
+
+      {groups.map(([location, plants]) => (
+        <Collapsible
+          key={location}
+          title={location}
+          count={plants.length}
+          defaultOpen
+        >
+          {plants.map((item) => (
             <PlantCard
               key={item.id}
               plant={item}
@@ -75,78 +127,18 @@ export default function MyPlantsScreen() {
               onDelete={() => handleDeletePlant(item)}
             />
           ))}
-        </ThemedView>
-    );
-  };
-
-  if (loading) {
-    return <LoadingOverlay message="Loading your plants..." />;
-  }
-
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{
-        light: Colors["light"].headerBackground,
-        dark: Colors["dark"].headerBackground,
-      }}
-      headerImage={
-        <Ionicons size={200} name="leaf" style={styles.headerImage} />
-      }
-    >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Manage Your Plants</ThemedText>
-      </ThemedView>
-      <ThemedButton onPress={navigateToPlantSearch} title="Add plant" />
-
-      {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
-
-      {!error && userPlants.length === 0 && (
-        <ThemedView style={styles.emptyContainer}>
-          <Ionicons name="leaf-outline" size={64} color={Colors.light.icon} />
-          <ThemedText style={styles.emptyText}>
-            No plants yet. Tap "Add plant" to grow your collection!
-          </ThemedText>
-        </ThemedView>
-      )}
-
-      <Collapsible title="Living Room">
-        {renderPlantsByLocation("Living Room")}
-      </Collapsible>
-
-      <Collapsible title="Kitchen">
-        {renderPlantsByLocation("Kitchen")}
-      </Collapsible>
-
-      <Collapsible title="Other Rooms">
-        {renderPlantsByLocation("Other")}
-      </Collapsible>
-    </ParallaxScrollView>
+        </Collapsible>
+      ))}
+    </ScreenScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: "green",
-    bottom: 0,
-    left: -0,
-    position: "absolute",
-  },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
+  errorBox: {
+    padding: Spacing.medium,
   },
   errorText: {
-    color: Colors.light.error,
     textAlign: "center",
-    marginVertical: 12,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    paddingVertical: 32,
-    gap: 12,
-  },
-  emptyText: {
-    textAlign: "center",
-    opacity: 0.7,
+    fontWeight: "600",
   },
 });

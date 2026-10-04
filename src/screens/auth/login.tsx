@@ -1,12 +1,12 @@
 import { useContext, useState } from "react";
 
-import { Alert, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { Alert, Pressable, StyleSheet } from "react-native";
 
 import AuthContent from "@/components/auth/AuthContent";
+import { ThemedText } from "@/components/ui/Text/ThemedText";
 import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { CredentialsType } from "@/context/auth/AuthTypes";
-import { Colors } from "@/theme/Colors";
 
 function LoginScreen() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -34,17 +34,22 @@ function LoginScreen() {
   }
 
   return (
-    <>
-      <AuthContent
-        authScreenType="login"
-        onSubmit={(credentials: CredentialsType) => {
-          loginHandler(credentials.email, credentials.password);
-        }}
-      />
-      <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotLink}>
-        <Text style={styles.forgotText}>Forgot password?</Text>
-      </TouchableOpacity>
-    </>
+    <AuthContent
+      authScreenType="login"
+      onSubmit={(credentials: CredentialsType) => {
+        loginHandler(credentials.email, credentials.password);
+      }}
+    >
+      <Pressable
+        onPress={handleForgotPassword}
+        accessibilityRole="button"
+        style={styles.forgotLink}
+      >
+        <ThemedText type="link" style={styles.forgotText}>
+          Forgot password?
+        </ThemedText>
+      </Pressable>
+    </AuthContent>
   );
 }
 
@@ -54,7 +59,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   forgotText: {
-    color: Colors.light.tint,
     fontSize: 14,
   },
 });

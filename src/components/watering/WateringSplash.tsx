@@ -9,6 +9,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { runOnJS } from "react-native-reanimated";
 
+import { Colors } from "@/theme/Colors";
+
 interface WateringSplashProps {
   visible: boolean;
   onComplete: () => void;
@@ -46,7 +48,7 @@ export const WateringSplash = ({
     <Animated.View style={[styles.overlay, overlayStyle]}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Ionicons name="water" size={80} color="#4A90E2" />
+          <Ionicons name="water" size={80} color={Colors.light.water} />
         </View>
 
         <View>

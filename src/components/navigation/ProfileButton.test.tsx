@@ -31,7 +31,7 @@ describe("ProfileButton", () => {
     );
 
     const icon = await screen.findByTestId("profile-icon");
-    expect(icon.props.name).toBe("person-circle-outline");
+    expect(icon.props.name).toBe("person-outline");
     expect(icon.props.color).toBe(Colors.light.text);
   });
 
@@ -44,7 +44,7 @@ describe("ProfileButton", () => {
     );
 
     const icon = await screen.findByTestId("profile-icon");
-    expect(icon.props.name).toBe("person-circle-outline");
+    expect(icon.props.name).toBe("person-outline");
     expect(icon.props.color).toBe(Colors.dark.text);
   });
 

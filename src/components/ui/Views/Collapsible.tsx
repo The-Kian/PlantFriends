@@ -1,37 +1,61 @@
 import { Ionicons } from "@expo/vector-icons";
 import { PropsWithChildren, useState } from "react";
 
-import { StyleSheet, TouchableOpacity, useColorScheme } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 import { ThemedText } from "@/components/ui/Text/ThemedText";
-import { ThemedView } from "@/components/ui/Views/ThemedView";
-import { Colors } from "@/theme/Colors";
+import { useTheme } from "@/hooks/utils/useTheme";
+import { Spacing } from "@/theme/Spacing";
+
+type CollapsibleProps = PropsWithChildren & {
+  title: string;
+  count?: number;
+  defaultOpen?: boolean;
+};
 
 export function Collapsible({
   children,
   title,
-}: PropsWithChildren & { title: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const theme = useColorScheme() ?? "light";
+  count,
+  defaultOpen = false,
+}: CollapsibleProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const { colors, radius } = useTheme();
 
   return (
-    <ThemedView>
+    <View>
       <TouchableOpacity
         style={styles.heading}
         onPress={() => setIsOpen((value) => !value)}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: isOpen }}
         testID={`collapsible-${title}`}
       >
+        <ThemedText type="subtitle" style={styles.title}>
+          {title}
+        </ThemedText>
+        {count != null && (
+          <View
+            style={[
+              styles.countBadge,
+              { backgroundColor: colors.primaryMuted, borderRadius: radius.pill },
+            ]}
+          >
+            <ThemedText style={[styles.countText, { color: colors.primary }]}>
+              {count}
+            </ThemedText>
+          </View>
+        )}
         <Ionicons
           name={isOpen ? "chevron-down" : "chevron-forward-outline"}
-          size={18}
-          color={theme === "light" ? Colors.light.icon : Colors.dark.icon}
+          size={20}
+          color={colors.icon}
           testID="collapsible-icon"
         />
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
       </TouchableOpacity>
-      {isOpen && <ThemedView style={styles.content}>{children}</ThemedView>}
-    </ThemedView>
+      {isOpen && <View style={styles.content}>{children}</View>}
+    </View>
   );
 }
 
@@ -39,10 +63,25 @@ const styles = StyleSheet.create({
   heading: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: Spacing.small,
+    paddingVertical: Spacing.small,
+  },
+  title: {
+    flex: 1,
+    fontSize: 18,
+  },
+  countBadge: {
+    minWidth: 28,
+    paddingHorizontal: Spacing.small,
+    paddingVertical: 2,
+    alignItems: "center",
+  },
+  countText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: "700",
   },
   content: {
-    marginTop: 6,
-    marginLeft: 24,
+    marginTop: Spacing.small,
   },
 });

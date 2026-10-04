@@ -57,7 +57,7 @@ describe("ProfileSettingsScreen", () => {
 
     fireEvent.press(screen.getByText("Go To Profile"));
 
-    const goBackButton = await screen.findByText("Go back");
+    const goBackButton = await screen.findByTestId("screen-header-back");
     fireEvent.press(goBackButton);
 
     await waitFor(() => {
