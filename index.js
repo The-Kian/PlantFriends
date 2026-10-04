@@ -1,3 +1,4 @@
+import "./src/setupCrashAlert";
 import { registerRootComponent } from "expo";
 
 import App from "./App";

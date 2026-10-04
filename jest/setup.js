@@ -8,6 +8,11 @@ import "@testing-library/react-native/extend-expect";
 // include this line for mocking react-native-gesture-handler
 import "react-native-gesture-handler/jestSetup";
 
+jest.mock("@react-native-async-storage/async-storage", () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
+);
+
 jest.mock("@/components/ui/Text/ThemedText", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Text } = require("react-native");
