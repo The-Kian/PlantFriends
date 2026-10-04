@@ -8,6 +8,10 @@ import "@testing-library/react-native/extend-expect";
 // include this line for mocking react-native-gesture-handler
 import "react-native-gesture-handler/jestSetup";
 
+jest.mock("@react-native-async-storage/async-storage", () =>
+  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
+);
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require("dotenv").config(); // load .env into process.env
 
