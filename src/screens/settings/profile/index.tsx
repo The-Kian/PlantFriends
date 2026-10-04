@@ -31,7 +31,7 @@ const ProfileSettingsScreen = () => {
   const handleDeleteAccount = () => {
     Alert.alert(
       "Delete account",
-      "This will permanently delete your account and all your plants. This cannot be undone.",
+      "This will permanently delete your account and personal data. Anonymous plant care data that can't be linked back to you may be kept to improve PlantFriends. This cannot be undone.",
       [
         { text: "Cancel", style: "cancel" },
         {

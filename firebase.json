@@ -10,5 +10,9 @@
       "firebase-debug.log",
       "firebase-debug.*.log"
     ]
+  },
+  "react-native": {
+    "crashlytics_debug_enabled": false,
+    "crashlytics_auto_collection_enabled": true
   }
 }

@@ -99,6 +99,13 @@ export async function cancelWateringReminder(plantId: string): Promise<void> {
 }
 
 /**
+ * Cancel every scheduled reminder, e.g. when the account is deleted.
+ */
+export async function cancelAllWateringReminders(): Promise<void> {
+  await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+/**
  * Schedule reminders for all plants that have upcoming watering dates.
  * Intended to be called on app start after plants are loaded.
  */

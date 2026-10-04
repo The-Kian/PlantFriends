@@ -1,4 +1,5 @@
 import {
+  FirebaseFirestoreTypes,
   collection,
   getDocs,
   getFirestore,
@@ -27,7 +28,7 @@ async function fetchFirebasePlants(plantName: string): Promise<IPlant[]> {
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((doc) => ({
+    return snapshot.docs.map((doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => ({
       ...(doc.data() as IPlant),
       id: doc.id,
     })) as IPlant[];

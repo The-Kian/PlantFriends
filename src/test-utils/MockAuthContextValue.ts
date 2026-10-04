@@ -10,5 +10,7 @@ const mockAuthContextValue = {
   resetPassword: jest.fn(),
   update: jest.fn(),
   deleteAccount: jest.fn(),
+  signInWithGoogle: jest.fn(),
+  signInWithApple: jest.fn(),
 };
 export default mockAuthContextValue;

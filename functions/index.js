@@ -9,9 +9,10 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
+const { anonymiseUserPlant } = require("./anonymise");
+
 admin.initializeApp();
 
-const TREFLE_API_KEY = process.env.TREFLE_API_KEY;
 const TREFLE_BASE_URL = "https://trefle.io/api/v1";
 
 // Replicates the client-side `mapTreflePlantToIPlant` mapping so the client
@@ -85,55 +86,117 @@ function mapTreflePlantToIPlant(plant) {
   };
 }
 
-exports.searchPlants = functions.https.onCall(async (data, context) => {
-  if (!TREFLE_API_KEY) {
+// Declaring the secret makes Firebase inject it into process.env at runtime.
+// Set it with `firebase functions:secrets:set TREFLE_API_KEY`.
+exports.searchPlants = functions
+  .runWith({ secrets: ["TREFLE_API_KEY"] })
+  .https.onCall(async (data, context) => {
+    const TREFLE_API_KEY = process.env.TREFLE_API_KEY;
+    if (!TREFLE_API_KEY) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Trefle API key is not configured.",
+      );
+    }
+
+    const q = (data && data.q ? String(data.q).trim() : "").slice(0, 100);
+    if (!q) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "A non-empty search query is required.",
+      );
+    }
+
+    try {
+      const url = `${TREFLE_BASE_URL}/species/search?token=${encodeURIComponent(
+        TREFLE_API_KEY,
+      )}&q=${encodeURIComponent(q)}&limit=20`;
+      const response = await fetch(url);
+
+      if (response.status === 401) {
+        throw new functions.https.HttpsError(
+          "internal",
+          "Invalid Trefle API token.",
+        );
+      }
+      if (response.status === 429) {
+        throw new functions.https.HttpsError(
+          "resource-exhausted",
+          "Trefle API rate limit reached.",
+        );
+      }
+      if (!response.ok) {
+        throw new functions.https.HttpsError(
+          "internal",
+          `Trefle API request failed with status ${response.status}.`,
+        );
+      }
+
+      const payload = await response.json();
+      const dataList = payload && Array.isArray(payload.data) ? payload.data : [];
+      return { plants: dataList.map(mapTreflePlantToIPlant) };
+    } catch (error) {
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      functions.logger.error("searchPlants failed", error);
+      throw new functions.https.HttpsError("internal", "Search failed.");
+    }
+  });
+
+/**
+ * deleteAccount — HTTPS callable that deletes the calling user's account.
+ *
+ * 1. Copies an anonymised version of each of their plants into the
+ *    `AnonymousPlants` collection (not readable by clients).
+ * 2. Deletes `Users/{uid}` and everything under it.
+ * 3. Deletes the Firebase Auth user.
+ *
+ * Runs with the Admin SDK, so it does not need a recent login. Safe to call
+ * again if a previous attempt failed part way.
+ */
+exports.deleteAccount = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
     throw new functions.https.HttpsError(
-      "failed-precondition",
-      "Trefle API key is not configured.",
+      "unauthenticated",
+      "You must be signed in to delete your account.",
     );
   }
 
-  const q = (data && data.q ? String(data.q).trim() : "").slice(0, 100);
-  if (!q) {
-    throw new functions.https.HttpsError(
-      "invalid-argument",
-      "A non-empty search query is required.",
-    );
-  }
+  const uid = context.auth.uid;
+  const db = admin.firestore();
+  const userRef = db.collection("Users").doc(uid);
 
   try {
-    const url = `${TREFLE_BASE_URL}/species/search?token=${encodeURIComponent(
-      TREFLE_API_KEY,
-    )}&q=${encodeURIComponent(q)}&limit=20`;
-    const response = await fetch(url);
+    const userPlants = await userRef.collection("UserPlants").get();
+    const writer = db.bulkWriter();
+    userPlants.forEach((plantDoc) => {
+      writer.create(
+        db.collection("AnonymousPlants").doc(),
+        {
+          ...anonymiseUserPlant(plantDoc.data()),
+          anonymisedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+      );
+    });
+    await writer.close();
 
-    if (response.status === 401) {
-      throw new functions.https.HttpsError(
-        "internal",
-        "Invalid Trefle API token.",
-      );
-    }
-    if (response.status === 429) {
-      throw new functions.https.HttpsError(
-        "resource-exhausted",
-        "Trefle API rate limit reached.",
-      );
-    }
-    if (!response.ok) {
-      throw new functions.https.HttpsError(
-        "internal",
-        `Trefle API request failed with status ${response.status}.`,
-      );
+    await db.recursiveDelete(userRef);
+
+    try {
+      await admin.auth().deleteUser(uid);
+    } catch (error) {
+      if (error.code !== "auth/user-not-found") {
+        throw error;
+      }
     }
 
-    const payload = await response.json();
-    const dataList = payload && Array.isArray(payload.data) ? payload.data : [];
-    return { plants: dataList.map(mapTreflePlantToIPlant) };
+    return { deleted: true };
   } catch (error) {
-    if (error instanceof functions.https.HttpsError) {
-      throw error;
-    }
-    functions.logger.error("searchPlants failed", error);
-    throw new functions.https.HttpsError("internal", "Search failed.");
+    functions.logger.error("deleteAccount failed", { uid, error });
+    throw new functions.https.HttpsError(
+      "internal",
+      "Account deletion failed. Please try again.",
+    );
   }
 });

@@ -32,6 +32,8 @@ export interface AuthContextType {
   update: (props: { displayName: string }) => Promise<void>;
   resetPassword: (props: { email: string }) => Promise<void>;
   deleteAccount: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
 }
 
 export const defaultAuthContext: AuthContextType = {
@@ -44,4 +46,6 @@ export const defaultAuthContext: AuthContextType = {
   update: async () => {},
   resetPassword: async () => {},
   deleteAccount: async () => {},
+  signInWithGoogle: async () => {},
+  signInWithApple: async () => {},
 };

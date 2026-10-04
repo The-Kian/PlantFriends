@@ -12,7 +12,6 @@ module.exports = {
     "^@/(.*)$": "<rootDir>/src/$1",
     "^@assets/(.*)$": "<rootDir>/assets/$1",
     "^@mocks/(.*)$": "<rootDir>/__mocks__/$1",
-    "^@env$": "<rootDir>/__mocks__/@env.js",
     "^react-native-reanimated$": "<rootDir>/__mocks__/react-native-reanimated.js",
     "^react-native-worklets$": "<rootDir>/__mocks__/react-native-worklets.js",
     "^@expo/vector-icons$": "<rootDir>/__mocks__/@expo-vector-icons.js",
