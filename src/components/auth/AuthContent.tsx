@@ -8,6 +8,7 @@ import { AuthProps, CredentialsType } from "@/context/auth/AuthTypes";
 import validateCredentials from "@/helpers/auth/validateCredentials";
 
 import AuthForm from "./AuthForm";
+import SocialSignInButtons from "./SocialSignInButtons";
 import ThemedButton from "../ui/Buttons/ThemedButton";
 
 function AuthContent({ authScreenType, onSubmit }: AuthProps) {
@@ -34,6 +35,7 @@ function AuthContent({ authScreenType, onSubmit }: AuthProps) {
   return (
     <ThemedView testID={"AuthContent-View"}>
       <AuthForm onSubmit={submitHandler} authScreenType={authScreenType} />
+      {authScreenType !== "update" && <SocialSignInButtons />}
       <ThemedView>
         {authScreenType !== "update" && (
           <ThemedButton

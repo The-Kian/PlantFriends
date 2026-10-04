@@ -5,8 +5,17 @@ import { Text } from "react-native";
 import { AuthContext } from "../AuthProvider";
 
 const AuthTestComponent = () => {
-  const { initializing, user, login, register, update, logout } =
-    useContext(AuthContext);
+  const {
+    initializing,
+    user,
+    login,
+    register,
+    update,
+    logout,
+    deleteAccount,
+    signInWithGoogle,
+    signInWithApple,
+  } = useContext(AuthContext);
 
   return (
     <>
@@ -33,6 +42,15 @@ const AuthTestComponent = () => {
       </Text>
       <Text testID="logout" onPress={() => logout()}>
         Logout
+      </Text>
+      <Text testID="deleteAccount" onPress={() => deleteAccount()}>
+        Delete account
+      </Text>
+      <Text testID="signInWithGoogle" onPress={() => signInWithGoogle()}>
+        Google
+      </Text>
+      <Text testID="signInWithApple" onPress={() => signInWithApple()}>
+        Apple
       </Text>
     </>
   );

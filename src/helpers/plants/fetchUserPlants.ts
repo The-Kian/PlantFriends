@@ -1,4 +1,5 @@
 import {
+  FirebaseFirestoreTypes,
   collection,
   doc,
   getDocs,
@@ -14,7 +15,9 @@ async function fetchUserPlants(userId: string): Promise<IUserPlant[]> {
   const snapshot = await getDocs(userPlantsRef);
 
   if (!snapshot.empty) {
-    return snapshot.docs.map((doc) => doc.data() as IUserPlant);
+    return snapshot.docs.map(
+      (doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => doc.data() as IUserPlant,
+    );
   }
   return [];
 }

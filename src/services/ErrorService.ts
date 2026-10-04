@@ -1,5 +1,7 @@
 import { Alert } from "react-native";
 
+import { recordHandledError } from "./CrashReporting";
+
 export type ErrorSeverity = "error" | "warning" | "info";
 
 interface ErrorConfig {
@@ -79,7 +81,7 @@ class ErrorService {
     const finalConfig = { ...config, ...customConfig };
 
     // Log technical details for debugging
-    console.error(`[${context || "Error"}] ${errorCode}:`, error);
+    this.logError(error, errorCode, context);
 
     // Show user-friendly alert
     this.showAlert(finalConfig, context);
@@ -95,7 +97,7 @@ class ErrorService {
     const errorCode = this.extractErrorCode(error);
     const config = this.errorMap[errorCode] || this.getDefaultConfig();
 
-    console.error(`[${context || "Error"}] ${errorCode}:`, error);
+    this.logError(error, errorCode, context);
     this.showAlert(config, context);
 
     return { success: false, error: config };
@@ -116,7 +118,7 @@ class ErrorService {
       const errorCode = this.extractErrorCode(error);
       const config = this.errorMap[errorCode] || this.getDefaultConfig();
 
-      console.error(`[${context}] ${errorCode}:`, error);
+      this.logError(error, errorCode, context);
       this.showAlert(config, context);
 
       if (onError) {
@@ -125,6 +127,18 @@ class ErrorService {
 
       return { success: false, error: config };
     }
+  }
+
+  /**
+   * Log to the console and send to crash reporting
+   */
+  private static logError(
+    error: unknown,
+    errorCode: string,
+    context?: string,
+  ): void {
+    console.error(`[${context || "Error"}] ${errorCode}:`, error);
+    recordHandledError(error, context);
   }
 
   /**

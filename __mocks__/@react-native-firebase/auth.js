@@ -10,6 +10,13 @@ const mockAuthModule = {
       user: mockUser,
     }),
   ),
+  signInWithCredential: jest.fn(() =>
+    Promise.resolve({
+      user: { ...mockUser, updateProfile: jest.fn(() => Promise.resolve()) },
+      additionalUserInfo: { isNewUser: true },
+    }),
+  ),
+  revokeToken: jest.fn(() => Promise.resolve()),
   signOut: jest.fn(() => Promise.resolve()),
   onAuthStateChanged: jest.fn((callback) => {
     // Delay callback to simulate asynchronous behavior.
@@ -24,4 +31,16 @@ const mockAuthModule = {
   }),
 };
 
-export default jest.fn(() => mockAuthModule);
+const auth = jest.fn(() => mockAuthModule);
+auth.GoogleAuthProvider = {
+  credential: jest.fn((idToken) => ({ providerId: "google.com", token: idToken })),
+};
+auth.AppleAuthProvider = {
+  credential: jest.fn((idToken, nonce) => ({
+    providerId: "apple.com",
+    token: idToken,
+    secret: nonce,
+  })),
+};
+
+export default auth;

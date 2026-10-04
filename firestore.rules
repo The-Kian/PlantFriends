@@ -26,5 +26,11 @@ service cloud.firestore {
           || request.resource.data.scientific_name is list && request.resource.data.scientific_name.size() > 0);
       allow update, delete: if false;
     }
+
+    // Anonymised plants kept after account deletion. Written only by the
+    // deleteAccount Cloud Function (Admin SDK); no client access.
+    match /AnonymousPlants/{plantId} {
+      allow read, write: if false;
+    }
   }
 }

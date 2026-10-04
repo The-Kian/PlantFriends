@@ -8,9 +8,6 @@ import "@testing-library/react-native/extend-expect";
 // include this line for mocking react-native-gesture-handler
 import "react-native-gesture-handler/jestSetup";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require("dotenv").config(); // load .env into process.env
-
 jest.mock("@/components/ui/Text/ThemedText", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Text } = require("react-native");
@@ -41,6 +38,7 @@ jest.mock("expo-notifications", () => ({
   requestPermissionsAsync: jest.fn(async () => ({ status: "granted" })),
   scheduleNotificationAsync: jest.fn(async () => "notification-id"),
   cancelScheduledNotificationAsync: jest.fn(async () => {}),
+  cancelAllScheduledNotificationsAsync: jest.fn(async () => {}),
   SchedulableTriggerInputTypes: {
     DATE: "date",
     TIME_INTERVAL: "timeInterval",
