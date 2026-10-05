@@ -21,6 +21,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      },
       "pnpm": "9.15.4",
       "corepack": true
     }
