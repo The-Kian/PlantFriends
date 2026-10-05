@@ -6,7 +6,10 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "28232372332-pf71dsd56lvgqbtmr4cgcba6e35m5mts.apps.googleusercontent.com"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -16,7 +19,8 @@
       "pnpm": "9.15.4",
       "corepack": true,
       "env": {
-        "EXPO_PUBLIC_SHOW_CRASH_ALERT": "true"
+        "EXPO_PUBLIC_SHOW_CRASH_ALERT": "true",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "28232372332-pf71dsd56lvgqbtmr4cgcba6e35m5mts.apps.googleusercontent.com"
       }
     },
     "production": {
@@ -25,7 +29,10 @@
         "buildType": "apk"
       },
       "pnpm": "9.15.4",
-      "corepack": true
+      "corepack": true,
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "28232372332-pf71dsd56lvgqbtmr4cgcba6e35m5mts.apps.googleusercontent.com"
+      }
     }
   },
   "submit": {
