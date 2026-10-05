@@ -25,10 +25,9 @@ Decisions made so far:
 - **Leaving:** when a member deletes their account, the household keeps its
   plants. Plants only they looked after become shared with whoever is left.
 
-**Status:** implemented. Steps 1–8 below are done; step 9 (two real phones) is
-still to do. Before it works on devices: upload APNs and FCM credentials to
-EAS, deploy the rules, index and functions, and enable Cloud Scheduler (see
-`functions/README.md`).
+**Status:** the code for every phase is in PR #59. What's left is the setup
+and device testing in each phase below. Work through the phases in order.
+See **Phases**.
 
 ## Data model
 
@@ -87,7 +86,7 @@ the next reminder (see 2).
   `notificationPrefs.housemateActivity`.
 - Your own plant, watered by a housemate:
   **"Sam watered your Monstera 💧"** / "No need to water it. Next due Thu."
-- A shared plant: **"Sam watered the Monstera 💧"** / "It's sorted for this week."
+- A shared plant: **"Sam watered the Monstera 💧"** / "No need to water it. Next due Thu."
 - Nothing is sent when you water a plant only you look after, or when the
   change is an edit rather than a watering (`last_watered_date` unchanged).
 - Tapping it opens the plant (`data: { plantId, householdId }`, handled with
@@ -142,8 +141,7 @@ so the stale "needs watering" banner disappears from the notification centre.
   preferences, and sends to `https://exp.host/--/api/v2/push/send` in batches of up to 100.
 - It reads the push receipts and deletes `Devices` docs that return
   `DeviceNotRegistered`.
-- It's a pure function of (recipients, prefs, plant), so it can be unit tested
-  like `anonymise.js`.
+- Firestore and `fetch` are passed in, so it's unit tested with fakes.
 
 ### Client side
 
@@ -178,69 +176,19 @@ The UI for this can come later. Swapping it for an invite code would only add a
 
 ## Firestore rules
 
-```
-function memberIds(hid) {
-  return get(/databases/$(database)/documents/Households/$(hid)).data.memberIds;
-}
+The rules are in `firestore.rules`. In short:
 
-function isMember(hid) {
-  return request.auth != null
-    && request.auth.uid in get(/databases/$(database)/documents/Households/$(hid)).data.memberIds;
-}
-
-match /Households/{hid} {
-  allow read: if isMember(hid);
-  // Creating your own solo household is allowed; membership changes are admin-only for now.
-  allow create: if request.auth != null
-    && request.resource.data.memberIds == [request.auth.uid];
-  allow update: if isMember(hid)
-    && request.resource.data.memberIds == resource.data.memberIds;   // can rename, can't add people
-  allow delete: if false;
-
-  match /Plants/{plantId} {
-    allow read: if isMember(hid);
-    allow create: if isMember(hid)
-      && request.resource.data.addedBy == request.auth.uid
-      && memberIds(hid).hasAll(request.resource.data.carerIds);
-    // notify_at, notify_stage and addedBy are server-only after creation.
-    allow update: if isMember(hid)
-      && !request.resource.data.diff(resource.data).affectedKeys()
-           .hasAny(['notify_at', 'notify_stage', 'addedBy'])
-      && memberIds(hid).hasAll(request.resource.data.carerIds);
-    allow delete: if isMember(hid);
-  }
-}
-
-match /Users/{uid}/Devices/{deviceId} {
-  allow read, write: if request.auth != null && request.auth.uid == uid;
-}
-```
+- **Households:** members can read and rename one. Anyone can create a
+  household whose ID is their own uid, with only themselves as a member.
+  Nobody can add or remove members from the app, and nobody can delete one.
+- **Plants:** members can read, add, edit and delete. A new plant must be
+  added by you, and every carer must be a member. `addedBy`, `notify_at` and
+  `notify_stage` can't be changed from the app.
+- **Devices:** you can only read and write your own.
 
 Create, update and delete are separate rules on purpose. Rules that allow a
 write are OR'd together, so a blanket `allow write` would cancel the update
-restriction.
-
-`Users/{uid}.householdId` can't be pointed at a household the user isn't in,
-because every read and write still goes through `isMember`. Cloud Functions use
-the Admin SDK, so they bypass the rules.
-
-## Client changes
-
-| Area | Change |
-| --- | --- |
-| `helpers/firebase/*UserPlant*`, `fetchUserPlants`, `getUserPlantData` | Change the path from `Users/{uid}/UserPlants` to `Households/{hid}/Plants`. Pass in `householdId` instead of `user.uid`. |
-| New `context/household/HouseholdProvider` | Loads `Users/{uid}.householdId`, subscribes to the household doc, and creates a solo household if there's none. Exposes `{ household, members }`. |
-| `hooks/plants/useUserPlants` | Swap the one-off `getDocs` for `onSnapshot` on the household's plants, dispatching `setUserPlants` on each change, so the list updates live. |
-| New `helpers/firebase/logWatering.ts` | `updateDoc` with only `last_watered_date`, `next_watering_date`, `last_watered_by` and `last_watered_by_name`. |
-| `screens/PlantDetails` `handleLogWatering` | Call `logWatering()` instead of spreading the local plant into `saveUserPlantToFirebase`. That function does a full `setDoc`, which would overwrite a housemate's edit made at the same time, and would be rejected by the rules once the doc has server-only fields. |
-| `saveUserPlantToFirebase` | Stop writing `userId: user.uid` on every save. Today, saving someone else's plant would make it yours. Set `addedBy`, `userId` and `carerIds` only on create. |
-| `getUserPlantData` | Add `where("addedBy", "==", uid)`. It currently matches by species (`plantId`), so it could return a housemate's plant of the same species. |
-| Add plant / `PlantDetails` | Add a "Shared with the household" toggle, which sets `shared` and `carerIds`. |
-| `services/NotificationService` | Switch to push: register tokens, handle taps, dismiss stale reminders. Remove local scheduling. |
-| New `functions/push.js`, `onPlantWritten`, `sendWateringReminders` | See **Notifications**. |
-| `dev/seedFakePlants.ts` | Seed into the household path. |
-| `functions/index.js` `deleteAccount` | Delete the user's `Devices`. If they're the only member, anonymise their plants and delete the household. Otherwise, remove them from `memberIds`/`members` and from every plant's `carerIds`, hand plants only they looked after to the others as shared plants, and clear their uid and name from `addedBy` and `last_watered_by`. |
-| Profile | Add notification toggles: "Watering reminders" and "When a housemate waters my plants". |
+restriction. Cloud Functions use the Admin SDK, so they bypass the rules.
 
 ## UI hooks already in place (from the redesign)
 
@@ -277,17 +225,117 @@ and data.
   doing soon after, once people have more than a handful of plants.
 - Offline fallback reminders. If the device can't reach the server, there's no push.
 
-## Rough order of work
+## Phases
 
-1. Rules and the `HouseholdProvider` that creates solo households and runs the migration
-2. Point the persistence helpers at the household path; switch to `onSnapshot`
-3. Record `last_watered_by`, add `carerIds`/`shared` and the share toggle, and show who watered on the card, details screen and Home
-4. Push plumbing: EAS credentials, token registration, `functions/push.js` with tests
-5. `onPlantWritten`, the "already watered" push. **This is the USP, so ship and test it first.**
-6. `sendWateringReminders` with quiet hours and the nudge; remove local scheduling
-7. Profile: Household card and notification toggles
-8. Update `deleteAccount` for shared households and devices
-9. Test with two accounts on two physical devices, linked by hand in the console:
-   - A waters B's plant → B gets "already watered", A gets nothing
-   - A shared plant falls due → both get it; A waters → B gets "done", no nudge the next day
-   - A due time overnight → the reminder arrives at 08:00
+Each phase can ship on its own, and the app keeps working after every one. Do
+them in order. Every phase lists the code, what you do yourself, how to check
+it, and when it's done.
+
+To link two accounts by hand (needed from phase 2), see **Joining a
+household** above.
+
+### Phase 1: Households underneath
+
+Plants move into a household. Nothing looks different yet, except that Home
+shows the household name.
+
+- **Code:** `HouseholdProvider`, `setupHousehold.ts` (the solo household and
+  the migration), `householdPaths.ts`, and household paths in the save,
+  remove and lookup helpers. Home and My Plants use the live listener.
+  `firestore.rules`.
+- **You do:**
+  1. `firebase deploy --only firestore:rules`
+  2. Install a build on your phone and open the app.
+- **Check:**
+  - In the console, `Households/{your uid}` exists and its `Plants` hold your plants.
+  - `Users/{your uid}` has `householdId` and `plantsMigratedAt`.
+  - Adding and deleting a plant still works.
+- **Done when:** your existing plants show up and nothing else has changed.
+
+### Phase 2: See who watered
+
+Two accounts share one household, and each can see who watered what.
+
+- **Code:** `logWatering()` (writes only the watering fields), the
+  ownership fixes in `saveUserPlantToFirebase` and `getUserPlantData`, "by
+  Sam" on the card and details screen, Shared and "Sam's" badges, and the
+  "Shared with the household" switch (`setPlantSharing`, `SwitchField`).
+- **You do:**
+  1. Sign up a second account on another phone, or ask your housemate.
+  2. Link it to your household in the console.
+- **Check:**
+  - Their app shows your plants without signing out.
+  - Water one of your plants on their phone. Yours shows "Watered today by
+    Sam" within a few seconds, and the plant is still yours.
+  - Share a plant, and its Shared badge appears on both phones.
+- **Done when:** both phones show the same plants and who watered each one.
+
+### Phase 3: Push plumbing
+
+Phones can receive pushes. Nothing sends real ones yet.
+
+- **Code:** `PushRegistration.ts` (token stored in `Users/{uid}/Devices`;
+  permission asked after adding or watering a plant; removed on sign-out),
+  notification taps open the plant (`App.tsx`), and `functions/push.js`.
+- **You do:**
+  1. `eas credentials`: upload an APNs key (iOS) and an FCM V1 service
+     account key (Android).
+  2. Make a new build. Push needs a real device.
+- **Check:**
+  - After you water a plant and allow notifications, a doc appears under
+    `Users/{uid}/Devices`.
+  - Send a test push to that token from expo.dev/notifications, with data
+    `{ "plantId": "<a plant id>" }`. It arrives, and tapping it opens the plant.
+  - Signing out removes the device doc.
+- **Done when:** a test push reaches both phones and opens the right plant.
+
+### Phase 4: "Already watered" (the selling point)
+
+- **Code:** the watering half of `onPlantWritten`, `wateredMessages` in
+  `plantMessages.js`, and the "When a housemate waters my plants" switch on
+  Profile.
+- **You do:** `firebase deploy --only functions:onPlantWritten`
+- **Check:**
+  - A waters B's plant: B gets "A watered your Monstera 💧 No need to water
+    it. Next due …". A gets nothing.
+  - A waters a shared plant: B gets "A watered the Monstera 💧".
+  - A waters a plant only A looks after: nobody is notified.
+  - B turns the switch off, and A's next watering sends B nothing.
+- **Done when:** all four behave as above on two phones.
+
+### Phase 5: Reminders from the server
+
+Reminders move off the phone, so they know about a housemate's watering.
+
+- **Code:** reminder planning in `onPlantWritten` (`notify_at` /
+  `notify_stage`), `sendWateringReminders`, quiet hours (`notifyAt.js`), the
+  `notify_at` index, clearing stale reminders from the tray, and the
+  "Watering reminders" switch. Removes on-device reminder scheduling, and
+  cancels old local reminders once.
+- **You do:**
+  1. Turn on the Cloud Scheduler API for the Firebase project (Blaze plan).
+  2. `firebase deploy --only firestore:indexes`, then
+     `firebase deploy --only functions`.
+- **Check:**
+  - In the console, set a shared plant's `next_watering_date` to a few
+    minutes from now (daytime). Within 15 minutes of that time, both phones
+    get "The Monstera needs watering". One of you waters it, the other gets
+    "watered", the reminder disappears from their tray, and there's no
+    nudge the next day.
+  - Leave one unwatered. One "still thirsty" nudge comes a day later, then
+    nothing more.
+  - A due time of 02:30 gives a `notify_at` of 08:00 in the household's time zone.
+- **Done when:** reminders arrive once, at sensible hours, and stop when
+  someone waters the plant.
+
+### Phase 6: Profile and leaving
+
+- **Code:** the Household card on Profile (name, members, and a shareable
+  household ID), and `deleteAccount` for shared households.
+- **You do:** `firebase deploy --only functions:deleteAccount`
+- **Check:**
+  - Profile shows the household and both members.
+  - Delete the second account. You stay in the household with every plant.
+    Plants only they looked after are now shared with you, and their name is
+    gone from "watered by".
+- **Done when:** a housemate can leave without losing any plants.
