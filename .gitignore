@@ -78,3 +78,7 @@ expo-env.d.ts
 
 # Store credentials (e.g. Play service account key for eas submit)
 secrets/
+
+# Firebase CLI
+.firebase/
+firebase-debug.log
