@@ -13,10 +13,6 @@ jest.mock("@react-navigation/native", () => {
     useNavigation: () => ({ navigate: jest.fn() }),
   };
 });
-jest.mock("@/hooks/plants/useUserPlants", () => ({
-  __esModule: true,
-  default: () => ({ getPlants: jest.fn(async () => []) }),
-}));
 
 describe("HomeScreen", () => {
   const renderHome = () => renderWithProviders(<HomeScreen />);
@@ -25,6 +21,12 @@ describe("HomeScreen", () => {
     renderHome();
 
     expect(screen.getByText("Plant Friends!")).toBeTruthy();
+  });
+
+  it("shows the household name", () => {
+    renderHome();
+
+    expect(screen.getByText("The Flat")).toBeTruthy();
   });
 
   it("shows the all-caught-up state when nothing needs water", () => {

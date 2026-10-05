@@ -5,19 +5,17 @@ import uuid from "react-native-uuid";
 
 import { IPlant, IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 import getUserPlantData from "@/helpers/firebase/getUserPlantData";
 import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import ErrorService from "@/services/ErrorService";
-import {
-  cancelWateringReminder,
-  requestNotificationPermissions,
-  scheduleWateringReminder,
-} from "@/services/NotificationService";
+import { registerForPush } from "@/services/PushRegistration";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
+  const { household } = useHousehold();
   const dispatch = useDispatch();
 
   // Selection / fetched user plant
@@ -28,12 +26,16 @@ export const usePlantManagement = () => {
     usePlantCustomizations();
 
   const { persistSavePlant, persistDeletePlant, persistUpdatePlant } =
-    usePlantPersistence(user);
+    usePlantPersistence(user, household);
 
   const handleSelectPlant = async (plant: IPlant) => {
     setSelectedPlant(plant);
-    if (user) {
-      const userPlantData = await getUserPlantData(user.uid, plant.id);
+    if (user && household) {
+      const userPlantData = await getUserPlantData(
+        household.id,
+        user.uid,
+        plant.id,
+      );
       setUserPlant(userPlantData || null);
     }
   };
@@ -67,13 +69,10 @@ export const usePlantManagement = () => {
         dispatch(addPlant(savedPlant));
         setUserPlant(savedPlant);
         setSelectedPlant(null);
-        // Schedule a watering reminder if one was set during customization
-        // (asks for permission if needed).
-        if (savedPlant.next_watering_date) {
-          const granted = await requestNotificationPermissions();
-          if (granted) {
-            await scheduleWateringReminder(savedPlant);
-          }
+        // A good moment to ask for notifications: reminders for this plant,
+        // and hearing when a housemate waters it.
+        if (user) {
+          await registerForPush(user.uid, { prompt: true });
         }
         return true;
       }
@@ -98,9 +97,6 @@ export const usePlantManagement = () => {
         ErrorService.handleError("Failed to remove plant from firebase", "Delete Plant");
         return false;
       }
-
-      // Cancel any scheduled watering reminder for this plant.
-      await cancelWateringReminder(plant.id);
 
       return true;
     } catch (error) {

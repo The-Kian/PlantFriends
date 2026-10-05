@@ -6,9 +6,60 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // User plants: nested under each user; only the owner may read or write.
+    // Devices registered for push notifications. The doc ID is the Expo push
+    // token. Cloud Functions read these to send pushes.
+    match /Users/{uid}/Devices/{token} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // User plants from older builds, before households. Kept for one release
+    // so the app can migrate them; remove once nobody runs an old build.
     match /Users/{uid}/UserPlants/{userPlantId} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Households: housemates who share one set of plants.
+    // See docs/household-sharing-plan.md.
+    function householdMemberIds(hid) {
+      return get(/databases/$(database)/documents/Households/$(hid)).data.memberIds;
+    }
+
+    function isMember(hid) {
+      return request.auth != null && request.auth.uid in householdMemberIds(hid);
+    }
+
+    match /Households/{hid} {
+      // A user may check whether their own household exists yet; its ID is their uid.
+      allow read: if (request.auth != null && hid == request.auth.uid && resource == null)
+        || isMember(hid);
+      // Anyone can create a household of their own. Adding members is admin-only for now.
+      allow create: if request.auth != null
+        && hid == request.auth.uid
+        && request.resource.data.memberIds == [request.auth.uid]
+        && request.resource.data.createdBy == request.auth.uid;
+      // Members can rename it, but not add or remove people.
+      allow update: if isMember(hid)
+        && request.resource.data.memberIds == resource.data.memberIds
+        && request.resource.data.members.keys().hasOnly(resource.data.members.keys())
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['name', 'members', 'timeZone']);
+      allow delete: if false;
+
+      // Create, update and delete are separate on purpose: rules that allow a
+      // write are OR'd, so a blanket `allow write` would cancel these checks.
+      match /Plants/{plantId} {
+        allow read: if isMember(hid);
+        allow create: if isMember(hid)
+          && request.resource.data.addedBy == request.auth.uid
+          && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
+          && !request.resource.data.keys().hasAny(['notify_at', 'notify_stage']);
+        // notify_at and notify_stage are set by Cloud Functions; addedBy never changes.
+        allow update: if isMember(hid)
+          && !request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(['notify_at', 'notify_stage', 'addedBy'])
+          && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []));
+        allow delete: if isMember(hid);
+      }
     }
 
     // Base plants: shared catalog. Any authenticated user can read and

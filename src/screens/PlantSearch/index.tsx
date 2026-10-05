@@ -15,9 +15,11 @@ import ScreenHeader from "@/components/ui/Views/ScreenHeader";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 import { useTheme } from "@/hooks/utils/useTheme";
+import { registerForPush } from "@/services/PushRegistration";
 import { Spacing } from "@/theme/Spacing";
 
 import styles from "./index.styles";
@@ -32,6 +34,7 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
   const { plants, loading, error } = useCombinedPlantSearch(searchQuery);
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
   const { user } = useContext(AuthContext);
+  const { household } = useHousehold();
   const [userPlant, setUserPlant] = useState<IUserPlant | null>(null);
   const [isAddingNewPlant, setIsAddingNewPlant] = useState(false);
   const { colors } = useTheme();
@@ -71,10 +74,17 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
     if (isAddingNewPlant) {
       userData.plantId = plantData.id;
     }
-    await savePlantToFirebase(userData, plantData, user);
+    // The household's live listener adds the plant to the list.
+    const saved = await savePlantToFirebase(userData, plantData, user, household);
 
     closeModal();
     navigation.navigate("Tab");
+
+    // A good moment to ask for notifications: reminders for this plant, and
+    // hearing when a housemate waters it.
+    if (saved && user) {
+      await registerForPush(user.uid, { prompt: true });
+    }
   };
 
   return (

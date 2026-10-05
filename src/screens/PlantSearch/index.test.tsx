@@ -15,6 +15,7 @@ import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockHousehold } from "@/test-utils/MockHousehold";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
@@ -79,6 +80,9 @@ jest.mock("@/components/plant/CustomizationModal", () => {
 // Mock helper functions and hooks
 jest.mock("@/hooks/search/useCombinedPlantSearch");
 jest.mock("@/helpers/firebase/savePlantToFirebase");
+jest.mock("@/services/PushRegistration", () => ({
+  registerForPush: jest.fn(async () => null),
+}));
 jest.mock("react-native-uuid", () => ({ v4: () => "mock-uuid-123" }));
 
 // --- Test Suite ---
@@ -170,6 +174,7 @@ describe("PlantSearchScreen", () => {
         expect.objectContaining({ plantId: mockPlant.id, id: "mock-uuid-123" }),
         mockPlant,
         mockUser,
+        mockHousehold,
       );
     });
     expect(screen.getByText("You are on the Tab screen")).toBeVisible();
@@ -189,6 +194,7 @@ describe("PlantSearchScreen", () => {
         expect.objectContaining({ plantId: mockPlant.id }),
         mockPlant,
         mockUser,
+        mockHousehold,
       );
     });
     expect(screen.getByText("You are on the Tab screen")).toBeVisible();

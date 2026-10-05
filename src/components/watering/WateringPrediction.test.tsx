@@ -2,7 +2,7 @@ import React from 'react';
 
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
-import { WateringPrediction } from './WateringPrediction';
+import { formatLastWatered, WateringPrediction } from './WateringPrediction';
 
 // Themed components are mocked in jest/setup.js
 
@@ -69,5 +69,20 @@ describe('WateringPrediction', () => {
     );
 
     expect(screen.getByText(/Overdue by 3 days/)).toBeTruthy();
+  });
+});
+
+describe("formatLastWatered", () => {
+  const now = new Date("2026-10-05T12:00:00Z").getTime();
+  const day = 24 * 60 * 60 * 1000;
+
+  it("says who watered it when given a name", () => {
+    expect(formatLastWatered(now - 2 * day, now, "Sam")).toBe("Watered 2 days ago by Sam");
+    expect(formatLastWatered(now, now, "Sam")).toBe("Watered today by Sam");
+  });
+
+  it("leaves the name off otherwise", () => {
+    expect(formatLastWatered(now - day, now)).toBe("Watered yesterday");
+    expect(formatLastWatered(null, now, "Sam")).toBe("Not watered yet");
   });
 });

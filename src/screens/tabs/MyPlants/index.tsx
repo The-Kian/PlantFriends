@@ -1,5 +1,4 @@
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 import { StyleSheet, View } from "react-native";
@@ -14,8 +13,8 @@ import { Collapsible } from "@/components/ui/Views/Collapsible";
 import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
 import ScreenScrollView from "@/components/ui/Views/ScreenScrollView";
 import { IUserPlant } from "@/constants/IPlant";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
-import useUserPlants from "@/hooks/plants/useUserPlants";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { RootState } from "@/store/store";
 import { Spacing } from "@/theme/Spacing";
@@ -42,34 +41,9 @@ export default function MyPlantsScreen() {
   const { colors, radius } = useTheme();
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
-  const { getPlants } = useUserPlants();
+  // Plants stay up to date through the household's live listener.
+  const { loading, error } = useHousehold();
   const { handleDeletePlant } = usePlantManagement();
-
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        await getPlants();
-      } catch {
-        if (active) {
-          setError("Failed to load your plants. Please try again.");
-        }
-      } finally {
-        if (active) {
-          setLoading(false);
-        }
-      }
-    };
-    load();
-    return () => {
-      active = false;
-    };
-  }, [getPlants]);
 
   const navigateToPlantSearch = () => {
     navigation.navigate("PlantSearch");

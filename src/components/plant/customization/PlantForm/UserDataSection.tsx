@@ -4,8 +4,10 @@ import { View } from "react-native";
 
 import DatePickerField from "@/components/ui/Input/DatePickerField";
 import PickerField from "@/components/ui/Input/PickerField";
+import SwitchField from "@/components/ui/Input/SwitchField";
 import TextInputField from "@/components/ui/Input/TextInputField";
 import { IUserPlant } from "@/constants/IPlant";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 
 interface UserDataSectionProps {
   userData: IUserPlant;
@@ -19,6 +21,9 @@ const UserDataSection = ({
   userData,
   onUserDataChange,
 }: UserDataSectionProps) => {
+  const { household } = useHousehold();
+  const hasHousemates = (household?.memberIds.length ?? 0) > 1;
+
   // Map human-readable schedule labels to numeric days (or null for as-needed)
   const scheduleOptions: { label: string; days: number | null }[] = [
     { label: "Daily", days: 1 },
@@ -80,6 +85,14 @@ const UserDataSection = ({
         options={scheduleLabels}
         placeholder="Select a watering schedule"
       />
+      {hasHousemates && (
+        <SwitchField
+        label="Shared with the household"
+        description="Everyone gets its reminders, and hears when someone waters it."
+        value={userData?.shared ?? false}
+        onValueChange={(shared) => onUserDataChange("shared", shared)}
+        />
+      )}
     </View>
   );
 };

@@ -1,5 +1,6 @@
 import ErrorService from "@/services/ErrorService";
 import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockHousehold } from "@/test-utils/MockHousehold";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
 import savePlantToFirebase from "./savePlantToFirebase";
@@ -18,7 +19,7 @@ describe("savePlantToFirebase", () => {
   });
 
   it("returns null and reports unauthenticated saves without writing", async () => {
-    const result = await savePlantToFirebase(mockUserPlant, mockPlant, null);
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, null, mockHousehold);
 
     expect(result).toBeNull();
     expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
@@ -29,10 +30,18 @@ describe("savePlantToFirebase", () => {
     expect(saveUserPlantToFirebase).not.toHaveBeenCalled();
   });
 
+  it("returns null without writing when the household hasn't loaded", async () => {
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser, null);
+
+    expect(result).toBeNull();
+    expect(saveBasePlantToFirebase).not.toHaveBeenCalled();
+    expect(saveUserPlantToFirebase).not.toHaveBeenCalled();
+  });
+
   it("returns null and skips the user write when the base write returns false", async () => {
     jest.mocked(saveBasePlantToFirebase).mockResolvedValue(false);
 
-    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser, mockHousehold);
 
     expect(result).toBeNull();
     expect(saveBasePlantToFirebase).toHaveBeenCalledWith(mockPlant, mockUser);
@@ -46,10 +55,10 @@ describe("savePlantToFirebase", () => {
   it("returns null rather than the plant when the user write returns false", async () => {
     jest.mocked(saveUserPlantToFirebase).mockResolvedValue(false);
 
-    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser, mockHousehold);
 
     expect(result).toBeNull();
-    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockUser);
+    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockUser, mockHousehold);
     expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
     expect(ErrorService.handleError).toHaveBeenCalledWith(
       "Failed to save user plant", "Save Plant",
@@ -61,7 +70,7 @@ describe("savePlantToFirebase", () => {
     const save = stage === "base" ? saveBasePlantToFirebase : saveUserPlantToFirebase;
     jest.mocked(save).mockRejectedValue(error);
 
-    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser, mockHousehold);
 
     expect(result).toBeNull();
     expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
@@ -70,11 +79,11 @@ describe("savePlantToFirebase", () => {
   });
 
   it("returns the plant only after both writes succeed", async () => {
-    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser);
+    const result = await savePlantToFirebase(mockUserPlant, mockPlant, mockUser, mockHousehold);
 
     expect(result).toBe(mockUserPlant);
     expect(saveBasePlantToFirebase).toHaveBeenCalledWith(mockPlant, mockUser);
-    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockUser);
+    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockUser, mockHousehold);
     expect(ErrorService.handleError).not.toHaveBeenCalled();
   });
 });

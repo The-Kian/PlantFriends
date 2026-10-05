@@ -6,6 +6,7 @@ import uuid from "react-native-uuid";
 import { act, renderHook } from "@testing-library/react-native";
 
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { HouseholdContext } from "@/context/household/HouseholdProvider";
 import getUserPlantData from "@/helpers/firebase/getUserPlantData";
 import removeUserPlantFromFirebase from "@/helpers/firebase/removeUserPlantFromFirebase";
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
@@ -14,6 +15,7 @@ import ErrorService from "@/services/ErrorService";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockHousehold, mockHouseholdContext } from "@/test-utils/MockHousehold";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
 import { usePlantManagement } from "./usePlantManagement";
@@ -23,6 +25,9 @@ jest.mock("@/helpers/firebase/getUserPlantData");
 jest.mock("@/helpers/firebase/removeUserPlantFromFirebase");
 jest.mock("@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase");
 jest.mock("@/services/ErrorService");
+jest.mock("@/services/PushRegistration", () => ({
+  registerForPush: () => Promise.resolve(null),
+}));
 
 describe("usePlantManagement", () => {
   const mockDispatch = jest.fn();
@@ -31,7 +36,10 @@ describe("usePlantManagement", () => {
       wrapper: ({ children }: React.PropsWithChildren) =>
         React.createElement(AuthContext.Provider, {
           value: { ...mockAuthContextValue, user },
-          children,
+          children: React.createElement(HouseholdContext.Provider, {
+            value: mockHouseholdContext(),
+            children,
+          }),
         }),
     });
 
@@ -55,7 +63,11 @@ describe("usePlantManagement", () => {
       await act(async () => {
         await result.current.handleSelectPlant(mockPlant);
       });
-      expect(getUserPlantData).toHaveBeenCalledWith(mockUser.uid, mockPlant.id);
+      expect(getUserPlantData).toHaveBeenCalledWith(
+        mockHousehold.id,
+        mockUser.uid,
+        mockPlant.id,
+      );
       expect(result.current.userPlant).toEqual(mockUserPlant);
       expect(result.current.selectedPlant).toEqual(mockPlant);
     });
@@ -111,7 +123,7 @@ describe("usePlantManagement", () => {
       await act(async () => {
         expect(await result.current.handleSavePlant(mockUserPlant, mockPlant)).toBe(true);
       });
-      expect(savePlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant, mockUser);
+      expect(savePlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant, mockUser, mockHousehold);
       expect(mockDispatch).toHaveBeenCalledWith(addPlant(savedPlant));
       expect(result.current.selectedPlant).toBeNull();
       expect(result.current.userPlant).toEqual(savedPlant);
@@ -163,7 +175,7 @@ describe("usePlantManagement", () => {
       await act(async () => {
         expect(await result.current.handleDeletePlant(mockUserPlant)).toBe(true);
       });
-      expect(removeUserPlantFromFirebase).toHaveBeenCalledWith(mockUserPlant.id, mockUser);
+      expect(removeUserPlantFromFirebase).toHaveBeenCalledWith(mockUserPlant.id, mockUser, mockHousehold.id);
       expect(mockDispatch).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith(deletePlant(mockUserPlant.id));
     });
@@ -213,7 +225,7 @@ describe("usePlantManagement", () => {
       act(() => {
         pendingUpdate = result.current.handleUpdatePlant(updatedPlant);
       });
-      expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser);
+      expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser, mockHousehold);
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(result.current.userPlant).toBeNull();
 
@@ -240,7 +252,7 @@ describe("usePlantManagement", () => {
       await act(async () => {
         expect(await result.current.handleUpdatePlant(updatedPlant)).toBe(false);
       });
-      expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser);
+      expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser, mockHousehold);
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(result.current.userPlant).toEqual(mockUserPlant);
       expect(ErrorService.handleError).toHaveBeenCalledTimes(1);

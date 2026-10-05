@@ -1,10 +1,4 @@
-import {
-  getFirestore,
-  collection,
-  doc,
-  query,
-  getDocs,
-} from "@react-native-firebase/firestore";
+import { getDocs, query } from "@react-native-firebase/firestore";
 
 import getUserPlantData from "./getUserPlantData";
 
@@ -12,36 +6,27 @@ describe("getUserPlantData", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  it("returns mock data if doc exists", async () => {
-    // Mock getDocs to return a non-empty snapshot
+
+  it("returns the plant if one exists", async () => {
     (getDocs as jest.Mock).mockResolvedValueOnce({
       empty: false,
-      docs: [
-        { data: () => ({ plantId: "testPlant", name: "Test Plant" }) },
-      ],
+      docs: [{ data: () => ({ plantId: "testPlant", name: "Test Plant" }) }],
     });
-    const result = await getUserPlantData("testUser", "testPlant");
+    const result = await getUserPlantData("household1", "user1", "testPlant");
     expect(result).toEqual({ plantId: "testPlant", name: "Test Plant" });
   });
 
-  it("returns undefined if doc does not exist", async () => {
-    (getDocs as jest.Mock).mockResolvedValueOnce({
-      empty: true,
-      docs: [],
-    });
+  it("only looks at plants this user added to the household", async () => {
+    (getDocs as jest.Mock).mockResolvedValueOnce({ empty: true, docs: [] });
 
-    const result = await getUserPlantData("testUser", "emptyCollectionPlant");
+    const result = await getUserPlantData("household1", "user1", "monstera");
     expect(result).toBeUndefined();
 
-    // Check that query and getDocs were called with correct arguments
-    const db = getFirestore();
-    const expectedCollection = collection(doc(collection(db, "Users"), "testUser"), "UserPlants");
-    // Find the call to query with expectedWhere for this test
-    const queryCalls = (query as jest.Mock).mock.calls;
-    // Compare key properties for structural equality
-    expect(queryCalls[0][0].path).toBe(expectedCollection.path);
-    expect(queryCalls[0][1]).toMatchObject({ field: "plantId", op: "==", val: "emptyCollectionPlant" });
-    // Assert that getDocs was called
-    expect(getDocs).toHaveBeenCalled();
+    const [collectionRef, ...constraints] = (query as jest.Mock).mock.calls[0];
+    expect(collectionRef._path).toMatch(/household1\/Plants$/);
+    expect(constraints).toEqual([
+      expect.objectContaining({ field: "plantId", op: "==", val: "monstera" }),
+      expect.objectContaining({ field: "addedBy", op: "==", val: "user1" }),
+    ]);
   });
 });

@@ -22,6 +22,13 @@ Decisions made so far:
   from on-device scheduling to the server. A local reminder can't know that a
   housemate already watered the plant, which is the exact case we're selling.
 - **Sync:** a live Firestore listener while the app is open.
+- **Leaving:** when a member deletes their account, the household keeps its
+  plants. Plants only they looked after become shared with whoever is left.
+
+**Status:** implemented. Steps 1–8 below are done; step 9 (two real phones) is
+still to do. Before it works on devices: upload APNs and FCM credentials to
+EAS, deploy the rules, index and functions, and enable Cloud Scheduler (see
+`functions/README.md`).
 
 ## Data model
 
@@ -72,7 +79,7 @@ All pushes go through the Expo push service. The project already has an EAS
 
 ### 1. "Already watered" (Firestore trigger)
 
-`onPlantWritten`: `onDocumentWritten("Households/{hid}/Plants/{pid}")`. It
+`onPlantWritten`: `functions.firestore.document("Households/{hid}/Plants/{pid}").onWrite`. It
 sends this push when `last_watered_date` changes. The same trigger also plans
 the next reminder (see 2).
 
@@ -92,7 +99,7 @@ Planning: whenever `next_watering_date` or `reminders_enabled` changes,
 `onPlantWritten` sets `notify_at` to the due time moved out of quiet hours, and
 sets `notify_stage: "due"`. If reminders are off, it sets both to null.
 
-`sendWateringReminders`: `onSchedule("every 15 minutes")`. It runs a
+`sendWateringReminders`: `functions.pubsub.schedule("every 15 minutes")`. It runs a
 collection-group query on `Plants` where `notify_at <= now`. That returns
 exactly the plants that need a push now, rather than every overdue plant.
 
@@ -155,13 +162,16 @@ so the stale "needs watering" banner disappears from the notification centre.
 
 1. On first sign-in, or the first load after this ships, the user gets a
    household of their own, `{ name: "<displayName>'s home", memberIds: [uid] }`,
-   and `Users/{uid}.householdId` is set.
+   and `Users/{uid}.householdId` is set. Its ID is the user's uid, so two
+   devices setting up at once can't create two households.
 2. To add a housemate, in the Firebase console or with a small admin script:
    - add their uid to `memberIds`, and add them to `members` on the target household
    - set their `Users/{uid}.householdId` to that household
    - add their uid to `carerIds` on every plant where `shared == true`
    - optionally move their old plants across (the migration script below can do this)
-3. Profile shows the household ID, with a copy button, so it's easy to find in the console.
+3. Profile shows the household ID (selectable, with a Share button), so it's easy to find in the console.
+4. The app follows `Users/{uid}.householdId` live, so the housemate's app
+   switches to the shared household without signing out.
 
 The UI for this can come later. Swapping it for an invite code would only add a
 `joinHousehold(code)` Cloud Function that does step 2. Nothing else in this plan changes.
@@ -229,7 +239,7 @@ the Admin SDK, so they bypass the rules.
 | `services/NotificationService` | Switch to push: register tokens, handle taps, dismiss stale reminders. Remove local scheduling. |
 | New `functions/push.js`, `onPlantWritten`, `sendWateringReminders` | See **Notifications**. |
 | `dev/seedFakePlants.ts` | Seed into the household path. |
-| `functions/index.js` `deleteAccount` | Delete the user's `Devices`. Anonymise and delete only plants where `addedBy == uid` *and* the user is the only member. Otherwise, remove the user from `memberIds`/`members` and from every plant's `carerIds`, and leave the shared plants alone. |
+| `functions/index.js` `deleteAccount` | Delete the user's `Devices`. If they're the only member, anonymise their plants and delete the household. Otherwise, remove them from `memberIds`/`members` and from every plant's `carerIds`, hand plants only they looked after to the others as shared plants, and clear their uid and name from `addedBy` and `last_watered_by`. |
 | Profile | Add notification toggles: "Watering reminders" and "When a housemate waters my plants". |
 
 ## UI hooks already in place (from the redesign)
@@ -242,7 +252,7 @@ the Admin SDK, so they bypass the rules.
 - `WateringPrediction` builds its info rows from a list. Its "Last watered" row
   gets the name appended the same way.
 - Profile has a sectioned layout with an `Account` card. A `Household` card
-  (name, members, and household ID with a copy button) goes above it.
+  (name, members, and household ID with a Share button) goes above it.
 
 ## Migration
 

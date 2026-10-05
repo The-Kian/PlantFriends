@@ -10,6 +10,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
 const { anonymiseUserPlant } = require("./anonymise");
+const { plantUpdateOnLeave } = require("./leaveHousehold");
 
 admin.initializeApp();
 
@@ -147,10 +148,17 @@ exports.searchPlants = functions
 /**
  * deleteAccount — HTTPS callable that deletes the calling user's account.
  *
+ * If they share a household, they leave it: they're removed from its
+ * members and from every plant's carers, and plants only they looked after
+ * pass to the remaining members. The household's plants stay.
+ *
+ * Otherwise (a household of their own, or none yet):
  * 1. Copies an anonymised version of each of their plants into the
  *    `AnonymousPlants` collection (not readable by clients).
- * 2. Deletes `Users/{uid}` and everything under it.
- * 3. Deletes the Firebase Auth user.
+ * 2. Deletes their household.
+ *
+ * Then deletes `Users/{uid}` and everything under it (including their
+ * registered devices), and the Firebase Auth user.
  *
  * Runs with the Admin SDK, so it does not need a recent login. Safe to call
  * again if a previous attempt failed part way.
@@ -168,19 +176,53 @@ exports.deleteAccount = functions.https.onCall(async (data, context) => {
   const userRef = db.collection("Users").doc(uid);
 
   try {
-    const userPlants = await userRef.collection("UserPlants").get();
+    const userSnap = await userRef.get();
+    const householdId = userSnap.exists ? userSnap.get("householdId") : null;
+    const householdRef = householdId
+      ? db.collection("Households").doc(householdId)
+      : null;
+    const household = householdRef ? await householdRef.get() : null;
+    const memberIds =
+      household && household.exists ? household.get("memberIds") || [] : [];
+    const isMember = memberIds.includes(uid);
+    const remainingMemberIds = memberIds.filter((id) => id !== uid);
+
     const writer = db.bulkWriter();
-    userPlants.forEach((plantDoc) => {
-      writer.create(
-        db.collection("AnonymousPlants").doc(),
-        {
+
+    if (isMember && remainingMemberIds.length > 0) {
+      writer.update(householdRef, {
+        memberIds: admin.firestore.FieldValue.arrayRemove(uid),
+        [`members.${uid}`]: admin.firestore.FieldValue.delete(),
+      });
+      const plants = await householdRef.collection("Plants").get();
+      plants.forEach((plantDoc) => {
+        const update = plantUpdateOnLeave(
+          plantDoc.data(),
+          uid,
+          remainingMemberIds,
+        );
+        if (update) writer.update(plantDoc.ref, update);
+      });
+    } else {
+      // Older builds kept plants under the user; once migrated, the
+      // household holds the current copy.
+      const migrated = isMember && userSnap.get("plantsMigratedAt");
+      const plants = await (migrated
+        ? householdRef.collection("Plants")
+        : userRef.collection("UserPlants")
+      ).get();
+      plants.forEach((plantDoc) => {
+        writer.create(db.collection("AnonymousPlants").doc(), {
           ...anonymiseUserPlant(plantDoc.data()),
           anonymisedAt: admin.firestore.FieldValue.serverTimestamp(),
-        },
-      );
-    });
+        });
+      });
+    }
     await writer.close();
 
+    if (isMember && remainingMemberIds.length === 0) {
+      await db.recursiveDelete(householdRef);
+    }
     await db.recursiveDelete(userRef);
 
     try {
@@ -200,3 +242,8 @@ exports.deleteAccount = functions.https.onCall(async (data, context) => {
     );
   }
 });
+
+const notifications = require("./notifications");
+
+exports.onPlantWritten = notifications.onPlantWritten;
+exports.sendWateringReminders = notifications.sendWateringReminders;

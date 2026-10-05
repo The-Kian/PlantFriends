@@ -1,16 +1,14 @@
 import * as Notifications from "expo-notifications";
 
-import { IUserPlant } from "@/constants/IPlant";
-
 /**
- * NotificationService — schedules local watering reminders for plants.
+ * NotificationService — notifications on this device.
  *
- * Local notifications are used for v1 (no server needed). Each plant gets a
- * scheduled notification at its `next_watering_date`. Notifications are
- * re-scheduled when a plant is watered/updated and cancelled when deleted.
+ * Watering reminders and "Sam watered your Monstera" are push notifications
+ * sent by Cloud Functions (functions/notifications.js), because only the
+ * server knows when a housemate has already watered a plant. This module
+ * handles permission, how notifications look while the app is open, and
+ * clearing ones that are out of date.
  */
-
-const NOTIFICATION_PREFIX = "plantfriends-watering-";
 
 // Configure the default handler so foreground notifications also show.
 Notifications.setNotificationHandler({
@@ -23,19 +21,27 @@ Notifications.setNotificationHandler({
   }),
 });
 
-function notificationIdFor(plantId: string): string {
-  return `${NOTIFICATION_PREFIX}${plantId}`;
+/** The data every PlantFriends push carries, used to open the right plant. */
+export interface PlantNotificationData {
+  plantId?: string;
+  householdId?: string;
+  type?: "watered" | "due" | "nudge";
 }
 
 /**
- * Request permission for local notifications.
- * Returns true if granted (or already granted).
+ * Whether notification permission is granted. Only asks when `prompt` is
+ * true, so the question comes at a useful moment rather than on launch.
  */
-export async function requestNotificationPermissions(): Promise<boolean> {
+export async function requestNotificationPermissions(
+  prompt: boolean = true,
+): Promise<boolean> {
   try {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     if (existingStatus === "granted") {
       return true;
+    }
+    if (!prompt) {
+      return false;
     }
 
     const { status } = await Notifications.requestPermissionsAsync();
@@ -47,59 +53,9 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 }
 
 /**
- * Schedule (or replace) a watering reminder for a plant.
- * Does nothing if the plant has no next_watering_date.
- */
-export async function scheduleWateringReminder(
-  plant: IUserPlant,
-): Promise<void> {
-  if (!plant.next_watering_date) {
-    return;
-  }
-
-  // Don't schedule in the past.
-  if (plant.next_watering_date <= Date.now()) {
-    return;
-  }
-
-  try {
-    const identifier = notificationIdFor(plant.id);
-    const displayName = plant.custom_name || "Your plant";
-
-    // Cancel any existing reminder for this plant before scheduling a new one.
-    await Notifications.cancelScheduledNotificationAsync(identifier);
-
-    await Notifications.scheduleNotificationAsync({
-      identifier,
-      content: {
-        title: "Time to water! 💧",
-        body: `${displayName} is ready for watering.`,
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: new Date(plant.next_watering_date),
-      },
-    });
-  } catch (error) {
-    console.warn("scheduleWateringReminder failed:", error);
-  }
-}
-
-/**
- * Cancel a plant's watering reminder (e.g. on delete).
- */
-export async function cancelWateringReminder(plantId: string): Promise<void> {
-  try {
-    await Notifications.cancelScheduledNotificationAsync(
-      notificationIdFor(plantId),
-    );
-  } catch (error) {
-    console.warn("cancelWateringReminder failed:", error);
-  }
-}
-
-/**
- * Cancel every scheduled reminder, e.g. on sign-out or account deletion.
+ * Cancel every locally scheduled reminder. Older builds scheduled reminders
+ * on the device; the server sends them now, so these would be duplicates.
+ * Also used on sign-out and account deletion.
  */
 export async function cancelAllWateringReminders(): Promise<void> {
   try {
@@ -110,28 +66,32 @@ export async function cancelAllWateringReminders(): Promise<void> {
 }
 
 /**
- * Rebuild reminders from the user's plants after they are loaded, so a
- * reinstall, a new device or a plant deleted elsewhere leaves no missing or
- * stale reminders. Only asks for permission once the user has plants.
+ * Remove these plants' reminders from the notification centre, e.g. "needs
+ * watering" once a housemate has watered it. "Sam watered your Monstera"
+ * notifications are left alone.
  */
-export async function syncAllWateringReminders(
-  plants: IUserPlant[],
+export async function dismissPlantNotifications(
+  plantIds: string[],
 ): Promise<void> {
-  if (plants.length === 0) {
+  if (plantIds.length === 0) {
     return;
   }
-
-  const granted = await requestNotificationPermissions();
-  if (!granted) {
-    return;
+  try {
+    const ids = new Set(plantIds);
+    const presented = await Notifications.getPresentedNotificationsAsync();
+    await Promise.all(
+      presented
+        .filter((n) => {
+          const data = n.request.content.data as
+            | PlantNotificationData
+            | undefined;
+          return (
+            !!data?.plantId && ids.has(data.plantId) && data.type !== "watered"
+          );
+        })
+        .map((n) => Notifications.dismissNotificationAsync(n.request.identifier)),
+    );
+  } catch (error) {
+    console.warn("dismissPlantNotifications failed:", error);
   }
-
-  await cancelAllWateringReminders();
-  await Promise.all(
-    plants.map((plant) =>
-      plant.reminders_enabled === false
-        ? cancelWateringReminder(plant.id)
-        : scheduleWateringReminder(plant),
-    ),
-  );
 }

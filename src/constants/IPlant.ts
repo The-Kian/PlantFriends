@@ -78,6 +78,44 @@ export interface IUserPlant {
   houseLocation?: string;
   /** Whether the plant is marked as a favorite */
   is_favorite?: boolean;
+  /** uid of the household member who added the plant */
+  addedBy?: string | null;
+  /** uids that get this plant's reminders and hear when someone else waters it */
+  carerIds?: string[];
+  /** Whether every household member looks after this plant */
+  shared?: boolean;
+  /** uid of whoever logged the last watering */
+  last_watered_by?: string | null;
+  /** Display name of whoever logged the last watering (denormalised) */
+  last_watered_by_name?: string | null;
+  /** When the next push for this plant is due (ms). Set by Cloud Functions only. */
+  notify_at?: number | null;
+  /** Which push `notify_at` is for. Set by Cloud Functions only. */
+  notify_stage?: "due" | "nudge" | null;
+}
+
+/**
+ * A household: housemates who share one set of plants.
+ * Stored at `Households/{id}`; plants live in its `Plants` subcollection.
+ */
+export interface IHousehold {
+  id: string;
+  name: string;
+  /** uids of every member; used by the security rules */
+  memberIds: string[];
+  /** Display names, so the UI doesn't need to read other users' profiles */
+  members: Record<string, { displayName: string }>;
+  createdBy: string;
+  /** IANA time zone, used for quiet hours */
+  timeZone?: string;
+}
+
+/** Per-user notification switches, stored on `Users/{uid}.notificationPrefs`. */
+export interface INotificationPrefs {
+  /** Watering reminders and the "still thirsty" nudge */
+  reminders?: boolean;
+  /** "Sam watered your Monstera" */
+  housemateActivity?: boolean;
 }
 
 /**

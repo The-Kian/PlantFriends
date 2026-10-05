@@ -1,14 +1,26 @@
 import React, { useContext, useState } from "react";
 
-import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  Linking,
+  ScrollView,
+  Share,
+  StyleSheet,
+  View,
+} from "react-native";
 
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import SwitchField from "@/components/ui/Input/SwitchField";
 import TextInputField from "@/components/ui/Input/TextInputField";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import ScreenHeader from "@/components/ui/Views/ScreenHeader";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
+import { INotificationPrefs } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { useHousehold } from "@/context/household/HouseholdProvider";
+import setNotificationPref from "@/helpers/firebase/setNotificationPref";
 import { useTheme } from "@/hooks/utils/useTheme";
+import ErrorService from "@/services/ErrorService";
 import { Spacing } from "@/theme/Spacing";
 
 // Public URL of the hosted privacy policy (docs/PRIVACY_POLICY.md). Both app
@@ -20,6 +32,36 @@ const ProfileSettingsScreen = () => {
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const { colors, radius, shadow } = useTheme();
+  const { household, notificationPrefs } = useHousehold();
+
+  const handlePrefChange = async (
+    key: keyof INotificationPrefs,
+    value: boolean,
+  ) => {
+    if (!user) return;
+    try {
+      await setNotificationPref(user.uid, key, value);
+    } catch (error) {
+      ErrorService.handleError(error, "Notification Settings", {
+        userMessage: "Couldn't save that setting. Please try again.",
+      });
+    }
+  };
+
+  // Housemates are linked by hand for now, using this ID.
+  const handleShareHouseholdId = () => {
+    if (!household) return;
+    Share.share({ message: household.id }).catch(() => {});
+  };
+
+  const members = household
+    ? household.memberIds.map((uid) => ({
+        uid,
+        name:
+          household.members?.[uid]?.displayName ??
+          (uid === user?.uid ? "You" : "Housemate"),
+      }))
+    : [];
 
   const handleSaveName = async () => {
     if (!displayName.trim()) {
@@ -65,7 +107,64 @@ const ProfileSettingsScreen = () => {
       >
         <ThemedText type="title">Profile</ThemedText>
 
-        {/* A "Household" section slots in above Account once sharing lands. */}
+        {household ? (
+          <>
+            <ThemedText type="label" style={styles.sectionLabel}>
+              Household
+            </ThemedText>
+            <View style={cardStyle}>
+              <View style={styles.row}>
+                <ThemedText type="caption">Name</ThemedText>
+                <ThemedText style={styles.value}>{household.name}</ThemedText>
+              </View>
+              <View style={styles.row}>
+                <ThemedText type="caption">Members</ThemedText>
+                {members.map((member) => (
+                  <ThemedText key={member.uid} style={styles.value}>
+                    {member.uid === user?.uid
+                      ? `${member.name} (you)`
+                      : member.name}
+                  </ThemedText>
+                ))}
+              </View>
+              <View style={[styles.divider, { backgroundColor: colors.border }]} />
+              <View style={styles.row}>
+                <ThemedText type="caption">Household ID</ThemedText>
+                <ThemedText style={styles.value} selectable>
+                  {household.id}
+                </ThemedText>
+              </View>
+              <ThemedButton
+                onPress={handleShareHouseholdId}
+                title="Share household ID"
+                icon="share-outline"
+                variant="secondary"
+                additionalStyle={styles.saveButton}
+              />
+            </View>
+          </>
+        ) : null}
+
+        <ThemedText type="label" style={styles.sectionLabel}>
+          Notifications
+        </ThemedText>
+        <View style={cardStyle}>
+          <SwitchField
+            label="Watering reminders"
+            description="When a plant you look after needs water."
+            value={notificationPrefs.reminders !== false}
+            onValueChange={(value) => handlePrefChange("reminders", value)}
+          />
+          <SwitchField
+            label="When a housemate waters my plants"
+            description="So you know it's done and don't water it twice."
+            value={notificationPrefs.housemateActivity !== false}
+            onValueChange={(value) =>
+              handlePrefChange("housemateActivity", value)
+            }
+          />
+        </View>
+
         <ThemedText type="label" style={styles.sectionLabel}>
           Account
         </ThemedText>

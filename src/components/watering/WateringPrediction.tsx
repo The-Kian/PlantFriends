@@ -12,6 +12,8 @@ import { type ThemeColors } from '@/theme/Colors';
 
 interface WateringPredictionProps {
   lastWatered: number | null;
+  /** Who logged the last watering, shown as "by Sam". */
+  lastWateredBy?: string | null;
   wateringFrequency?: number | null;
   customSchedule?: number | null;
   onLogWatering: () => void;
@@ -19,6 +21,7 @@ interface WateringPredictionProps {
 
 export function WateringPrediction({
   lastWatered,
+  lastWateredBy,
   wateringFrequency,
   customSchedule,
   onLogWatering,
@@ -77,7 +80,7 @@ export function WateringPrediction({
   const needsWater = status.urgency === 'urgent' || status.urgency === 'overdue';
 
   const rows: [string, string][] = [
-    ['Last watered', formatDate(lastWateredDate)],
+    ['Last watered', lastWateredBy ? `${formatDate(lastWateredDate)}, by ${lastWateredBy}` : formatDate(lastWateredDate)],
     ['Next watering', nextWateringDate ? formatDate(nextWateringDate) : 'Not scheduled'],
   ];
   if (frequencyInDays > 0) {
@@ -146,14 +149,18 @@ export function getUrgencyColor(
 }
 
 /** Short relative description, e.g. "Watered today" / "Watered 3 days ago". */
-export function formatLastWatered(epochMs: number | null, now: number = Date.now()): string {
+export function formatLastWatered(
+  epochMs: number | null,
+  now: number = Date.now(),
+  by?: string | null,
+): string {
   if (!epochMs) {
     return 'Not watered yet';
   }
   const days = Math.floor((now - epochMs) / MILLIS_PER_DAY);
-  if (days <= 0) return 'Watered today';
-  if (days === 1) return 'Watered yesterday';
-  return `Watered ${days} days ago`;
+  const when =
+    days <= 0 ? 'Watered today' : days === 1 ? 'Watered yesterday' : `Watered ${days} days ago`;
+  return by ? `${when} by ${by}` : when;
 }
 
 function formatDate(epochMs: number): string {
