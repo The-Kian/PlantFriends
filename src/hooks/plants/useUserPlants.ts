@@ -5,6 +5,7 @@ import { IUserPlant, IUserPlantMerged } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import fetchFirebasePlantById from '@/helpers/firebase/fetchFirebasePlantById';
 import fetchUserPlants from "@/helpers/plants/fetchUserPlants";
+import { syncAllWateringReminders } from "@/services/NotificationService";
 import { setUserPlants } from "@/store/userPlantsSlice";
 
 export interface useUserPlantsProps {
@@ -45,6 +46,12 @@ const useUserPlants = (): useUserPlantsProps => {
     );
 
     dispatch(setUserPlants(merged));
+
+    // Rebuild local reminders from the loaded plants. Don't block the UI on it.
+    syncAllWateringReminders(plants).catch((e) =>
+      console.warn("syncAllWateringReminders failed:", e),
+    );
+
     return plants;
   }, [user, dispatch]);
 

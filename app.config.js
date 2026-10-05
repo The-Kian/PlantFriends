@@ -19,7 +19,7 @@ export default {
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#ffffff"
+        backgroundColor: "#3D6B47"
       },
       package: "com.thekian.plantfriends",
       googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
@@ -58,7 +58,7 @@ export default {
           image: "./assets/images/splash.png",
           imageWidth: 200,
           resizeMode: "contain",
-          backgroundColor: "#ffffff"
+          backgroundColor: "#F6F4EE"
         }
       ]
     ]
