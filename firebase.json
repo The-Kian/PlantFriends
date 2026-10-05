@@ -14,5 +14,16 @@
   "react-native": {
     "crashlytics_debug_enabled": false,
     "crashlytics_auto_collection_enabled": true
+  },
+  "hosting": {
+    "public": "hosting",
+    "ignore": [
+      "_layout.html",
+      "**/.*"
+    ],
+    "cleanUrls": true,
+    "predeploy": [
+      "node scripts/build-privacy-page.js"
+    ]
   }
 }

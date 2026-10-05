@@ -60,6 +60,27 @@ describe("GeneralInfoSection", () => {
     );
   });
 
+  it("shows the scientific name list and saves edits as a list", () => {
+    renderComponent({
+      ...mockAttributes,
+      scientific_name: ["Monstera deliciosa"],
+    });
+
+    const listField = screen.getByLabelText("Scientific Name input field");
+    expect(listField).toHaveDisplayValue("Monstera deliciosa");
+
+    fireEvent.changeText(listField, "Monstera adansonii");
+    expect(mockOnAttributeChange).toHaveBeenCalledWith("scientific_name", [
+      "Monstera adansonii",
+    ]);
+
+    fireEvent.changeText(listField, "");
+    expect(mockOnAttributeChange).toHaveBeenLastCalledWith(
+      "scientific_name",
+      undefined,
+    );
+  });
+
   it("calls onAttributeChange with correct arguments for picker input", () => {
     renderComponent();
 

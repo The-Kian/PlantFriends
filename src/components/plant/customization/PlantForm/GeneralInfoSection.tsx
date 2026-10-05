@@ -47,6 +47,23 @@ const GeneralInfoSection = ({
                 }
               />
             );
+          case "list":
+            // Stored as string[]; shown and edited as one comma-separated line
+            return (
+              <TextInputField
+                key={fieldConfig.field}
+                label={fieldConfig.label}
+                value={Array.isArray(value) ? value.join(", ") : ""}
+                onChangeText={(text) =>
+                  onAttributeChange(
+                    fieldConfig.field,
+                    (text
+                      ? [text]
+                      : undefined) as IPlant[typeof fieldConfig.field],
+                  )
+                }
+              />
+            );
           case "number":
             return (
               <NumericInputField

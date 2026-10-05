@@ -19,7 +19,7 @@ const PickerField = ({
   value,
   onValueChange,
   options,
-  placeholder,
+  placeholder = "Not set",
 }: PickerFieldProps) => {
   const styles = useInputStyles();
 
