@@ -32,6 +32,7 @@ Households/{householdId}
   members: { [uid]: { displayName: string } }   // shown in the UI; avoids reading other users' profiles
   createdBy: uid
   createdAt: timestamp
+  timeZone: string                   // IANA, e.g. "Europe/London"; used for quiet hours
 
 Households/{householdId}/Plants/{userPlantId}
   ...IUserPlant fields (unchanged)
@@ -39,16 +40,16 @@ Households/{householdId}/Plants/{userPlantId}
   carerIds: uid[]                    // who gets reminders and "watered" pushes; [addedBy] by default
   last_watered_by: uid | null
   last_watered_by_name: string | null   // denormalised, so cards and pushes need no lookup
-  reminder_sent_for: number | null   // the next_watering_date the last reminder was sent for
-  nudge_sent_for: number | null      // the same, for the "still thirsty" follow-up
+  notify_at: number | null           // when the next push is due (quiet hours applied); server-only
+  notify_stage: "due" | "nudge" | null   // which push notify_at is for; server-only
 
 Users/{uid}
   ...existing profile fields
   householdId: string
-  timeZone: string                   // IANA, e.g. "Europe/London"; for sending at sensible hours
+  timeZone: string                   // IANA; the device's zone, copied to a new household
   notificationPrefs: { reminders: boolean, housemateActivity: boolean }   // both default true
 
-Users/{uid}/Devices/{installationId}
+Users/{uid}/Devices/{expoPushToken}   // the token is the doc ID, so re-registering is idempotent
   expoPushToken: string
   platform: "ios" | "android"
   updatedAt: timestamp
@@ -71,8 +72,9 @@ All pushes go through the Expo push service. The project already has an EAS
 
 ### 1. "Already watered" (Firestore trigger)
 
-`onPlantWatered`: `onDocumentUpdated("Households/{hid}/Plants/{pid}")`. It
-fires when `last_watered_date` changes.
+`onPlantWritten`: `onDocumentWritten("Households/{hid}/Plants/{pid}")`. It
+sends this push when `last_watered_date` changes. The same trigger also plans
+the next reminder (see 2).
 
 - Recipients: `carerIds` minus `last_watered_by`, filtered by
   `notificationPrefs.housemateActivity`.
@@ -86,32 +88,40 @@ fires when `last_watered_date` changes.
 
 ### 2. "Time to water" and "Still thirsty" (scheduled)
 
-`sendWateringReminders`: `onSchedule("every 15 minutes")`. It runs a
-collection-group query on `Plants` where `next_watering_date <= now`.
+Planning: whenever `next_watering_date` or `reminders_enabled` changes,
+`onPlantWritten` sets `notify_at` to the due time moved out of quiet hours, and
+sets `notify_stage: "due"`. If reminders are off, it sets both to null.
 
-- **Due reminder:** if `reminder_sent_for != next_watering_date`, push to every
-  carer, then set `reminder_sent_for`.
+`sendWateringReminders`: `onSchedule("every 15 minutes")`. It runs a
+collection-group query on `Plants` where `notify_at <= now`. That returns
+exactly the plants that need a push now, rather than every overdue plant.
+
+- **Due reminder** (`notify_stage == "due"`): push to every carer, then set
+  `notify_stage: "nudge"` and `notify_at` to 24 hours after the due time (moved out of quiet hours).
   - Personal plant: "Time to water the Monstera 💧"
   - Shared plant: "The Monstera needs watering 💧" / "Whoever gets there first, tap Watered."
-- **Nudge:** if it's still unwatered 24 hours after it was due, and
-  `nudge_sent_for != next_watering_date`, send one follow-up:
-  "The Monstera is still thirsty". After that we stop, so nobody gets nagged.
-- **Sensible hours:** a reminder that falls due overnight waits until 08:00 in
-  the recipient's `timeZone`. Each recipient is checked separately, so
-  housemates in different time zones are each handled correctly. Nothing goes
-  out between 21:00 and 08:00.
-- Watering writes a new `next_watering_date`, so the `*_sent_for` markers stop
-  matching on their own and the next cycle starts clean. Nothing needs resetting.
+- **Nudge** (`notify_stage == "nudge"`): one follow-up, "The Monstera is still
+  thirsty", then set both fields to null. After that we stop, so nobody gets nagged.
+- **Sensible hours:** nothing goes out between 21:00 and 08:00 in the
+  household's `timeZone`. A reminder that falls due overnight waits until 08:00.
+  The quiet-hours maths lives in a pure, tested `functions/notifyAt.js`.
+- Watering writes a new `next_watering_date`, so `onPlantWritten` plans a fresh
+  `notify_at` and the next cycle starts clean.
+- The scheduler's update uses a `lastUpdateTime` precondition. If someone
+  watered the plant while it was sending, the fresh plan isn't overwritten.
 - `reminders_enabled === false` on the plant, or `notificationPrefs.reminders`
   off for a user, skips it.
 
-This needs a composite index for the collection-group query on
-`next_watering_date`. Add it to `firestore.indexes.json`.
+This needs a collection-group index on `Plants.notify_at`. Add it to
+`firestore.indexes.json` and reference that file from `firebase.json`. A
+collection-group query on `Plants` also covers the top-level `/Plants` catalog.
+Catalog docs have no `notify_at`, so they never match, but renaming the
+subcollection to `HouseholdPlants` before release would make this clearer.
 
 ### 3. "It's done" after a shared reminder
 
 This comes from (1) for free. Once a shared plant's reminder has gone out,
-the first person to water it triggers `onPlantWatered`, and every other carer
+the first person to water it triggers `onPlantWritten`, and every other carer
 gets "Sam watered the Monstera". The client can also call
 `dismissNotificationAsync` on any delivered reminder for that plant
 (identified by `data.plantId`) when the snapshot listener sees the watering,
@@ -131,7 +141,7 @@ so the stale "needs watering" banner disappears from the notification centre.
 ### Client side
 
 - On sign-in (and when the token changes), request permission, get the Expo push
-  token, and upsert `Users/{uid}/Devices/{installationId}`. Write `timeZone` from
+  token, and upsert `Users/{uid}/Devices/{token}`. Write `timeZone` from
   `Intl.DateTimeFormat().resolvedOptions().timeZone`. On sign-out, delete the device doc.
 - Remove local scheduling from `NotificationService` for household plants.
   Keep the permission request, the foreground handler, and a response listener
@@ -159,6 +169,10 @@ The UI for this can come later. Swapping it for an invite code would only add a
 ## Firestore rules
 
 ```
+function memberIds(hid) {
+  return get(/databases/$(database)/documents/Households/$(hid)).data.memberIds;
+}
+
 function isMember(hid) {
   return request.auth != null
     && request.auth.uid in get(/databases/$(database)/documents/Households/$(hid)).data.memberIds;
@@ -174,11 +188,16 @@ match /Households/{hid} {
   allow delete: if false;
 
   match /Plants/{plantId} {
-    allow read, write: if isMember(hid);
-    // Notification bookkeeping is server-only.
+    allow read: if isMember(hid);
+    allow create: if isMember(hid)
+      && request.resource.data.addedBy == request.auth.uid
+      && memberIds(hid).hasAll(request.resource.data.carerIds);
+    // notify_at, notify_stage and addedBy are server-only after creation.
     allow update: if isMember(hid)
       && !request.resource.data.diff(resource.data).affectedKeys()
-           .hasAny(['reminder_sent_for', 'nudge_sent_for']);
+           .hasAny(['notify_at', 'notify_stage', 'addedBy'])
+      && memberIds(hid).hasAll(request.resource.data.carerIds);
+    allow delete: if isMember(hid);
   }
 }
 
@@ -187,9 +206,9 @@ match /Users/{uid}/Devices/{deviceId} {
 }
 ```
 
-(The final rules split `write` into create, update and delete, so the update
-condition above actually applies. Rules are OR'd, so a blanket `write` would
-override it.)
+Create, update and delete are separate rules on purpose. Rules that allow a
+write are OR'd together, so a blanket `allow write` would cancel the update
+restriction.
 
 `Users/{uid}.householdId` can't be pointed at a household the user isn't in,
 because every read and write still goes through `isMember`. Cloud Functions use
@@ -202,10 +221,14 @@ the Admin SDK, so they bypass the rules.
 | `helpers/firebase/*UserPlant*`, `fetchUserPlants`, `getUserPlantData` | Change the path from `Users/{uid}/UserPlants` to `Households/{hid}/Plants`. Pass in `householdId` instead of `user.uid`. |
 | New `context/household/HouseholdProvider` | Loads `Users/{uid}.householdId`, subscribes to the household doc, and creates a solo household if there's none. Exposes `{ household, members }`. |
 | `hooks/plants/useUserPlants` | Swap the one-off `getDocs` for `onSnapshot` on the household's plants, dispatching `setUserPlants` on each change, so the list updates live. |
-| `screens/PlantDetails` `handleLogWatering` | Also write `last_watered_by` and `last_watered_by_name`. |
+| New `helpers/firebase/logWatering.ts` | `updateDoc` with only `last_watered_date`, `next_watering_date`, `last_watered_by` and `last_watered_by_name`. |
+| `screens/PlantDetails` `handleLogWatering` | Call `logWatering()` instead of spreading the local plant into `saveUserPlantToFirebase`. That function does a full `setDoc`, which would overwrite a housemate's edit made at the same time, and would be rejected by the rules once the doc has server-only fields. |
+| `saveUserPlantToFirebase` | Stop writing `userId: user.uid` on every save. Today, saving someone else's plant would make it yours. Set `addedBy`, `userId` and `carerIds` only on create. |
+| `getUserPlantData` | Add `where("addedBy", "==", uid)`. It currently matches by species (`plantId`), so it could return a housemate's plant of the same species. |
 | Add plant / `PlantDetails` | Add a "Shared with the household" toggle, which sets `shared` and `carerIds`. |
 | `services/NotificationService` | Switch to push: register tokens, handle taps, dismiss stale reminders. Remove local scheduling. |
-| New `functions/push.js`, `onPlantWatered`, `sendWateringReminders` | See **Notifications**. |
+| New `functions/push.js`, `onPlantWritten`, `sendWateringReminders` | See **Notifications**. |
+| `dev/seedFakePlants.ts` | Seed into the household path. |
 | `functions/index.js` `deleteAccount` | Delete the user's `Devices`. Anonymise and delete only plants where `addedBy == uid` *and* the user is the only member. Otherwise, remove the user from `memberIds`/`members` and from every plant's `carerIds`, and leave the shared plants alone. |
 | Profile | Add notification toggles: "Watering reminders" and "When a housemate waters my plants". |
 
@@ -250,7 +273,7 @@ and data.
 2. Point the persistence helpers at the household path; switch to `onSnapshot`
 3. Record `last_watered_by`, add `carerIds`/`shared` and the share toggle, and show who watered on the card, details screen and Home
 4. Push plumbing: EAS credentials, token registration, `functions/push.js` with tests
-5. `onPlantWatered`, the "already watered" push. **This is the USP, so ship and test it first.**
+5. `onPlantWritten`, the "already watered" push. **This is the USP, so ship and test it first.**
 6. `sendWateringReminders` with quiet hours and the nudge; remove local scheduling
 7. Profile: Household card and notification toggles
 8. Update `deleteAccount` for shared households and devices
