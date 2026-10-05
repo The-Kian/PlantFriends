@@ -25,9 +25,9 @@ Decisions made so far:
 - **Leaving:** when a member deletes their account, the household keeps its
   plants. Plants only they looked after become shared with whoever is left.
 
-**Status:** the code for every phase is in PR #59. What's left is the setup
-and device testing in each phase below. Work through the phases in order.
-See **Phases**.
+**Status:** not started. Build it one phase at a time, one PR per phase (see
+**Phases**). A first pass at all six phases is on branch `ccr-496f934e-hd9q6a`
+(closed PR #59), and each phase's code can be taken from there.
 
 ## Data model
 
