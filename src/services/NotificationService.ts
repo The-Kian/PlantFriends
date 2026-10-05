@@ -99,24 +99,34 @@ export async function cancelWateringReminder(plantId: string): Promise<void> {
 }
 
 /**
- * Cancel every scheduled reminder, e.g. when the account is deleted.
+ * Cancel every scheduled reminder, e.g. on sign-out or account deletion.
  */
 export async function cancelAllWateringReminders(): Promise<void> {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  try {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+  } catch (error) {
+    console.warn("cancelAllWateringReminders failed:", error);
+  }
 }
 
 /**
- * Schedule reminders for all plants that have upcoming watering dates.
- * Intended to be called on app start after plants are loaded.
+ * Rebuild reminders from the user's plants after they are loaded, so a
+ * reinstall, a new device or a plant deleted elsewhere leaves no missing or
+ * stale reminders. Only asks for permission once the user has plants.
  */
 export async function syncAllWateringReminders(
   plants: IUserPlant[],
 ): Promise<void> {
+  if (plants.length === 0) {
+    return;
+  }
+
   const granted = await requestNotificationPermissions();
   if (!granted) {
     return;
   }
 
+  await cancelAllWateringReminders();
   await Promise.all(
     plants.map((plant) =>
       plant.reminders_enabled === false
