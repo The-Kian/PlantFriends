@@ -1,7 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RootStackParamList } from "@/components/navigation/types";
@@ -15,6 +14,8 @@ import { Spacing } from "@/theme/Spacing";
 import AuthForm from "./AuthForm";
 import SocialSignInButtons from "./SocialSignInButtons";
 import ThemedButton from "../ui/Buttons/ThemedButton";
+
+const appIcon = require("../../../assets/images/icon.png");
 
 function AuthContent({ authScreenType, onSubmit, children }: AuthProps) {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -52,14 +53,11 @@ function AuthContent({ authScreenType, onSubmit, children }: AuthProps) {
       >
         {isAuthScreen && (
           <View style={styles.brand}>
-            <View
-              style={[
-                styles.logo,
-                { backgroundColor: colors.primaryMuted, borderRadius: radius.large },
-              ]}
-            >
-              <Ionicons name="leaf" size={30} color={colors.primary} />
-            </View>
+            <Image
+              source={appIcon}
+              accessibilityIgnoresInvertColors
+              style={[styles.logo, { borderRadius: radius.large }]}
+            />
             <ThemedText type="title">
               {authScreenType === "login" ? "Welcome back" : "Create account"}
             </ThemedText>
@@ -109,10 +107,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.large,
   },
   logo: {
-    width: 56,
-    height: 56,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 72,
+    height: 72,
     marginBottom: Spacing.medium,
   },
   dividerRow: {
