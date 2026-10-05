@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<link rel="icon" href="/icon.png">
+<style>
+  :root { --bg: #F6F4EE; --text: #1E2A22; --muted: #5E6B61; --primary: #3D6B47; --surface: #FFFFFF; --border: #E2E4DA; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #111613; --text: #E6ECE5; --muted: #9BA89E; --primary: #8CC497; --surface: #1A211C; --border: #2A332C; } }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; max-width: 720px; margin: 0 auto; padding: 24px 16px 0; }
+  header img { width: 44px; height: 44px; border-radius: 10px; }
+  header a { color: var(--text); font-weight: 700; font-size: 18px; text-decoration: none; }
+  main { max-width: 720px; margin: 0 auto; padding: 8px 16px 48px; }
+  h1 { font-size: 28px; line-height: 1.25; margin: 24px 0 4px; }
+  h2 { font-size: 20px; margin: 28px 0 4px; }
+  a { color: var(--primary); }
+  ul { padding-left: 20px; }
+  li { margin: 6px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin: 16px 0; }
+  footer { max-width: 720px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<header><img src="/icon.png" alt=""><a href="/">Plant Friends</a></header>
+<main>
+{{content}}
+</main>
+<footer><a href="/">Support</a> · <a href="/privacy">Privacy policy</a></footer>
+</body>
+</html>

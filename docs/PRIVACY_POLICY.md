@@ -1,11 +1,8 @@
-# PlantFriends Privacy Policy (draft)
+# Plant Friends Privacy Policy
 
-_Last updated: [DATE]_
+_Last updated: 5 October 2026_
 
-> Draft for review. Fill in the bracketed parts, have it checked if you are
-> unsure, and host it at a public URL (both app stores require one).
-
-PlantFriends ("we", "the app") is made by [YOUR NAME]. This policy explains what data the app collects and what we do with it.
+Plant Friends ("we", "the app") is made by Kian Popat. This policy explains what data the app collects and what we do with it.
 
 ## What we collect
 
@@ -32,11 +29,11 @@ We keep an **anonymous** copy of your plant care data: the plant species, room t
 
 ## Your rights
 
-Depending on where you live, you may have the right to access, correct or delete your data. Contact us at [CONTACT EMAIL].
+Depending on where you live, you may have the right to access, correct or delete your data. Contact us at kian.popat@gmail.com.
 
 ## Children
 
-PlantFriends is not directed at children under 13 [or 16 in the EU/UK].
+PlantFriends is not directed at children under 13 (or under 16 in the EU and UK).
 
 ## Changes
 
@@ -44,4 +41,4 @@ We will update this page if this policy changes.
 
 ## Contact
 
-[CONTACT EMAIL]
+kian.popat@gmail.com
