@@ -187,6 +187,8 @@ export const AuthProvider = ({ children }: ProviderProps) => {
 
   const logout = async () => {
     try {
+      // Reminders belong to this account; don't leave them for the next user.
+      await cancelAllWateringReminders();
       await signOutOfGoogle();
       await auth().signOut();
     } catch (error) {

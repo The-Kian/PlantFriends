@@ -11,6 +11,7 @@ import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import ErrorService from "@/services/ErrorService";
 import {
   cancelWateringReminder,
+  requestNotificationPermissions,
   scheduleWateringReminder,
 } from "@/services/NotificationService";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
@@ -66,8 +67,14 @@ export const usePlantManagement = () => {
         dispatch(addPlant(savedPlant));
         setUserPlant(savedPlant);
         setSelectedPlant(null);
-        // Schedule a watering reminder if one was set during customization.
-        await scheduleWateringReminder(savedPlant);
+        // Schedule a watering reminder if one was set during customization
+        // (asks for permission if needed).
+        if (savedPlant.next_watering_date) {
+          const granted = await requestNotificationPermissions();
+          if (granted) {
+            await scheduleWateringReminder(savedPlant);
+          }
+        }
         return true;
       }
       return false;
