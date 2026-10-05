@@ -8,7 +8,7 @@ export default {
     scheme: "plantfriends",
     userInterfaceStyle: "automatic",
     ios: {
-      supportsTablet: true,
+      supportsTablet: false,
       bundleIdentifier: "com.thekian.plantfriends",
       googleServicesFile: process.env.GOOGLE_SERVICES_PLIST ?? "./GoogleService-Info.plist",
       usesAppleSignIn: true,
