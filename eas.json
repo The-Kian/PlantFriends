@@ -14,7 +14,10 @@
         "buildType": "apk"
       },
       "pnpm": "9.15.4",
-      "corepack": true
+      "corepack": true,
+      "env": {
+        "EXPO_PUBLIC_SHOW_CRASH_ALERT": "true"
+      }
     },
     "production": {
       "autoIncrement": true,
