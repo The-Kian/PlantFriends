@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 
-import { Alert, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import TextInputField from "@/components/ui/Input/TextInputField";
@@ -10,6 +10,10 @@ import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { Spacing } from "@/theme/Spacing";
+
+// Public URL of the hosted privacy policy (docs/PRIVACY_POLICY.md). Both app
+// stores require it to be reachable from inside the app.
+const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL;
 
 const ProfileSettingsScreen = () => {
   const { user, logout, update, deleteAccount } = useContext(AuthContext);
@@ -84,6 +88,15 @@ const ProfileSettingsScreen = () => {
           />
         </View>
 
+        {PRIVACY_POLICY_URL ? (
+          <ThemedButton
+            onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+            title="Privacy policy"
+            icon="document-text-outline"
+            variant="secondary"
+            additionalStyle={styles.spaced}
+          />
+        ) : null}
         <ThemedButton
           onPress={logout}
           title="Logout"

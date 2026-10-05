@@ -2,6 +2,7 @@
 
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
+import * as Notifications from "expo-notifications";
 import React from "react";
 
 import { Alert } from "react-native";
@@ -87,6 +88,7 @@ describe("AuthProvider", () => {
     await waitFor(() => {
       expect(auth().signOut).toHaveBeenCalled();
     });
+    expect(Notifications.cancelAllScheduledNotificationsAsync).toHaveBeenCalled();
   });
 });
 
