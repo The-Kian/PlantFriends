@@ -12,7 +12,20 @@
           "package_name": "com.thekian.plantfriends"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "28232372332-ou8lg1mi729opmvshedgbnp1aiu49bkc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thekian.plantfriends",
+            "certificate_hash": "df0454957af385ead6c6d1a7d83016e08868758a"
+          }
+        },
+        {
+          "client_id": "28232372332-pf71dsd56lvgqbtmr4cgcba6e35m5mts.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD0z_QClGen5lm5kcoBfsIGSPzIF5D4zFo"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "28232372332-pf71dsd56lvgqbtmr4cgcba6e35m5mts.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "28232372332-l6mvpe9usjgfhq20g2ls2nvcco3dsn00.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.thekian.plantfriends"
+              }
+            }
+          ]
         }
       }
     }
