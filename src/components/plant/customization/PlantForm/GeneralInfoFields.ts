@@ -2,7 +2,7 @@
 
 import { IPlant } from "@/constants/IPlant";
 
-type FieldType = "text" | "number" | "picker" | "date";
+type FieldType = "text" | "list" | "number" | "picker" | "date";
 
 interface FieldConfig {
   label: string;
@@ -23,7 +23,7 @@ interface FieldConfig {
 
 export const generalInfoFields: FieldConfig[] = [
   { label: "Name", field: "name", type: "text" },
-  { label: "Scientific Name", field: "scientific_name", type: "text" },
+  { label: "Scientific Name", field: "scientific_name", type: "list" },
   {
     label: "Sun Requirements",
     field: "sun_requirements",
