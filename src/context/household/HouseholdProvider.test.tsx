@@ -78,7 +78,10 @@ describe("HouseholdProvider", () => {
   it("loads the household and its plants, with species data merged in", async () => {
     serveSnapshots(
       { householdId: "household1", plantsMigratedAt: 1 },
-      [{ ...mockUserPlant, addedBy: "user2" }],
+      [
+        { ...mockUserPlant, addedBy: "user2", carerIds: ["user1", "user2"] },
+        { ...mockUserPlant, id: "2", addedBy: "user2", carerIds: ["user2"] },
+      ],
     );
 
     const store = mountProvider();
@@ -87,12 +90,14 @@ describe("HouseholdProvider", () => {
     await waitFor(() => {
       expect(store.getState().userPlants).toEqual([
         expect.objectContaining({ id: "1", name: "Monstera", addedBy: "user2" }),
+        expect.objectContaining({ id: "2", addedBy: "user2" }),
       ]);
     });
     expect(fetchFirebasePlantById).toHaveBeenCalledWith("1");
-    // Reminders are still scheduled on the device in this phase.
+    // Reminders are still scheduled on the device, only for plants this
+    // person looks after.
     expect(syncAllWateringReminders).toHaveBeenCalledWith([
-      expect.objectContaining({ id: "1", addedBy: "user2" }),
+      expect.objectContaining({ id: "1" }),
     ]);
     expect(createSoloHousehold).not.toHaveBeenCalled();
     expect(migrateUserPlants).not.toHaveBeenCalled();

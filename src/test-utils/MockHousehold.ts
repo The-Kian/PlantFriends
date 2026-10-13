@@ -1,12 +1,15 @@
 import { IHousehold } from "@/constants/IPlant";
 import { HouseholdContextType } from "@/context/household/HouseholdProvider";
 
-// user1 matches MockFirebaseUser.
+// user1 matches MockFirebaseUser; user2 is their housemate.
 export const mockHousehold: IHousehold = {
   id: "household1",
   name: "The Flat",
-  memberIds: ["user1"],
-  members: { user1: { displayName: "Kian" } },
+  memberIds: ["user1", "user2"],
+  members: {
+    user1: { displayName: "Kian" },
+    user2: { displayName: "Sam" },
+  },
   createdBy: "user1",
   timeZone: "Europe/London",
 };
@@ -14,10 +17,13 @@ export const mockHousehold: IHousehold = {
 export function mockHouseholdContext(
   overrides: Partial<HouseholdContextType> = {},
 ): HouseholdContextType {
+  const household = overrides.household ?? mockHousehold;
   return {
-    household: mockHousehold,
+    household,
     loading: false,
     error: null,
+    memberName: (uid) =>
+      (uid && household?.members[uid]?.displayName) || null,
     ...overrides,
   };
 }
