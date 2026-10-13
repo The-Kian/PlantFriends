@@ -11,6 +11,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import RootLayout from "@/components/navigation/RootLayout";
 import { AuthProvider } from "@/context/auth/AuthProvider";
+import { HouseholdProvider } from "@/context/household/HouseholdProvider";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { setupStore } from "@/store/store";
 
@@ -51,7 +52,9 @@ export default function App() {
       <SafeAreaProvider>
         <Provider store={store}>
           <AuthProvider>
-            <ThemedNavigation />
+            <HouseholdProvider>
+              <ThemedNavigation />
+            </HouseholdProvider>
           </AuthProvider>
         </Provider>
       </SafeAreaProvider>

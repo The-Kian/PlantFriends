@@ -1,29 +1,27 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import {
-  collection,
-  doc,
-  getFirestore,
-  setDoc,
-} from "@react-native-firebase/firestore";
+import { getDoc, getFirestore, setDoc } from "@react-native-firebase/firestore";
 
 import uuid from "react-native-uuid";
 
-import { IUserPlant, IPlant } from "@/constants/IPlant";
+import { IHousehold, IUserPlant, IPlant } from "@/constants/IPlant";
+import { docExists, plantDoc } from "@/helpers/firebase/householdPaths";
 
+/**
+ * Creates or updates a plant in the household. On create it records who
+ * added it; on update it leaves that alone (the security rules don't allow
+ * `addedBy` to change).
+ */
 const saveUserPlantToFirebase = async (
   userPlant: IUserPlant,
   user: FirebaseAuthTypes.User,
+  household: Pick<IHousehold, "id">,
 ): Promise<boolean> => {
   const userPlantId = userPlant.id ?? uuid.v4().toString();
-  const userPlantData: IUserPlant = {
-    ...userPlant,
-    id: userPlantId,
-    userId: user.uid,
-    plantId: userPlant.plantId,
-  };
 
   try {
     const db = getFirestore();
+    const ref = plantDoc(db, household.id, userPlantId);
+    const exists = docExists(await getDoc(ref));
 
     // Derive a searchable slug for user plants. Prefer a custom name
     // (user-provided), otherwise fall back to any base name in custom_attributes.
@@ -33,16 +31,24 @@ const saveUserPlantToFirebase = async (
         (userPlant.custom_attributes as Partial<IPlant>).name) ||
       "";
 
-    const docData = {
-      ...userPlantData,
+    const { addedBy: _addedBy, ...fields } = userPlant;
+    const docData: Partial<IUserPlant> & { slug: string } = {
+      ...fields,
+      id: userPlantId,
+      plantId: userPlant.plantId,
       slug: derivedName ? derivedName.toLowerCase() : "",
     };
 
-    const userPlantRef = doc(
-      collection(doc(collection(db, "Users"), user.uid), "UserPlants"),
-      userPlantId,
-    );
-    await setDoc(userPlantRef, docData);
+    if (!exists) {
+      Object.assign(docData, {
+        addedBy: user.uid,
+        userId: user.uid,
+        carerIds: [user.uid],
+        shared: false,
+      });
+    }
+
+    await setDoc(ref, docData, { merge: true });
     return true;
   } catch (error) {
     console.error(

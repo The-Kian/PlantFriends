@@ -1,7 +1,8 @@
 // __mocks__/@react-native-firebase/firestore.js
 
 // This mock provides both:
-// - modular named exports (getFirestore, collection, doc, query, where, getDocs, getDoc, setDoc, deleteDoc)
+// - modular named exports (getFirestore, collection, doc, query, where, getDocs, getDoc, setDoc,
+//   updateDoc, deleteDoc, onSnapshot, writeBatch and FieldValue helpers)
 // - a legacy default export (function) with attached _mock* helpers so older tests that
 //   reference `(firestore as any)._mockGet` continue to work.
 
@@ -164,6 +165,34 @@ const deleteDoc = jest.fn(async (docRef) => {
   return _mockDelete(docRef);
 });
 
+const updateDoc = jest.fn(async (docRef, data) => {
+  if (docRef && typeof docRef.update === 'function') {
+    return docRef.update(data);
+  }
+  return _mockUpdate(docRef, data);
+});
+
+// Live listeners: calls back once with whatever `_mockGet` resolves to, and
+// returns an unsubscribe function. Tests can override per call.
+const onSnapshot = jest.fn((ref, onNext) => {
+  Promise.resolve(_mockGet()).then((snap) => onNext && onNext(snap));
+  return jest.fn();
+});
+
+const _mockBatchSet = jest.fn();
+const _mockBatchCommit = jest.fn().mockResolvedValue(undefined);
+const writeBatch = jest.fn(() => ({
+  set: _mockBatchSet,
+  update: jest.fn(),
+  delete: jest.fn(),
+  commit: _mockBatchCommit,
+}));
+
+const serverTimestamp = jest.fn(() => 'SERVER_TIMESTAMP');
+const arrayUnion = jest.fn((...elements) => ({ arrayUnion: elements }));
+const arrayRemove = jest.fn((...elements) => ({ arrayRemove: elements }));
+const deleteField = jest.fn(() => 'DELETE_FIELD');
+
 // Legacy default mock function (to support tests that import default and access _mock* props)
 const firestoreMock = jest.fn(() => ({ collection }));
 firestoreMock._mockCollection = collection;
@@ -184,6 +213,15 @@ firestoreMock.getDocs = getDocs;
 firestoreMock.getDoc = getDoc;
 firestoreMock.setDoc = setDoc;
 firestoreMock.deleteDoc = deleteDoc;
+firestoreMock.updateDoc = updateDoc;
+firestoreMock.onSnapshot = onSnapshot;
+firestoreMock.writeBatch = writeBatch;
+firestoreMock.serverTimestamp = serverTimestamp;
+firestoreMock.arrayUnion = arrayUnion;
+firestoreMock.arrayRemove = arrayRemove;
+firestoreMock.deleteField = deleteField;
+firestoreMock._mockBatchSet = _mockBatchSet;
+firestoreMock._mockBatchCommit = _mockBatchCommit;
 
 module.exports = firestoreMock;
 module.exports.default = firestoreMock;

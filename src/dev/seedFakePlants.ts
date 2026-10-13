@@ -9,6 +9,8 @@ export type SeedOptions = {
   baseLimit?: number;
   /** Max user plants to seed; defaults to 8 */
   userLimit?: number;
+  /** Household to seed into; defaults to the user's own (its ID is their uid) */
+  householdId?: string;
 };
 
 const basePlants: IPlant[] = [
@@ -444,8 +446,12 @@ export async function seedFakePlants(options: SeedOptions = {}) {
     await saveBasePlantToFirebase(plant, user);
   }
 
+  const household = {
+    id: options.householdId ?? user.uid,
+    memberIds: [user.uid],
+  };
   for (const plant of userPlants) {
-    await saveUserPlantToFirebase(plant, user);
+    await saveUserPlantToFirebase(plant, user, household);
   }
 
   return true;

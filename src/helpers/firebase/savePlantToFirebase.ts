@@ -1,6 +1,6 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 
-import { IUserPlant, IPlant } from "@/constants/IPlant";
+import { IHousehold, IUserPlant, IPlant } from "@/constants/IPlant";
 import ErrorService from "@/services/ErrorService";
 
 
@@ -11,9 +11,14 @@ const savePlantToFirebase = async (
   userPlant: IUserPlant,
   plantData: IPlant,
   user: FirebaseAuthTypes.User | null,
+  household: Pick<IHousehold, "id" | "memberIds"> | null,
 ): Promise<IUserPlant | null> => {
   if (!user) {
     ErrorService.handleError("User is not authenticated", "Save Plant");
+    return null;
+  }
+  if (!household) {
+    ErrorService.handleError("Household is not loaded yet", "Save Plant");
     return null;
   }
 
@@ -24,7 +29,11 @@ const savePlantToFirebase = async (
       return null;
     }
 
-    const userPlantSaved = await saveUserPlantToFirebase(userPlant, user);
+    const userPlantSaved = await saveUserPlantToFirebase(
+      userPlant,
+      user,
+      household,
+    );
     if (!userPlantSaved) {
       ErrorService.handleError("Failed to save user plant", "Save Plant");
       return null;

@@ -1,6 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
-import { useEffect } from "react";
 import { useSelector } from "react-redux";
 
 import { StyleSheet, View } from "react-native";
@@ -11,9 +10,9 @@ import PlantCard from "@/components/plant/plantCard";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import ScreenScrollView from "@/components/ui/Views/ScreenScrollView";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 import { getWateringProgress } from "@/helpers/plants/wateringProgress";
 import { usePlantManagement } from "@/hooks/plants/usePlantManagement";
-import useUserPlants from "@/hooks/plants/useUserPlants";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { RootState } from "@/store/store";
 import { Spacing } from "@/theme/Spacing";
@@ -23,12 +22,9 @@ export default function HomeScreen() {
   const { colors, radius } = useTheme();
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
-  const { getPlants } = useUserPlants();
+  // Plants stay up to date through the household's live listener.
+  const { household } = useHousehold();
   const { handleDeletePlant } = usePlantManagement();
-
-  useEffect(() => {
-    getPlants();
-  }, [getPlants]);
 
   // Plants that need attention (overdue, urgent, or soon) sorted soonest-first
   const needsWatering = userPlants
@@ -42,8 +38,7 @@ export default function HomeScreen() {
   return (
     <ScreenScrollView
       title="Plant Friends!"
-      // Becomes the household name once sharing lands.
-      eyebrow="Today"
+      eyebrow={household?.name ?? "Today"}
       right={<ProfileButton />}
     >
       <View style={styles.statsRow}>

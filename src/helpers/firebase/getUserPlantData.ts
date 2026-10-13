@@ -1,6 +1,4 @@
 import {
-  collection,
-  doc,
   getDocs,
   getFirestore,
   query,
@@ -8,15 +6,22 @@ import {
 } from "@react-native-firebase/firestore";
 
 import { IUserPlant } from "@/constants/IPlant";
+import { plantsCol } from "@/helpers/firebase/householdPaths";
 
+/**
+ * Finds the plant of this species that `userId` added to the household.
+ * Matching on `addedBy` as well as `plantId` means a housemate's plant of
+ * the same species is never returned.
+ */
 async function getUserPlantData(
+  householdId: string,
   userId: string,
   plantId: string,
 ): Promise<IUserPlant | undefined> {
-  const db = getFirestore();
   const q = query(
-    collection(doc(collection(db, "Users"), userId), "UserPlants"),
+    plantsCol(getFirestore(), householdId),
     where("plantId", "==", plantId),
+    where("addedBy", "==", userId),
   );
 
   const snapshot = await getDocs(q);

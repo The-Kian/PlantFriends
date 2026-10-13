@@ -14,6 +14,7 @@ import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { WateringPrediction } from "@/components/watering/WateringPrediction";
 import { WateringSplash } from "@/components/watering/WateringSplash";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
 import {
   calculateNextWateringDate,
@@ -43,6 +44,7 @@ const PlantDetailsScreen = () => {
   const { colors, radius, shadow } = useTheme();
   const dispatch = useDispatch();
   const { user } = useContext(AuthContext);
+  const { household } = useHousehold();
 
   const userPlant = useSelector((state: RootState) =>
     state.userPlants.find((p) => p.id === plantId)
@@ -79,7 +81,7 @@ const PlantDetailsScreen = () => {
 
   const handleLogWatering = async () => {
     try {
-      if (!user) {
+      if (!user || !household) {
         Alert.alert("Error", "You must be logged in to log watering");
         return;
       }
@@ -97,7 +99,7 @@ const PlantDetailsScreen = () => {
         last_watered_date: now,
         next_watering_date: nextDate,
       };
-      const saved = await saveUserPlantToFirebase(updatedPlant, user);
+      const saved = await saveUserPlantToFirebase(updatedPlant, user, household);
       if (!saved) {
         throw new Error("Failed to save watering data");
       }

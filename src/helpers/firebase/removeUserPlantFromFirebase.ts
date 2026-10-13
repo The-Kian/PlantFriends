@@ -1,29 +1,21 @@
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getFirestore,
-} from "@react-native-firebase/firestore";
+import { deleteDoc, getFirestore } from "@react-native-firebase/firestore";
 
+import { plantDoc } from "@/helpers/firebase/householdPaths";
 import ErrorService from "@/services/ErrorService";
 
 const removeUserPlantFromFirebase = async (
   userPlantId: string,
   user: FirebaseAuthTypes.User | null,
+  householdId: string | null,
 ): Promise<boolean> => {
-  if (!user) {
+  if (!user || !householdId) {
     ErrorService.handleError("User is not authenticated", "Remove Plant");
     return false;
   }
 
   try {
-    const db = getFirestore();
-    const userPlantRef = doc(
-      collection(doc(collection(db, "Users"), user.uid), "UserPlants"),
-      userPlantId,
-    );
-    await deleteDoc(userPlantRef);
+    await deleteDoc(plantDoc(getFirestore(), householdId, userPlantId));
     return true;
   } catch (error) {
     ErrorService.handleError(error, "Remove Plant");

@@ -78,10 +78,15 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       const user = userCredential.user;
       const db = getFirestore();
 
-      await setDoc(doc(collection(db, "Users"), user?.uid), {
-        displayName: user?.displayName ?? email,
-        email: email,
-      });
+      // Merge: the household setup may already have written householdId.
+      await setDoc(
+        doc(collection(db, "Users"), user?.uid),
+        {
+          displayName: user?.displayName ?? email,
+          email: email,
+        },
+        { merge: true },
+      );
     } catch (error) {
       const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
       if (nativeError.code === "auth/email-already-in-use") {

@@ -15,6 +15,7 @@ import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockHousehold } from "@/test-utils/MockHousehold";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
@@ -170,6 +171,7 @@ describe("PlantSearchScreen", () => {
         expect.objectContaining({ plantId: mockPlant.id, id: "mock-uuid-123" }),
         mockPlant,
         mockUser,
+        mockHousehold,
       );
     });
     expect(screen.getByText("You are on the Tab screen")).toBeVisible();
@@ -189,6 +191,7 @@ describe("PlantSearchScreen", () => {
         expect.objectContaining({ plantId: mockPlant.id }),
         mockPlant,
         mockUser,
+        mockHousehold,
       );
     });
     expect(screen.getByText("You are on the Tab screen")).toBeVisible();

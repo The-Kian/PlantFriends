@@ -78,6 +78,28 @@ export interface IUserPlant {
   houseLocation?: string;
   /** Whether the plant is marked as a favorite */
   is_favorite?: boolean;
+  /** uid of the household member who added the plant */
+  addedBy?: string | null;
+  /** uids that get this plant's reminders and hear when someone else waters it */
+  carerIds?: string[];
+  /** Whether every household member looks after this plant */
+  shared?: boolean;
+}
+
+/**
+ * A household: housemates who share one set of plants.
+ * Stored at `Households/{id}`; plants live in its `Plants` subcollection.
+ */
+export interface IHousehold {
+  id: string;
+  name: string;
+  /** uids of every member; used by the security rules */
+  memberIds: string[];
+  /** Display names, so the UI doesn't need to read other users' profiles */
+  members: Record<string, { displayName: string }>;
+  createdBy: string;
+  /** IANA time zone, used for quiet hours */
+  timeZone?: string;
 }
 
 /**

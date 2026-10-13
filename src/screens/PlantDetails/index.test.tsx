@@ -14,6 +14,7 @@ import ErrorService from "@/services/ErrorService";
 import { setupStore } from "@/store/store";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockHousehold } from "@/test-utils/MockHousehold";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
@@ -85,7 +86,7 @@ describe("PlantDetailsScreen watering", () => {
       last_watered_date: now,
       next_watering_date: calculateNextWateringDate(now, 3),
     };
-    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser);
+    expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser, mockHousehold);
     expect(store.getState().userPlants).toEqual([plant]);
     expect(dispatch).not.toHaveBeenCalled();
     expect(screen.queryByTestId("watering-splash")).toBeNull();

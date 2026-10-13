@@ -15,6 +15,7 @@ import ScreenHeader from "@/components/ui/Views/ScreenHeader";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 import { useTheme } from "@/hooks/utils/useTheme";
@@ -32,6 +33,7 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
   const { plants, loading, error } = useCombinedPlantSearch(searchQuery);
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
   const { user } = useContext(AuthContext);
+  const { household } = useHousehold();
   const [userPlant, setUserPlant] = useState<IUserPlant | null>(null);
   const [isAddingNewPlant, setIsAddingNewPlant] = useState(false);
   const { colors } = useTheme();
@@ -71,7 +73,8 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
     if (isAddingNewPlant) {
       userData.plantId = plantData.id;
     }
-    await savePlantToFirebase(userData, plantData, user);
+    // The household's live listener adds the plant to the list.
+    await savePlantToFirebase(userData, plantData, user, household);
 
     closeModal();
     navigation.navigate("Tab");

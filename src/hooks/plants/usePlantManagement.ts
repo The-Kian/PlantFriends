@@ -5,6 +5,7 @@ import uuid from "react-native-uuid";
 
 import { IPlant, IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { useHousehold } from "@/context/household/HouseholdProvider";
 import getUserPlantData from "@/helpers/firebase/getUserPlantData";
 import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
@@ -18,6 +19,7 @@ import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
+  const { household } = useHousehold();
   const dispatch = useDispatch();
 
   // Selection / fetched user plant
@@ -28,12 +30,16 @@ export const usePlantManagement = () => {
     usePlantCustomizations();
 
   const { persistSavePlant, persistDeletePlant, persistUpdatePlant } =
-    usePlantPersistence(user);
+    usePlantPersistence(user, household);
 
   const handleSelectPlant = async (plant: IPlant) => {
     setSelectedPlant(plant);
-    if (user) {
-      const userPlantData = await getUserPlantData(user.uid, plant.id);
+    if (user && household) {
+      const userPlantData = await getUserPlantData(
+        household.id,
+        user.uid,
+        plant.id,
+      );
       setUserPlant(userPlantData || null);
     }
   };
