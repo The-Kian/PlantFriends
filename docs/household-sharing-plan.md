@@ -25,9 +25,9 @@ Decisions made so far:
 - **Leaving:** when a member deletes their account, the household keeps its
   plants. Plants only they looked after become shared with whoever is left.
 
-**Status:** not started. Build it one phase at a time (see **Phases**). A
-first pass at all six phases is in closed PR #59, and each phase's code can be
-taken from there.
+**Status:** phase 1 code is on `main`; its setup and device check are next.
+Build the rest one phase at a time (see **Phases**). A first pass at all six
+phases is in closed PR #59, and each phase's code can be taken from there.
 
 ## Data model
 
@@ -242,7 +242,8 @@ shows the household name.
 - **Code:** `HouseholdProvider`, `setupHousehold.ts` (the solo household and
   the migration), `householdPaths.ts`, and household paths in the save,
   remove and lookup helpers. Home and My Plants use the live listener.
-  `firestore.rules`.
+  `firestore.rules`. Reminders are still scheduled on the phone, and are
+  rescheduled whenever the plants change.
 - **You do:**
   1. `firebase deploy --only firestore:rules`
   2. Install a build on your phone and open the app.
