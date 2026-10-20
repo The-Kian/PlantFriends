@@ -40,6 +40,20 @@ describe("AuthForm Component", () => {
     expect(screen.getByText("Sign Up")).toBeVisible();
   });
 
+  it("doesn't capitalise or autocorrect emails and passwords", () => {
+    renderComponent({ authScreenType: "signUp" });
+    for (const label of [
+      "Email Address",
+      "Confirm Email Address",
+      "Password",
+      "Confirm Password",
+    ]) {
+      const input = screen.getByLabelText(`${label} input field`);
+      expect(input).toHaveProp("autoCapitalize", "none");
+      expect(input).toHaveProp("autoCorrect", false);
+    }
+  });
+
   it("renders correctly for update", () => {
     renderComponent({ authScreenType: "update" });
     expect(screen.getByText("Display Name")).toBeVisible();
