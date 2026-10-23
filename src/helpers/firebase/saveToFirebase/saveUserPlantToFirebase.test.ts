@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import firestore from "@react-native-firebase/firestore";
 
+import { IUserPlantMerged } from "@/constants/IPlant";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockHousehold } from "@/test-utils/MockHousehold";
 import { mockUserPlant } from "@/test-utils/MockPlant";
@@ -17,10 +18,11 @@ describe("saveUserPlantToFirebase", () => {
     jest.clearAllMocks();
   });
 
-  it("records who added a new plant", async () => {
+  it("records who added a new plant and makes it theirs", async () => {
     mockGet.mockResolvedValueOnce({ exists: false });
+    const plant = { ...mockUserPlant, last_watered_date: 100, next_watering_date: 200 };
 
-    const result = await saveUserPlantToFirebase(mockUserPlant, mockUser, mockHousehold);
+    const result = await saveUserPlantToFirebase(plant, mockUser, mockHousehold);
 
     expect(result).toBe(true);
     expect(writtenData()).toMatchObject({
@@ -31,23 +33,66 @@ describe("saveUserPlantToFirebase", () => {
       userId: "user1",
       carerIds: ["user1"],
       shared: false,
+      last_watered_date: 100,
+      next_watering_date: 200,
       slug: "custom plant",
     });
   });
 
-  it("leaves who added it alone when updating", async () => {
-    mockGet.mockResolvedValueOnce({ exists: true });
+  it("doesn't take over a housemate's plant when saving it", async () => {
+    mockGet.mockResolvedValueOnce({
+      exists: true,
+      data: () => ({ addedBy: "user2" }),
+    });
+    const plant = { ...mockUserPlant, userId: "user2", last_watered_date: 100 };
+
+    await saveUserPlantToFirebase(plant, mockUser, mockHousehold);
+
+    const data = writtenData();
+    expect(data.carerIds).toEqual(["user2"]);
+    expect(data).not.toHaveProperty("addedBy");
+    expect(data).not.toHaveProperty("userId");
+    // Watering goes through logWatering, so an edit can't undo one.
+    expect(data).not.toHaveProperty("last_watered_date");
+  });
+
+  it("makes every member a carer of a shared plant", async () => {
+    mockGet.mockResolvedValueOnce({ exists: false });
 
     await saveUserPlantToFirebase(
-      { ...mockUserPlant, addedBy: "user1", custom_name: "Monty" },
+      { ...mockUserPlant, shared: true },
       mockUser,
       mockHousehold,
     );
 
+    expect(writtenData().carerIds).toEqual(["user1", "user2"]);
+  });
+
+  it("keeps a plant shared when an edit doesn't say otherwise", async () => {
+    mockGet.mockResolvedValueOnce({
+      exists: true,
+      data: () => ({ addedBy: "user2", shared: true }),
+    });
+    const { shared: _shared, ...edit } = { ...mockUserPlant, shared: undefined };
+
+    await saveUserPlantToFirebase(edit, mockUser, mockHousehold);
+
+    expect(writtenData()).toMatchObject({ shared: true, carerIds: ["user1", "user2"] });
+  });
+
+  it("never writes species data", async () => {
+    mockGet.mockResolvedValueOnce({ exists: false });
+    const merged: IUserPlantMerged = {
+      ...mockUserPlant,
+      name: "Monstera deliciosa",
+      images: ["https://example.com/monstera.jpg"],
+    };
+
+    await saveUserPlantToFirebase(merged, mockUser, mockHousehold);
+
     const data = writtenData();
-    expect(data).toMatchObject({ custom_name: "Monty", slug: "monty" });
-    expect(data).not.toHaveProperty("addedBy");
-    expect(data).not.toHaveProperty("carerIds");
+    expect(data).not.toHaveProperty("name");
+    expect(data).not.toHaveProperty("images");
   });
 
   it("returns false if the save fails", async () => {

@@ -36,12 +36,15 @@ export interface HouseholdContextType {
   /** True until the household's plants have loaded for the first time. */
   loading: boolean;
   error: string | null;
+  /** A member's display name, or null if they aren't in the household. */
+  memberName: (uid?: string | null) => string | null;
 }
 
 export const HouseholdContext = createContext<HouseholdContextType>({
   household: null,
   loading: true,
   error: null,
+  memberName: () => null,
 });
 
 export const useHousehold = () => useContext(HouseholdContext);
@@ -172,7 +175,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       plantsCol(getFirestore(), householdId),
       async (snap) => {
         const run = ++latest;
-        const plants = (snap?.docs ?? []).map(
+        const plants: IUserPlant[] = (snap?.docs ?? []).map(
           (d: { data: () => unknown }) => d.data() as IUserPlant,
         );
 
@@ -186,8 +189,12 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         setLoading(false);
 
         // Reminders are still scheduled on this device until the server
-        // sends them (phase 5 of the household plan).
-        syncAllWateringReminders(plants).catch((e) =>
+        // sends them (phase 5 of the household plan). Only for plants this
+        // person looks after, not a housemate's own plants.
+        const mine = plants.filter(
+          (p) => !p.carerIds || p.carerIds.includes(user.uid),
+        );
+        syncAllWateringReminders(mine).catch((e) =>
           console.warn("syncAllWateringReminders failed:", e),
         );
       },
@@ -200,7 +207,13 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
   }, [householdId, user, dispatch]);
 
   const value = useMemo<HouseholdContextType>(
-    () => ({ household, loading, error }),
+    () => ({
+      household,
+      loading,
+      error,
+      memberName: (uid) =>
+        (uid && household?.members?.[uid]?.displayName) || null,
+    }),
     [household, loading, error],
   );
 

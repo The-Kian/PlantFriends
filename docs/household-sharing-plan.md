@@ -25,7 +25,8 @@ Decisions made so far:
 - **Leaving:** when a member deletes their account, the household keeps its
   plants. Plants only they looked after become shared with whoever is left.
 
-**Status:** phase 1 code is on `main`; its setup and device check are next.
+**Status:** phase 1 code is on `main`, and phase 2 is in review. Their setup
+and device checks are next.
 Build the rest one phase at a time (see **Phases**). A first pass at all six
 phases is in closed PR #59, and each phase's code can be taken from there.
 
@@ -261,6 +262,7 @@ Two accounts share one household, and each can see who watered what.
   ownership fixes in `saveUserPlantToFirebase` and `getUserPlantData`, "by
   Sam" on the card and details screen, Shared and "Sam's" badges, and the
   "Shared with the household" switch (`setPlantSharing`, `SwitchField`).
+  Local reminders only cover plants you look after.
 - **You do:**
   1. Sign up a second account on another phone, or ask your housemate.
   2. Link it to your household in the console.
