@@ -20,6 +20,7 @@ import {
 import { setCrashReportingUser } from "@/services/CrashReporting";
 import ErrorService from "@/services/ErrorService";
 import { cancelAllWateringReminders } from "@/services/NotificationService";
+import { unregisterForPush } from "@/services/PushRegistration";
 
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
 
@@ -192,7 +193,12 @@ export const AuthProvider = ({ children }: ProviderProps) => {
 
   const logout = async () => {
     try {
-      // Reminders belong to this account; don't leave them for the next user.
+      // Notifications belong to this account; don't send them to the next
+      // person who signs in on this device.
+      const currentUser = auth().currentUser;
+      if (currentUser) {
+        await unregisterForPush(currentUser.uid);
+      }
       await cancelAllWateringReminders();
       await signOutOfGoogle();
       await auth().signOut();

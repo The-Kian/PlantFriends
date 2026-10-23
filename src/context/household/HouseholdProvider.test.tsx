@@ -21,6 +21,10 @@ import { mockUserPlant } from "@/test-utils/MockPlant";
 
 import { HouseholdProvider, useHousehold } from "./HouseholdProvider";
 
+jest.mock("@/services/PushRegistration", () => ({
+  registerForPush: jest.fn(async () => null),
+  unregisterForPush: jest.fn(async () => {}),
+}));
 jest.mock("@/helpers/household/setupHousehold", () => ({
   createSoloHousehold: jest.fn(async () => "user1"),
   migrateUserPlants: jest.fn(async () => 0),

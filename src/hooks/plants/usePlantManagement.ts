@@ -15,6 +15,7 @@ import {
   requestNotificationPermissions,
   scheduleWateringReminder,
 } from "@/services/NotificationService";
+import { registerForPush } from "@/services/PushRegistration";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
@@ -79,6 +80,7 @@ export const usePlantManagement = () => {
           const granted = await requestNotificationPermissions();
           if (granted) {
             await scheduleWateringReminder(savedPlant);
+            if (user) await registerForPush(user.uid, { prompt: false });
           }
         }
         return true;
