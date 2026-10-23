@@ -149,8 +149,11 @@ exports.searchPlants = functions
  *
  * 1. Copies an anonymised version of each of their plants into the
  *    `AnonymousPlants` collection (not readable by clients).
- * 2. Deletes `Users/{uid}` and everything under it.
- * 3. Deletes the Firebase Auth user.
+ * 2. Deletes their household with its plants if they are its only member.
+ *    In a shared household it deletes only the plants they added and takes
+ *    them off the members and carers, so housemates keep their own plants.
+ * 3. Deletes `Users/{uid}` and everything under it.
+ * 4. Deletes the Firebase Auth user.
  *
  * Runs with the Admin SDK, so it does not need a recent login. Safe to call
  * again if a previous attempt failed part way.
@@ -168,18 +171,62 @@ exports.deleteAccount = functions.https.onCall(async (data, context) => {
   const userRef = db.collection("Users").doc(uid);
 
   try {
-    const userPlants = await userRef.collection("UserPlants").get();
+    const userSnap = await userRef.get();
+    const userData = userSnap.exists ? userSnap.data() : {};
+    const householdRef = db
+      .collection("Households")
+      .doc(userData.householdId || uid);
+    const householdSnap = await householdRef.get();
+    const memberIds = householdSnap.exists
+      ? householdSnap.data().memberIds || []
+      : [];
+    const isMember = memberIds.includes(uid);
+    const hasHousemates = memberIds.some((id) => id !== uid);
+
+    // Their plants: the ones they added to the household, plus any left in
+    // the old UserPlants collection if they never ran the migration (once
+    // migrated, those are copies of household plants and would count twice).
+    const householdPlants = isMember
+      ? (await householdRef.collection("Plants").get()).docs.filter(
+          (plantDoc) => plantDoc.data().addedBy === uid,
+        )
+      : [];
+    const oldPlants = userData.plantsMigratedAt
+      ? []
+      : (await userRef.collection("UserPlants").get()).docs;
+
     const writer = db.bulkWriter();
-    userPlants.forEach((plantDoc) => {
-      writer.create(
-        db.collection("AnonymousPlants").doc(),
-        {
-          ...anonymiseUserPlant(plantDoc.data()),
-          anonymisedAt: admin.firestore.FieldValue.serverTimestamp(),
-        },
-      );
+    [...householdPlants, ...oldPlants].forEach((plantDoc) => {
+      writer.create(db.collection("AnonymousPlants").doc(), {
+        ...anonymiseUserPlant(plantDoc.data()),
+        anonymisedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
     });
     await writer.close();
+
+    if (isMember && hasHousemates) {
+      const { FieldValue } = admin.firestore;
+      const cleanup = db.bulkWriter();
+      householdPlants.forEach((plantDoc) => cleanup.delete(plantDoc.ref));
+      cleanup.update(householdRef, {
+        memberIds: FieldValue.arrayRemove(uid),
+        [`members.${uid}`]: FieldValue.delete(),
+      });
+      const remaining = await householdRef
+        .collection("Plants")
+        .where("carerIds", "array-contains", uid)
+        .get();
+      remaining.docs
+        .filter((plantDoc) => plantDoc.data().addedBy !== uid)
+        .forEach((plantDoc) =>
+          cleanup.update(plantDoc.ref, {
+            carerIds: FieldValue.arrayRemove(uid),
+          }),
+        );
+      await cleanup.close();
+    } else if (isMember) {
+      await db.recursiveDelete(householdRef);
+    }
 
     await db.recursiveDelete(userRef);
 
