@@ -87,10 +87,10 @@ const UserDataSection = ({
       />
       {hasHousemates && (
         <SwitchField
-        label="Shared with the household"
-        description="Everyone in the household gets its reminders."
-        value={userData?.shared ?? false}
-        onValueChange={(shared) => onUserDataChange("shared", shared)}
+          label="Shared with the household"
+          description="Everyone in the household gets its reminders."
+          value={userData?.shared ?? false}
+          onValueChange={(shared) => onUserDataChange("shared", shared)}
         />
       )}
     </View>
