@@ -25,10 +25,9 @@ Decisions made so far:
 - **Leaving:** when a member deletes their account, the household keeps its
   plants. Plants only they looked after become shared with whoever is left.
 
-**Status:** phase 1 code is on `main`, and phase 2 is in review. Their setup
-and device checks are next.
-Build the rest one phase at a time (see **Phases**). A first pass at all six
-phases is in closed PR #59, and each phase's code can be taken from there.
+**Status:** phase 1 is on `main`. Phase 2 (PR #61) and phase 3 (stacked on
+phase 2) are in review. Phase 3 can only be checked on a phone with an EAS
+build, because push tokens need the app's real signing key.
 
 ## Data model
 

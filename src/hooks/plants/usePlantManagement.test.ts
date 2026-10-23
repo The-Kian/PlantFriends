@@ -20,6 +20,10 @@ import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
 import { usePlantManagement } from "./usePlantManagement";
 
+jest.mock("@/services/PushRegistration", () => ({
+  registerForPush: jest.fn(async () => null),
+  unregisterForPush: jest.fn(async () => {}),
+}));
 jest.mock("@/helpers/firebase/savePlantToFirebase");
 jest.mock("@/helpers/firebase/getUserPlantData");
 jest.mock("@/helpers/firebase/removeUserPlantFromFirebase");

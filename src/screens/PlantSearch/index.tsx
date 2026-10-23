@@ -19,6 +19,7 @@ import { useHousehold } from "@/context/household/HouseholdProvider";
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 import { useTheme } from "@/hooks/utils/useTheme";
+import { registerForPush } from "@/services/PushRegistration";
 import { Spacing } from "@/theme/Spacing";
 
 import styles from "./index.styles";
@@ -74,10 +75,16 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
       userData.plantId = plantData.id;
     }
     // The household's live listener adds the plant to the list.
-    await savePlantToFirebase(userData, plantData, user, household);
+    const saved = await savePlantToFirebase(userData, plantData, user, household);
 
     closeModal();
     navigation.navigate("Tab");
+
+    // A good moment to ask for notifications: reminders for this plant, and
+    // (from phase 4) hearing when a housemate waters it.
+    if (saved && user) {
+      await registerForPush(user.uid, { prompt: true });
+    }
   };
 
   return (

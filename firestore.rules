@@ -6,6 +6,12 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // Devices registered for push notifications. The doc ID is the Expo push
+    // token. Cloud Functions read these to send pushes.
+    match /Users/{uid}/Devices/{token} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // User plants from older builds, before households. Kept for one release
     // so the app can migrate them; remove once nobody runs an old build.
     match /Users/{uid}/UserPlants/{userPlantId} {
