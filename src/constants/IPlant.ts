@@ -84,6 +84,10 @@ export interface IUserPlant {
   carerIds?: string[];
   /** Whether every household member looks after this plant */
   shared?: boolean;
+  /** uid of whoever logged the last watering */
+  last_watered_by?: string | null;
+  /** Display name of whoever logged the last watering (denormalised) */
+  last_watered_by_name?: string | null;
 }
 
 /**

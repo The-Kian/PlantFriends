@@ -7,6 +7,7 @@ import { StyleSheet, ScrollView, Image, Alert, View } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
 import { EmptyState } from "@/components/ui/EmptyState";
+import SwitchField from "@/components/ui/Input/SwitchField";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import ScreenHeader from "@/components/ui/Views/ScreenHeader";
@@ -15,11 +16,10 @@ import { WateringPrediction } from "@/components/watering/WateringPrediction";
 import { WateringSplash } from "@/components/watering/WateringSplash";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { useHousehold } from "@/context/household/HouseholdProvider";
-import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
-import {
-  calculateNextWateringDate,
-  getWateringFrequencyInDays,
-} from "@/helpers/plants/wateringCalculations";
+import logWatering from "@/helpers/firebase/logWatering";
+import setPlantSharing from "@/helpers/firebase/setPlantSharing";
+import { displayNameFor } from "@/helpers/household/setupHousehold";
+import { getWateringFrequencyInDays } from "@/helpers/plants/wateringCalculations";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
 import ErrorService from "@/services/ErrorService";
@@ -44,7 +44,7 @@ const PlantDetailsScreen = () => {
   const { colors, radius, shadow } = useTheme();
   const dispatch = useDispatch();
   const { user } = useContext(AuthContext);
-  const { household } = useHousehold();
+  const { household, memberName, loading: householdLoading } = useHousehold();
 
   const userPlant = useSelector((state: RootState) =>
     state.userPlants.find((p) => p.id === plantId)
@@ -53,6 +53,16 @@ const PlantDetailsScreen = () => {
   const { mergedPlant, loading } = useMergedPlant(userPlant || null);
 
   const [showSplash, setShowSplash] = useState(false);
+
+  // Opened before the household's plants have loaded.
+  if (!userPlant && householdLoading) {
+    return (
+      <ThemedView style={styles.screen}>
+        <ScreenHeader />
+        <LoadingSpinner message="Loading plant details..." fullScreen />
+      </ThemedView>
+    );
+  }
 
   if (!userPlant) {
     return (
@@ -86,23 +96,19 @@ const PlantDetailsScreen = () => {
         return;
       }
 
-      const now = Date.now();
       const frequency = getWateringFrequencyInDays(
         userPlant.custom_watering_schedule ?? null,
         mergedPlant?.watering_frequency
       );
 
-      const nextDate = calculateNextWateringDate(now, frequency);
-
-      const updatedPlant = {
-        ...userPlant,
-        last_watered_date: now,
-        next_watering_date: nextDate,
-      };
-      const saved = await saveUserPlantToFirebase(updatedPlant, user, household);
-      if (!saved) {
-        throw new Error("Failed to save watering data");
-      }
+      // Only the watering fields are written, so a housemate's edit made at
+      // the same time isn't overwritten.
+      const updatedPlant = await logWatering(
+        household.id,
+        userPlant,
+        { uid: user.uid, displayName: displayNameFor(user) },
+        frequency,
+      );
 
       dispatch(updatePlant(updatedPlant));
       setShowSplash(true);
@@ -119,8 +125,35 @@ const PlantDetailsScreen = () => {
     }
   };
 
+  const handleSharedChange = async (shared: boolean) => {
+    if (!user || !household) return;
+    try {
+      dispatch(updatePlant(await setPlantSharing(household, userPlant, shared, user.uid)));
+    } catch (error) {
+      ErrorService.handleError(error, "Share Plant", {
+        userMessage: "Couldn't change sharing. Please try again.",
+      });
+    }
+  };
+
+  // "by Sam" when a housemate did the last watering.
+  const lastWateredBy =
+    userPlant.last_watered_by && userPlant.last_watered_by !== user?.uid
+      ? userPlant.last_watered_by_name ?? memberName(userPlant.last_watered_by)
+      : null;
+  const ownerName =
+    !userPlant.shared && userPlant.addedBy && userPlant.addedBy !== user?.uid
+      ? memberName(userPlant.addedBy)
+      : null;
+  const hasHousemates = (household?.memberIds.length ?? 0) > 1;
+
   // Quick-glance facts shown as chips under the title.
   const chips: Chip[] = [];
+  if (userPlant.shared && hasHousemates) {
+    chips.push({ icon: "people-outline", label: "Shared" });
+  } else if (ownerName) {
+    chips.push({ icon: "person-outline", label: `${ownerName}'s plant` });
+  }
   if (userPlant.houseLocation) {
     chips.push({ icon: "home-outline", label: userPlant.houseLocation });
   }
@@ -203,10 +236,22 @@ const PlantDetailsScreen = () => {
 
           <WateringPrediction
             lastWatered={userPlant.last_watered_date ?? null}
+            lastWateredBy={lastWateredBy}
             wateringFrequency={mergedPlant?.watering_frequency}
             customSchedule={userPlant.custom_watering_schedule ?? null}
             onLogWatering={handleLogWatering}
           />
+
+          {hasHousemates && (
+            <View style={cardStyle}>
+              <SwitchField
+                label="Shared with the household"
+                description="Everyone in the household gets its reminders."
+                value={userPlant.shared ?? false}
+                onValueChange={handleSharedChange}
+              />
+            </View>
+          )}
 
           {mergedPlant?.description && (
             <View style={cardStyle}>
