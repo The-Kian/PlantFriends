@@ -1,0 +1,47 @@
+name: Link housemate
+
+# Adds someone to another person's household, or takes them out, until the
+# app has invites. Run it from the Actions tab (works in the GitHub app).
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Link or unlink"
+        type: choice
+        options: [link, unlink]
+        default: link
+      household_owner_email:
+        description: "Email of someone already in the household"
+        required: true
+        type: string
+      housemate_email:
+        description: "Email of the person to add or remove"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: ${{ inputs.action }} ${{ inputs.housemate_email }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        working-directory: functions
+        run: npm ci --omit=dev
+
+      - name: Update the household
+        working-directory: functions
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          ACTION: ${{ inputs.action }}
+          OWNER_EMAIL: ${{ inputs.household_owner_email }}
+          HOUSEMATE_EMAIL: ${{ inputs.housemate_email }}
+        run: node scripts/householdAdmin.js
