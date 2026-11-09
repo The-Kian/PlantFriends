@@ -25,3 +25,22 @@ firebase functions:secrets:set TREFLE_API_KEY
 
 The function reads `process.env.TREFLE_API_KEY`. You can either set it via
 Firebase Functions secrets (recommended) or as an env var in the deploy.
+
+## Linking housemates (until the app has invites)
+
+The **Link housemate** workflow (GitHub → Actions) adds someone to another
+person's household, or takes them out. It runs `scripts/householdAdmin.js`
+with a service account key stored as the `FIREBASE_SERVICE_ACCOUNT`
+repository secret.
+
+To set the secret up once:
+
+1. Firebase console → Project settings → Service accounts → **Generate new
+   private key**. This downloads a JSON file.
+2. GitHub → the repo → Settings → Secrets and variables → Actions → **New
+   repository secret**. Name it `FIREBASE_SERVICE_ACCOUNT` and paste the whole
+   JSON file as the value.
+3. Delete the downloaded file.
+
+Both people must have opened the app at least once, so their accounts and
+households exist.
