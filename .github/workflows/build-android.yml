@@ -1,0 +1,82 @@
+name: Build Android test app
+
+# Builds an installable APK on GitHub's machines with `eas build --local`,
+# so it doesn't use the Expo plan's cloud builds. It's signed with the app's
+# real key from EAS, so Google sign-in and push notifications work.
+# The APK is attached to a pre-release called "Test build: <branch>".
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag or commit to build"
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: write # to publish the APK on a pre-release
+
+concurrency:
+  group: build-android-${{ inputs.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ inputs.ref }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up corepack
+        run: corepack enable
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --config.minimumReleaseAge=0
+
+      - name: Build the APK
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::The EXPO_TOKEN secret isn't set. See docs/ci-builds.md."
+            exit 1
+          fi
+          npx --yes eas-cli@latest build --local --non-interactive \
+            --platform android --profile preview \
+            --output "$RUNNER_TEMP/plantfriends.apk"
+
+      - name: Keep the APK with this run
+        uses: actions/upload-artifact@v4
+        with:
+          name: plantfriends-apk
+          path: ${{ runner.temp }}/plantfriends.apk
+          retention-days: 14
+
+      - name: Publish the APK on a pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF: ${{ inputs.ref }}
+        run: |
+          sha=$(git rev-parse HEAD)
+          tag="test-build-$(echo "$REF" | tr -c 'A-Za-z0-9._-' '-' | sed 's/-*$//')"
+          gh release delete "$tag" --cleanup-tag --yes 2>/dev/null || true
+          gh release create "$tag" "$RUNNER_TEMP/plantfriends.apk#PlantFriends-$tag.apk" \
+            --prerelease --target "$sha" \
+            --title "Test build: $REF" \
+            --notes "Android test build of \`$REF\` at ${sha:0:7}. Open this page on your phone and tap the APK to install it."
