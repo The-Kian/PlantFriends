@@ -54,6 +54,10 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
             onChangeText={setEnteredEmail}
             value={enteredEmail}
             keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
           />
         )}
         {authScreenType === "signUp" && (
@@ -63,6 +67,10 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
               onChangeText={setEnteredConfirmEmail}
               value={enteredConfirmEmail}
               keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
             />
             <DatePickerField
               label="Date of Birth"
@@ -84,6 +92,10 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
             onChangeText={setEnteredPassword}
             value={enteredPassword}
             secureTextEntry={true}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete={authScreenType === "signUp" ? "new-password" : "current-password"}
+            textContentType={authScreenType === "signUp" ? "newPassword" : "password"}
           />
         )}
         {authScreenType === "signUp" && (
@@ -92,6 +104,10 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
             onChangeText={setEnteredConfirmPassword}
             value={enteredConfirmPassword}
             secureTextEntry={true}
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="new-password"
+            textContentType="newPassword"
           />
         )}
         <ThemedView>
