@@ -20,6 +20,10 @@ import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
 import PlantDetailsScreen from "./index";
 
+jest.mock("@/services/PushRegistration", () => ({
+  registerForPush: jest.fn(async () => null),
+  unregisterForPush: jest.fn(async () => {}),
+}));
 jest.mock("@react-navigation/native", () => ({
   useRoute: jest.fn(),
   useNavigation: () => ({ goBack: jest.fn() }),

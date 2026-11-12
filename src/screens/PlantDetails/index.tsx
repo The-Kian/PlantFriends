@@ -27,6 +27,7 @@ import {
   requestNotificationPermissions,
   scheduleWateringReminder,
 } from "@/services/NotificationService";
+import { registerForPush } from "@/services/PushRegistration";
 import { RootState } from "@/store/store";
 import { updatePlant } from "@/store/userPlantsSlice";
 import { Spacing } from "@/theme/Spacing";
@@ -117,6 +118,7 @@ const PlantDetailsScreen = () => {
       const granted = await requestNotificationPermissions();
       if (granted) {
         await scheduleWateringReminder(updatedPlant);
+        await registerForPush(user.uid, { prompt: false });
       }
     } catch (error) {
       ErrorService.handleError(error, "Log Watering", {

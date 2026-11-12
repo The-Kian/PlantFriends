@@ -29,6 +29,7 @@ import {
   migrateUserPlants,
 } from "@/helpers/household/setupHousehold";
 import { syncAllWateringReminders } from "@/services/NotificationService";
+import { registerForPush } from "@/services/PushRegistration";
 import { setUserPlants } from "@/store/userPlantsSlice";
 
 export interface HouseholdContextType {
@@ -109,6 +110,10 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       dispatch(setUserPlants([]));
       return;
     }
+
+    // Registers this device if notifications are already allowed. Asking
+    // happens later, after adding or watering a plant.
+    registerForPush(user.uid, { prompt: false });
 
     return onSnapshot(
       userDoc(getFirestore(), user.uid),

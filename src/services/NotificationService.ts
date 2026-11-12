@@ -23,19 +23,31 @@ Notifications.setNotificationHandler({
   }),
 });
 
+/** The data every PlantFriends notification carries, used to open the right plant. */
+export interface PlantNotificationData {
+  plantId?: string;
+  householdId?: string;
+  type?: "watered" | "due" | "nudge";
+}
+
 function notificationIdFor(plantId: string): string {
   return `${NOTIFICATION_PREFIX}${plantId}`;
 }
 
 /**
- * Request permission for local notifications.
- * Returns true if granted (or already granted).
+ * Whether notification permission is granted. Only asks when `prompt` is
+ * true, so the question comes at a useful moment rather than on launch.
  */
-export async function requestNotificationPermissions(): Promise<boolean> {
+export async function requestNotificationPermissions(
+  prompt: boolean = true,
+): Promise<boolean> {
   try {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     if (existingStatus === "granted") {
       return true;
+    }
+    if (!prompt) {
+      return false;
     }
 
     const { status } = await Notifications.requestPermissionsAsync();
@@ -74,6 +86,7 @@ export async function scheduleWateringReminder(
       content: {
         title: "Time to water! 💧",
         body: `${displayName} is ready for watering.`,
+        data: { plantId: plant.id, type: "due" } satisfies PlantNotificationData,
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,

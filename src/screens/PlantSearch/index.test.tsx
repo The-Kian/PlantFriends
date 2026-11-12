@@ -21,6 +21,10 @@ import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
 import PlantSearchScreen from "./";
 
+jest.mock("@/services/PushRegistration", () => ({
+  registerForPush: jest.fn(async () => null),
+  unregisterForPush: jest.fn(async () => {}),
+}));
 jest.mock("./Results", () => {
   const MockResults = (props: {
     plants: any[];

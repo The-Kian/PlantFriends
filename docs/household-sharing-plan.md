@@ -25,10 +25,10 @@ Decisions made so far:
 - **Leaving:** when a member deletes their account, the household keeps its
   plants. Plants only they looked after become shared with whoever is left.
 
-**Status:** phase 1 code is on `main`, and phase 2 is in review. Their setup
-and device checks are next.
-Build the rest one phase at a time (see **Phases**). A first pass at all six
-phases is in closed PR #59, and each phase's code can be taken from there.
+**Status:** phases 1 and 2 are on `main`. Phase 3 is in review. Test builds
+come from the **Build Android test app** workflow (see `docs/ci-builds.md`),
+and housemates are linked with the **Link housemate** workflow. A first pass at
+all six phases is in closed PR #59, and each phase's code can be taken from there.
 
 ## Data model
 
