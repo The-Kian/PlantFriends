@@ -1,0 +1,52 @@
+name: Deploy Firestore rules
+
+# Publishes firestore.rules to Firebase. Runs by itself when a change to the
+# rules is merged into main, and can be run by hand for a branch (for example
+# to test a PR on a phone before merging it).
+on:
+  push:
+    branches: [main]
+    paths: [firestore.rules]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch, tag or commit whose rules to publish"
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-firestore-rules
+
+jobs:
+  deploy:
+    name: Deploy rules from ${{ inputs.ref || github.ref_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Deploy
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::The FIREBASE_SERVICE_ACCOUNT secret isn't set. See functions/README.md."
+            exit 1
+          fi
+          key="$RUNNER_TEMP/service-account.json"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$key"
+          project=$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).project_id)' "$key")
+          GOOGLE_APPLICATION_CREDENTIALS="$key" npx --yes firebase-tools@latest deploy \
+            --only firestore:rules --project "$project" --non-interactive
+          rm -f "$key"

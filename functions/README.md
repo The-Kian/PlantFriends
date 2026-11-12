@@ -44,3 +44,10 @@ To set the secret up once:
 
 Both people must have opened the app at least once, so their accounts and
 households exist.
+
+## Deploying Firestore rules
+
+The **Deploy Firestore rules** workflow publishes `firestore.rules` with the
+same `FIREBASE_SERVICE_ACCOUNT` secret. It runs by itself when a rules change
+is merged into `main`. To try a branch's rules before merging, run it from
+Actions with that branch's name.
