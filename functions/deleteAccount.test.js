@@ -92,7 +92,7 @@ jest.mock("firebase-admin", () => ({
   initializeApp: jest.fn(),
   firestore,
   auth: () => ({ deleteUser: async (uid) => deletedUsers.push(uid) }),
-}));
+}), { virtual: true }); // CI doesn't install functions/ dependencies
 
 jest.mock("firebase-functions", () => {
   class HttpsError extends Error {
@@ -107,7 +107,7 @@ jest.mock("firebase-functions", () => {
     runWith: () => ({ https }),
     logger: { error: jest.fn() },
   };
-});
+}, { virtual: true });
 
 const { deleteAccount } = require("./index");
 
