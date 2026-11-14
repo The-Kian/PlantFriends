@@ -48,6 +48,8 @@ households exist.
 ## Deploying Firestore rules
 
 The **Deploy Firestore rules** workflow publishes `firestore.rules` with the
-same `FIREBASE_SERVICE_ACCOUNT` secret. It runs by itself when a rules change
+same `FIREBASE_SERVICE_ACCOUNT` secret. Its service account
+(`firebase-adminsdk-…`) needs the **Service Usage Consumer** role in Google
+Cloud IAM as well as its default Firebase roles. It runs by itself when a rules change
 is merged into `main`. To try a branch's rules before merging, run it from
 Actions with that branch's name.
