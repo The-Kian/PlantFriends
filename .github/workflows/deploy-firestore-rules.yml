@@ -36,17 +36,12 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install
+        working-directory: functions
+        run: npm ci --omit=dev
+
       - name: Deploy
+        working-directory: functions
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
-            echo "::error::The FIREBASE_SERVICE_ACCOUNT secret isn't set. See functions/README.md."
-            exit 1
-          fi
-          key="$RUNNER_TEMP/service-account.json"
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$key"
-          project=$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).project_id)' "$key")
-          GOOGLE_APPLICATION_CREDENTIALS="$key" npx --yes firebase-tools@latest deploy \
-            --only firestore:rules --project "$project" --non-interactive
-          rm -f "$key"
+        run: node scripts/deployFirestoreRules.js ../firestore.rules
