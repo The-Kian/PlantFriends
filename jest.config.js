@@ -16,5 +16,7 @@ module.exports = {
     "^react-native-worklets$": "<rootDir>/__mocks__/react-native-worklets.js",
     "^@expo/vector-icons$": "<rootDir>/__mocks__/@expo-vector-icons.js",
   },
+  // Rules tests run on the Firestore emulator; see firestore-tests/.
+  testPathIgnorePatterns: ["/node_modules/", "<rootDir>/firestore-tests/"],
   setupFilesAfterEnv: ["<rootDir>/jest/setup.js"],
 };

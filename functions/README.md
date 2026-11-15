@@ -50,17 +50,40 @@ households exist.
 The **Deploy Firestore rules** workflow publishes `firestore.rules` with the
 same `FIREBASE_SERVICE_ACCOUNT` secret. Its service account
 (`firebase-adminsdk-…`) needs the **Service Usage Consumer** role in Google
-Cloud IAM as well as its default Firebase roles. It runs by itself when a rules change
-is merged into `main`. To try a branch's rules before merging, run it from
+Cloud IAM as well as its default Firebase roles. **Deploy on merge** publishes rules by
+itself when a rules change is merged into `main` and CI passes. To try a branch's rules before merging, run it from
 Actions with that branch's name.
 
 ## Deploying functions from GitHub
 
-The **Deploy Cloud Functions** workflow deploys the functions you name (for
-example `onPlantWritten`) from a branch. Run it from Actions after merging a
-change under `functions/`.
+**Deploy on merge** deploys every function when a change under `functions/`
+is merged into `main` and CI passes. The **Deploy Cloud Functions** workflow
+deploys the functions you name (for example `onPlantWritten`) from any ref;
+use it to roll back or try a branch. See `docs/RELEASE.md`.
 
 It uses the same `FIREBASE_SERVICE_ACCOUNT` secret, and its service account
 needs two more roles in Google Cloud IAM: **Firebase Admin** and **Service
 Account User**. `searchPlants` also reads a secret, so deploying it needs
 **Secret Manager Viewer** as well.
+
+## App Check, rate limits and input checks
+
+`guards.js` holds the checks every callable uses:
+
+- **App Check.** Calls without an App Check token are rejected only when
+  `ENFORCE_APP_CHECK=true` in `functions/.env`. Leave it `false` until every
+  tester has a build with App Check, then change it and redeploy.
+- **Rate limits.** `rateLimit(uid, name, limit, windowMs)` keeps a counter per
+  user at `RateLimits/{name}_{uid}`. `searchPlants` allows 30 a minute. Use it
+  in `joinHousehold` when that's added. Add a TTL policy on `expiresAt` for the
+  `RateLimits` collection group in the Firebase console so old counters are
+  deleted.
+- **Input.** `requireString` checks type and length. Never log the raw Trefle
+  error: its URL holds the token (`redact` strips it).
+- **maxInstances.** Every function runs at most `MAX_INSTANCES` (10) instances.
+
+## Tests
+
+`npm test` here runs the functions' unit tests with the root Jest, which
+mocks the Firebase SDKs. CI also loads `index.js` against the real SDKs.
+Firestore rules tests are in `firestore-tests/` (`npm test` there, needs Java).

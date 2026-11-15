@@ -53,6 +53,8 @@ yarn-error.*
 # local env files
 .env*.local
 .env
+# Cloud Functions config (no secrets; see functions/guards.js)
+!functions/.env
 
 # Firebase configuration files (contain sensitive API keys)
 # google-services.json
@@ -82,3 +84,6 @@ secrets/
 # Firebase CLI
 .firebase/
 firebase-debug.log
+
+# Firebase emulator logs
+*-debug.log

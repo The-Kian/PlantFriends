@@ -118,3 +118,86 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 7
+
+  rules:
+    name: 🔒 Firestore rules tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: firestore-tests/package-lock.json
+
+      - name: ☕ Setup Java (for the emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: 📥 Install
+        working-directory: firestore-tests
+        run: npm ci
+
+      - name: 🔒 Run rules tests
+        working-directory: firestore-tests
+        run: npm test
+
+  functions:
+    name: ☁️ Functions
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⎔ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: functions/package-lock.json
+
+      - name: 📥 Install
+        working-directory: functions
+        run: npm ci
+
+      # The unit tests run in the root Jest job with the SDKs mocked. This
+      # checks the code loads against the real firebase-functions and
+      # firebase-admin, so an SDK upgrade that breaks it fails here.
+      - name: 🔌 Load functions with the real SDKs
+        working-directory: functions
+        run: node -e "const f = require('./index.js'); console.log(Object.keys(f).join(', '))"
+
+  audit:
+    name: 🛡 Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup corepack
+        run: corepack enable
+
+      - name: ⎔ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 🛡 Audit functions
+        working-directory: functions
+        run: npm audit --audit-level=high
+
+      - name: 🛡 Audit rules tests
+        working-directory: firestore-tests
+        run: npm audit --audit-level=high
+
+      # The app has many high advisories in Expo's build tooling (transitive,
+      # waiting on Expo releases), so this reports but doesn't block yet.
+      # See "Found along the way" in docs/production-readiness-plan.md.
+      - name: 🛡 Audit the app (report only)
+        continue-on-error: true
+        run: pnpm audit --audit-level high

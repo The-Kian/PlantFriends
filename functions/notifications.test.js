@@ -1,10 +1,10 @@
 jest.mock("firebase-admin", () => ({ firestore: jest.fn() }), { virtual: true });
 jest.mock(
-  "firebase-functions",
-  () => ({
-    firestore: { document: () => ({ onWrite: (handler) => handler }) },
-    logger: { info: jest.fn() },
-  }),
+  "firebase-functions/v1",
+  () => {
+    const firestore = { document: () => ({ onWrite: (handler) => handler }) };
+    return { firestore, runWith: () => ({ firestore }), logger: { info: jest.fn() } };
+  },
   { virtual: true }, // CI doesn't install functions/ dependencies
 );
 
