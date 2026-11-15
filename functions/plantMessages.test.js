@@ -41,6 +41,12 @@ describe("isWatering", () => {
     expect(isWatering(null, samsMonstera)).toBe(false);
   });
 
+  it("is false for a plant that arrives as a create, like one moved in by joinHousehold", () => {
+    // A moved plant keeps its last watering, but must not send a "watered" push.
+    expect(isWatering(null, samsMonstera)).toBe(false);
+    expect(isWatering(undefined, samsMonstera)).toBe(false);
+  });
+
   it("ignores a watering with nobody recorded", () => {
     const before = { ...samsMonstera, last_watered_date: NOW - DAY_MS };
     expect(isWatering(before, { ...samsMonstera, last_watered_by: null })).toBe(false);

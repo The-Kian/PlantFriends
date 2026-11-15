@@ -26,6 +26,14 @@ jest.mock("@/helpers/firebase/setNotificationPref", () =>
   jest.fn(async () => {}),
 );
 
+jest.mock("@/helpers/household/invites", () => ({
+  createInvite: jest.fn(),
+  previewInvite: jest.fn(),
+  joinHousehold: jest.fn(),
+  formatInviteCode: (code: string) => code,
+  joinErrorMessage: () => "error",
+}));
+
 describe("ProfileSettingsScreen", () => {
   const Stack = createStackNavigator();
 
@@ -80,6 +88,22 @@ describe("ProfileSettingsScreen", () => {
 
     renderProfile(false);
     expect(screen.getByLabelText("When a housemate waters my plants")).toHaveProp("value", false);
+  });
+
+  it("shows the household card", () => {
+    render(
+      <NavigationContainer>
+        <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+          <HouseholdContext.Provider value={mockHouseholdContext()}>
+            <ProfileSettingsScreen />
+          </HouseholdContext.Provider>
+        </AuthContext.Provider>
+      </NavigationContainer>,
+    );
+
+    expect(screen.getByText("Household")).toBeVisible();
+    expect(screen.getByText("The Flat")).toBeVisible();
+    expect(screen.getByText("Invite housemate")).toBeVisible();
   });
 
   it("renders correctly", () => {
