@@ -247,3 +247,6 @@ exports.deleteAccount = functions.https.onCall(async (data, context) => {
     );
   }
 });
+
+// Shared-care notifications: see ./notifications.js.
+exports.onPlantWritten = require("./notifications").onPlantWritten;

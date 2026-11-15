@@ -53,3 +53,14 @@ same `FIREBASE_SERVICE_ACCOUNT` secret. Its service account
 Cloud IAM as well as its default Firebase roles. It runs by itself when a rules change
 is merged into `main`. To try a branch's rules before merging, run it from
 Actions with that branch's name.
+
+## Deploying functions from GitHub
+
+The **Deploy Cloud Functions** workflow deploys the functions you name (for
+example `onPlantWritten`) from a branch. Run it from Actions after merging a
+change under `functions/`.
+
+It uses the same `FIREBASE_SERVICE_ACCOUNT` secret, and its service account
+needs two more roles in Google Cloud IAM: **Firebase Admin** and **Service
+Account User**. `searchPlants` also reads a secret, so deploying it needs
+**Secret Manager Viewer** as well.
