@@ -1,0 +1,45 @@
+appId: ${APP_ID}
+name: Invite a housemate (account A) and reach the join prompt (account B)
+---
+- launchApp:
+    clearState: true
+- tapOn: "Email Address"
+- inputText: ${E2E_EMAIL}
+- tapOn: "Password"
+- inputText: ${E2E_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login"
+- extendedWaitUntil:
+    visible:
+      id: "profile-button"
+    timeout: 30000
+- tapOn:
+    id: "profile-button"
+- scrollUntilVisible:
+    element:
+      id: "invite-housemate"
+- assertVisible: "Invite housemate"
+- scrollUntilVisible:
+    element: "Logout"
+- tapOn: "Logout"
+- tapOn: "Email Address"
+- inputText: ${E2E_EMAIL_B}
+- tapOn: "Password"
+- inputText: ${E2E_PASSWORD_B}
+- hideKeyboard
+- tapOn:
+    id: "login"
+- extendedWaitUntil:
+    visible:
+      id: "profile-button"
+    timeout: 30000
+- tapOn:
+    id: "profile-button"
+- scrollUntilVisible:
+    element:
+      id: "join-household"
+- tapOn:
+    id: "join-household"
+- assertVisible:
+    id: "join-continue"
