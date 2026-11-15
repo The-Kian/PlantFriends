@@ -17,7 +17,13 @@ const {
   requireString,
   redact,
 } = require("./guards");
-const { createInviteHandler, joinHouseholdHandler } = require("./households");
+const { unlinkWrites } = require("./householdAdmin");
+const {
+  createInviteHandler,
+  joinHouseholdHandler,
+  leaveHouseholdHandler,
+  removeMemberHandler,
+} = require("./households");
 
 admin.initializeApp();
 
@@ -160,7 +166,8 @@ exports.searchPlants = functions
  *    `AnonymousPlants` collection (not readable by clients).
  * 2. Deletes their household with its plants if they are its only member.
  *    In a shared household it deletes only the plants they added and takes
- *    them off the members and carers, so housemates keep their own plants.
+ *    them off the members and carers, as leaving does (unlinkWrites), so
+ *    housemates keep their own plants and none is left without a carer.
  * 3. Deletes `Users/{uid}` and everything under it.
  * 4. Deletes the Firebase Auth user.
  *
@@ -210,24 +217,20 @@ exports.deleteAccount = functions
       await writer.close();
 
       if (isMember && hasHousemates) {
-        const { FieldValue } = admin.firestore;
+        const others = (await householdRef.collection("Plants").get()).docs
+          .filter((plantDoc) => plantDoc.data().addedBy !== uid)
+          .map((plantDoc) => ({ id: plantDoc.id, data: plantDoc.data() }));
+        const writes = unlinkWrites({
+          household: householdSnap.data(),
+          plants: others,
+          uid,
+        });
         const cleanup = db.bulkWriter();
         householdPlants.forEach((plantDoc) => cleanup.delete(plantDoc.ref));
-        cleanup.update(householdRef, {
-          memberIds: FieldValue.arrayRemove(uid),
-          [`members.${uid}`]: FieldValue.delete(),
-        });
-        const remaining = await householdRef
-          .collection("Plants")
-          .where("carerIds", "array-contains", uid)
-          .get();
-        remaining.docs
-          .filter((plantDoc) => plantDoc.data().addedBy !== uid)
-          .forEach((plantDoc) =>
-            cleanup.update(plantDoc.ref, {
-              carerIds: FieldValue.arrayRemove(uid),
-            })
-          );
+        cleanup.update(householdRef, writes.household);
+        writes.plantUpdates.forEach(({ id, update }) =>
+          cleanup.update(householdRef.collection("Plants").doc(id), update)
+        );
         await cleanup.close();
       } else if (isMember) {
         await db.recursiveDelete(householdRef);
@@ -276,8 +279,14 @@ async function runHouseholdCall(name, context, limit, run) {
     });
   } catch (error) {
     if (error instanceof functions.https.HttpsError) throw error;
-    functions.logger.error(`${name} failed`, { uid, message: error && error.message });
-    throw new functions.https.HttpsError("internal", "Something went wrong. Please try again.");
+    functions.logger.error(`${name} failed`, {
+      uid,
+      message: error && error.message,
+    });
+    throw new functions.https.HttpsError(
+      "internal",
+      "Something went wrong. Please try again."
+    );
   }
 }
 
@@ -289,8 +298,8 @@ exports.createInvite = functions
       "createInvite",
       context,
       { max: 20, windowMs: 60 * 60 * 1000 },
-      (args) => createInviteHandler(args),
-    ),
+      (args) => createInviteHandler(args)
+    )
   );
 
 /** joinHousehold — join with a code, or preview it with { preview: true }. */
@@ -303,9 +312,38 @@ exports.joinHousehold = functions
       "joinHousehold",
       context,
       { max: 20, windowMs: 60 * 60 * 1000 },
-      (args) => joinHouseholdHandler({ ...args, data: { ...data, code } }),
+      (args) => joinHouseholdHandler({ ...args, data: { ...data, code } })
+    );
+  });
+
+/** leaveHousehold — the caller goes back to a household of their own. */
+exports.leaveHousehold = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) =>
+    runHouseholdCall(
+      "leaveHousehold",
+      context,
+      { max: 10, windowMs: 60 * 60 * 1000 },
+      (args) => leaveHouseholdHandler(args)
+    )
+  );
+
+/** removeMember({ uid }) — the household's creator removes a member. */
+exports.removeMember = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) => {
+    requireCaller(context);
+    const targetUid = requireString(data && data.uid, "uid", 128);
+    return runHouseholdCall(
+      "removeMember",
+      context,
+      { max: 20, windowMs: 60 * 60 * 1000 },
+      (args) => removeMemberHandler({ ...args, data: { uid: targetUid } })
     );
   });
 
 // Shared-care notifications: see ./notifications.js.
 exports.onPlantWritten = require("./notifications").onPlantWritten;
+
+// Watering reminders, every 15 minutes: see ./reminders.js.
+exports.sendWateringReminders = require("./reminders").sendWateringReminders;

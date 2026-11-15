@@ -13,7 +13,12 @@ jest.mock("firebase-functions/v1", () => {
 }, { virtual: true });
 
 const { createFakeFirestore } = require("./fakeFirestore");
-const { createInviteHandler, joinHouseholdHandler } = require("./households");
+const {
+  createInviteHandler,
+  joinHouseholdHandler,
+  leaveHouseholdHandler,
+  removeMemberHandler,
+} = require("./households");
 const { ALPHABET } = require("./inviteCode");
 
 const NOW = Date.parse("2026-11-15T10:00:00Z");
@@ -273,5 +278,151 @@ describe("joinHouseholdHandler", () => {
     fake.store.set("Users/alex", {});
     await join({ code: CODE }, "alex");
     expect(fake.store.get("Households/flat").memberIds).toEqual(["kian", "sam", "alex"]);
+  });
+});
+
+describe("leaving and removing", () => {
+  // Kian set up "The Flat" (so its ID is his uid); Sam and Alex joined.
+  beforeEach(() => {
+    fake.store.set("Households/kian", {
+      name: "The Flat",
+      createdBy: "kian",
+      timeZone: "Europe/London",
+      ...members("kian", "sam", "alex"),
+    });
+    ["kian", "sam", "alex"].forEach((uid) =>
+      fake.store.set(`Users/${uid}`, { householdId: "kian", displayName: uid }),
+    );
+    fake.store.set("Households/kian/Plants/pothos", {
+      addedBy: "kian",
+      carerIds: ["kian", "sam", "alex"],
+      shared: true,
+    });
+    fake.store.set("Households/kian/Plants/fern", {
+      addedBy: "sam",
+      carerIds: ["sam"],
+      shared: false,
+    });
+  });
+
+  const leave = (uid) => leaveHouseholdHandler({ db, uid, now: NOW });
+  const remove = (uid, target) =>
+    removeMemberHandler({ db, uid, data: { uid: target }, now: NOW });
+
+  it("a member leaves for an empty household of their own", async () => {
+    const result = await leave("sam");
+
+    expect(result).toEqual({ householdId: "sam" });
+    expect(fake.store.get("Households/kian").memberIds).toEqual(["kian", "alex"]);
+    expect(fake.store.get("Households/kian").members.sam).toBeUndefined();
+    expect(fake.store.get("Households/kian").createdBy).toBe("kian");
+    expect(fake.store.get("Households/kian/Plants/pothos").carerIds).toEqual(["kian", "alex"]);
+    // Plants only Sam looked after stay, shared with whoever is left.
+    expect(fake.store.get("Households/kian/Plants/fern")).toMatchObject({
+      addedBy: "sam",
+      carerIds: ["kian", "alex"],
+      shared: true,
+    });
+    expect(fake.store.get("Households/sam")).toEqual({
+      name: "sam's home",
+      memberIds: ["sam"],
+      members: { sam: { displayName: "sam" } },
+      createdBy: "sam",
+      createdAt: expect.objectContaining({ ms: NOW }),
+      timeZone: "Europe/London",
+    });
+    expect(fake.store.get("Users/sam").householdId).toBe("sam");
+    expect([...fake.store.keys()].filter((k) => k.startsWith("Households/sam/"))).toEqual([]);
+  });
+
+  it("the creator leaves: the longest-standing member takes over and they get a new ID", async () => {
+    const result = await leave("kian");
+
+    expect(result.householdId).not.toBe("kian");
+    expect(fake.store.get("Households/kian")).toMatchObject({
+      memberIds: ["sam", "alex"],
+      createdBy: "sam",
+    });
+    expect(fake.store.get(`Households/${result.householdId}`)).toMatchObject({
+      memberIds: ["kian"],
+      createdBy: "kian",
+    });
+    expect(fake.store.get("Users/kian").householdId).toBe(result.householdId);
+  });
+
+  it("uses the person's own time zone when their profile has one", async () => {
+    fake.store.set("Users/sam", { householdId: "kian", timeZone: "Asia/Tokyo" });
+    await leave("sam");
+    expect(fake.store.get("Households/sam").timeZone).toBe("Asia/Tokyo");
+  });
+
+  it("the last member can't leave", async () => {
+    fake.store.set("Users/solo", { householdId: "solo" });
+    fake.store.set("Households/solo", { name: "Solo", createdBy: "solo", ...members("solo") });
+
+    await rejectsWith(
+      leave("solo"),
+      "failed-precondition",
+      "You're the only one in this household.",
+    );
+    expect(fake.store.get("Households/solo").memberIds).toEqual(["solo"]);
+  });
+
+  it("someone not in the household can't leave it", async () => {
+    fake.store.set("Users/eve", { householdId: "kian" });
+    await rejectsWith(leave("eve"), "permission-denied");
+  });
+
+  it("the creator removes a member, who gets a household of their own", async () => {
+    await remove("kian", "alex");
+
+    expect(fake.store.get("Households/kian").memberIds).toEqual(["kian", "sam"]);
+    expect(fake.store.get("Households/kian/Plants/pothos").carerIds).toEqual(["kian", "sam"]);
+    expect(fake.store.get("Households/alex").memberIds).toEqual(["alex"]);
+    expect(fake.store.get("Users/alex").householdId).toBe("alex");
+  });
+
+  it("someone else can't remove a member", async () => {
+    await rejectsWith(
+      remove("sam", "alex"),
+      "permission-denied",
+      "Only the person who set up the household can remove people.",
+    );
+    expect(fake.store.get("Households/kian").memberIds).toEqual(["kian", "sam", "alex"]);
+  });
+
+  it("removing yourself is refused: that's leaving", async () => {
+    await rejectsWith(remove("kian", "kian"), "invalid-argument", "Use Leave household to leave.");
+    expect(fake.store.get("Households/kian").memberIds).toHaveLength(3);
+  });
+
+  it("removing someone who isn't a member says so", async () => {
+    await rejectsWith(remove("kian", "eve"), "not-found");
+  });
+
+  it.each([undefined, "", 42, "x".repeat(129)])("rejects a bad uid (%p)", async (target) => {
+    await rejectsWith(
+      removeMemberHandler({ db, uid: "kian", data: { uid: target }, now: NOW }),
+      "invalid-argument",
+    );
+  });
+
+  it("a removed member whose profile points elsewhere keeps that household", async () => {
+    fake.store.set("Users/alex", { householdId: "elsewhere" });
+    const result = await remove("kian", "alex");
+
+    expect(result).toEqual({ householdId: "elsewhere" });
+    expect(fake.store.has("Households/alex")).toBe(false);
+    expect(fake.store.get("Users/alex").householdId).toBe("elsewhere");
+  });
+
+  it("someone who left can join again with a code", async () => {
+    await leave("sam");
+    fake.store.set("Invites/K7PXM3QH", { householdId: "kian", expiresAt: ts(NOW + DAY_MS) });
+
+    await joinHouseholdHandler({ db, uid: "sam", data: { code: "K7PXM3QH" }, now: NOW });
+
+    expect(fake.store.get("Households/kian").memberIds).toEqual(["kian", "alex", "sam"]);
+    expect(fake.store.has("Households/sam")).toBe(false);
   });
 });

@@ -63,6 +63,15 @@ describe("unlinkWrites", () => {
     expect(writes.clearUserHousehold).toBe(true);
   });
 
+  it("passes the household to the longest-standing member when its creator goes", () => {
+    const writes = unlinkWrites({
+      household: { ...shared, memberIds: ["kian", "sam", "alex"], createdBy: "kian" },
+      plants: [],
+      uid: "kian",
+    });
+    expect(writes.household.createdBy).toBe("sam");
+  });
+
   it("won't remove the last member", () => {
     expect(() => unlinkWrites({ household, plants, uid: "kian" })).toThrow();
   });

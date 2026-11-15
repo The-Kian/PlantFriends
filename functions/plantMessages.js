@@ -79,4 +79,38 @@ function wateredMessages({ plant, plantId, householdId, name, now, timeZone }) {
   return messages;
 }
 
-module.exports = { DAY_MS, plantName, formatDue, isWatering, wateredMessages };
+/**
+ * The "time to water" push (stage "due") or the one follow-up a day later
+ * (stage "nudge"). Every carer gets the same message.
+ */
+function reminderMessage({ plant, plantId, householdId, name, stage }) {
+  const data = { plantId, householdId, type: stage };
+  if (stage === "nudge") {
+    return {
+      title: `The ${name} is still thirsty 🥀`,
+      body: "It was due yesterday. Tap Watered once it's done.",
+      data,
+    };
+  }
+  if (plant.shared) {
+    return {
+      title: `The ${name} needs watering 💧`,
+      body: "Whoever gets there first, tap Watered.",
+      data,
+    };
+  }
+  return {
+    title: `Time to water the ${name} 💧`,
+    body: "Tap Watered once it's done.",
+    data,
+  };
+}
+
+module.exports = {
+  DAY_MS,
+  plantName,
+  formatDue,
+  isWatering,
+  wateredMessages,
+  reminderMessage,
+};

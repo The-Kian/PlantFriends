@@ -1,11 +1,19 @@
-jest.mock("firebase-admin", () => ({ firestore: jest.fn() }), { virtual: true });
+jest.mock("firebase-admin", () => ({ firestore: jest.fn() }), {
+  virtual: true,
+});
 jest.mock(
   "firebase-functions/v1",
   () => {
     const firestore = { document: () => ({ onWrite: (handler) => handler }) };
-    return { firestore, runWith: () => ({ firestore }), logger: { info: jest.fn() } };
+    const pubsub = { schedule: () => ({ onRun: (handler) => handler }) };
+    return {
+      firestore,
+      pubsub,
+      runWith: () => ({ firestore, pubsub }),
+      logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+    };
   },
-  { virtual: true }, // CI doesn't install functions/ dependencies
+  { virtual: true } // CI doesn't install functions/ dependencies
 );
 
 const { notifyWatering } = require("./notifications");
@@ -29,7 +37,12 @@ const db = fakeDb({
   "Plants/monstera": { name: "Monstera" },
 });
 
-const before = { plantId: "monstera", addedBy: "sam", carerIds: ["sam"], last_watered_date: 1 };
+const before = {
+  plantId: "monstera",
+  addedBy: "sam",
+  carerIds: ["sam"],
+  last_watered_date: 1,
+};
 const watered = {
   ...before,
   last_watered_date: NOW,
@@ -42,7 +55,13 @@ describe("notifyWatering", () => {
     const send = jest.fn(async () => 1);
 
     const sent = await notifyWatering({
-      db, before, after: watered, householdId: "h1", plantId: "p1", now: NOW, send,
+      db,
+      before,
+      after: watered,
+      householdId: "h1",
+      plantId: "p1",
+      now: NOW,
+      send,
     });
 
     expect(sent).toBe(1);
@@ -53,7 +72,7 @@ describe("notifyWatering", () => {
         title: "Kian watered your Monstera 💧",
         data: { plantId: "p1", householdId: "h1", type: "watered" },
       }),
-      "housemateActivity",
+      "housemateActivity"
     );
   });
 
@@ -61,7 +80,11 @@ describe("notifyWatering", () => {
     const send = jest.fn();
     const args = { db, householdId: "h1", plantId: "p1", now: NOW, send };
 
-    await notifyWatering({ ...args, before: watered, after: { ...watered, custom_name: "Monty" } });
+    await notifyWatering({
+      ...args,
+      before: watered,
+      after: { ...watered, custom_name: "Monty" },
+    });
     await notifyWatering({ ...args, before: null, after: watered });
     await notifyWatering({ ...args, before: watered, after: null });
 

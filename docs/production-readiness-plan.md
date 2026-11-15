@@ -33,8 +33,8 @@ Rules for whoever does the session:
 | # | Session | Depends on | Status |
 | --- | --- | --- | --- |
 | 1 | Invite and join a household | none | Done, awaiting deploy |
-| 2 | Leave a household, remove a member | 1 | Not started |
-| 3 | Server-side watering reminders | none | Not started |
+| 2 | Leave a household, remove a member | 1 | Done, awaiting deploy |
+| 3 | Server-side watering reminders | none | Done, awaiting deploy |
 | 4 | Client switch to server reminders, notification settings | 3 | Not started |
 | 5 | Security rules tests and tighter rules | none | Done |
 | 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
@@ -53,12 +53,13 @@ readiness.
   `Households/{hid}/Plants`, cards show who watered, phones register for
   push, and `onPlantWritten` tells carers when a housemate waters.
 - Housemates can invite and join with a code from Profile (session 1, once
-  deployed). There is no leave in the app yet, so the **Link housemate**
-  workflow (`functions/householdAdmin.js`) still does that.
-- Reminders are still scheduled on the phone (`src/services/NotificationService.ts`).
-  The scheduled `sendWateringReminders` function doesn't exist yet.
+  deployed), and leave or remove a member (session 2, once deployed).
+- `sendWateringReminders` and reminder planning in `onPlantWritten` are
+  written (session 3, once deployed). The app still schedules its own
+  reminders too (`src/services/NotificationService.ts`) until session 4.
 - `functions/index.js` exports `searchPlants`, `deleteAccount`,
-  `onPlantWritten`, and now `createInvite` and `joinHousehold`. None use App Check, and `searchPlants` has no rate limit.
+  `onPlantWritten`, `createInvite`, `joinHousehold`, `leaveHousehold`,
+  `removeMember` and `sendWateringReminders`. None use App Check, and `searchPlants` has no rate limit.
 - There are no security rules tests and no end-to-end tests.
 - CI (`.github/workflows/lint_and_test.yml`) runs type check, lint and the
   root Jest. Functions and rules are deployed by manual workflows.
@@ -141,17 +142,17 @@ A mistaken join can be undone without the Firebase console.
 **Read first:** the session 1 code, `functions/index.js` (`deleteAccount`,
 which already handles a member disappearing), `functions/householdAdmin.js`.
 
-- [ ] `leaveHousehold` callable function: removes the caller from
+- [x] `leaveHousehold` callable function: removes the caller from
       `memberIds`, `members` and every `carerIds`, and puts them back in
       their solo household (`Households/{uid}`). Plants only they cared for
       become shared with whoever is left, the same as account deletion.
       Share that logic with `deleteAccount`.
-- [ ] `removeMember(uid)` callable function: only the household's
+- [x] `removeMember(uid)` callable function: only the household's
       `createdBy` may call it. Same effect as that member leaving.
-- [ ] If the creator leaves, pass `createdBy` to the longest-standing member.
-- [ ] Profile: **Leave household** with a confirmation, and a remove button
+- [x] If the creator leaves, pass `createdBy` to the longest-standing member.
+- [x] Profile: **Leave household** with a confirmation, and a remove button
       beside each member for the creator.
-- [ ] Tests: last member leaves, creator leaves, removing yourself,
+- [x] Tests: last member leaves, creator leaves, removing yourself,
       non-creator tries to remove someone.
 
 **Kian does:** deploy functions, then leave and rejoin on a test phone.
@@ -160,6 +161,27 @@ which already handles a member disappearing), `functions/householdAdmin.js`.
 others no longer see you as a carer.
 
 **Notes:**
+
+- **Decided:**
+  - The leaver's plants stay in the household (the "Done when" says they
+    land in an empty household). Plants only they looked after become shared
+    with everyone left, through `unlinkWrites`, which `deleteAccount` now
+    uses too. Before this, deleting an account left such plants with no carer.
+  - The server creates the leaver's new household rather than clearing
+    `householdId` for the app to do it. Someone who set up the household they
+    leave can't get `Households/{uid}` back (the others are in it), so their
+    new one gets a random ID. Nothing in the app assumed a household's ID is
+    the uid of whoever is in it, except `createSoloHousehold`, which only runs
+    when `householdId` is missing.
+  - The new household's time zone is the person's `Users/{uid}.timeZone` if
+    set, else the old household's.
+  - The last member can't leave (`failed-precondition`); the app hides the
+    button for a household of one.
+  - `removeMember` on yourself is refused with "Use Leave household to
+    leave."; a non-creator gets `permission-denied`.
+  - A removed member whose profile already points at another household keeps it.
+- Deploy `leaveHousehold`, `removeMember` and `deleteAccount` (its shared
+  household branch changed).
 
 ---
 
@@ -171,19 +193,19 @@ This is phase 5 of `docs/household-sharing-plan.md` (the section
 **Read first:** `docs/household-sharing-plan.md`, `functions/notifications.js`,
 `functions/push.js`, `functions/plantMessages.js`, `firebase.json`.
 
-- [ ] `functions/notifyAt.js`: pure function that moves a due time out of
+- [x] `functions/notifyAt.js`: pure function that moves a due time out of
       quiet hours (21:00 to 08:00 in the household's `timeZone`). Test it
       around midnight and around clock changes.
-- [ ] `onPlantWritten` sets `notify_at` and `notify_stage` when
+- [x] `onPlantWritten` sets `notify_at` and `notify_stage` when
       `next_watering_date` or `reminders_enabled` changes. Make sure its own
       write can't trigger itself in a loop.
-- [ ] `sendWateringReminders`, scheduled every 15 minutes: collection-group
+- [x] `sendWateringReminders`, scheduled every 15 minutes: collection-group
       query on `notify_at <= now`, push to carers, move `due` to `nudge`,
       then clear. Use the `lastUpdateTime` precondition from the plan.
-- [ ] `firestore.indexes.json` with the collection-group index, referenced
+- [x] `firestore.indexes.json` with the collection-group index, referenced
       from `firebase.json`, and deployed by the rules workflow.
-- [ ] Add the new function to the **Deploy Cloud Functions** workflow's options.
-- [ ] Tests with fake Firestore and fetch, as in `push.test.js`.
+- [x] Add the new function to the **Deploy Cloud Functions** workflow's options.
+- [x] Tests with fake Firestore and fetch, as in `push.test.js`.
 
 **Kian does:** deploy functions and indexes. Enable Cloud Scheduler if the
 deploy asks. Set a test plant due in a few minutes and wait for the push.
@@ -192,6 +214,42 @@ deploy asks. Set a test plant due in a few minutes and wait for the push.
 later, then nothing.
 
 **Notes:**
+
+- **Decided:**
+  - Planning runs inside a transaction that rereads the plant, so the plan
+    always matches the plant as it is, whichever trigger runs last. Its own
+    write only changes `notify_at` and `notify_stage`, which don't trigger
+    planning, so it can't loop.
+  - An overdue plant (due date in the past) is reminded about at the next
+    sensible time, not skipped. A new or moved plant (including one moved in
+    by `joinHousehold`) is planned when it's written, which settles the
+    "moved plant keeps its old `notify_at`" item below.
+  - The scheduler claims each plant first (writes the next stage with the
+    `lastUpdateTime` precondition) and sends only if that worked. If someone
+    waters it in between, nothing is sent and their new plan stays. The cost:
+    if the push itself then fails, that one reminder is lost (the nudge still
+    comes). The failure is logged.
+  - The nudge is 24 hours after the reminder went out, moved out of quiet
+    hours. (A reminder at 20:30 the day before the clocks go forward would
+    otherwise nudge at 21:30, so that one waits until 08:00.) If a run is
+    very late, the nudge is 24 hours from the run instead.
+  - Push text: personal "Time to water the Monstera 💧" / "Tap Watered once
+    it's done."; shared "The Monstera needs watering 💧" / "Whoever gets
+    there first, tap Watered."; nudge "The Monstera is still thirsty 🥀" /
+    "It was due yesterday. Tap Watered once it's done." `data.type` is `due`
+    or `nudge`, matching the app's `PlantNotificationData`.
+  - Each run handles at most 500 plants and logs a summary (`found`, `due`,
+    `nudge`, `cleared`, `skipped`, `failed`, `devices`).
+  - A catalog plant (`/Plants`) matched by the collection-group query is
+    skipped and its `notify_at` cleared, since the catalog create rule lets
+    the app write any field (see Found along the way).
+- Indexes are deployed by `functions/scripts/deployFirestoreIndexes.js`
+  (REST, like the rules script) from the **Deploy Firestore rules** workflow,
+  which now also runs when `firestore.indexes.json` changes on `main`.
+- **For session 4:** until the new app build is installed, a phone gets both
+  its own local reminder and the server's. To avoid that on testers' phones,
+  deploy `sendWateringReminders` together with the session 4 build.
+  `onPlantWritten` can go out sooner: planning alone sends nothing.
 
 ---
 
@@ -322,9 +380,11 @@ failing test blocks the merge.
   (supported). Code uses the v1 API from `firebase-functions/v1`; moving to
   v2 functions is optional and would change the function URLs/regions config.
 - **Deploy on merge** (`deploy.yml`) runs after CI succeeds on `main` and
-  deploys functions (all of them) and/or rules if they changed since the last
-  green push. The manual deploy workflows stay for rollback. There's no
-  `firestore.indexes.json` yet; add an indexes step when there is one.
+  deploys functions (all of them), rules and/or indexes if they changed since
+  the last green push. The manual deploy workflows stay for rollback. The
+  indexes job (added with sessions 2 and 3) runs
+  `functions/scripts/deployFirestoreIndexes.js` when `firestore.indexes.json`
+  changes.
 - Functions unit tests run in the root Jest (as before); the new **Functions**
   CI job loads `index.js` against the real SDKs. `npm test` in `functions/`
   now runs them.
@@ -439,5 +499,22 @@ Add things here that are outside your session.
   Someone moving about 240 plants or more would get a generic error.
 - `joinHousehold` would fail with a generic error if a moved plant's ID
   already exists in the new household (IDs are random, so very unlikely).
-- A moved plant keeps its old `notify_at` and `notify_stage`, which is fine
-  until session 3, which will need to recheck them.
+- ~~A moved plant keeps its old `notify_at` and `notify_stage`.~~ Settled in
+  session 3: `onPlantWritten` replans a plant when it's created.
+- ~~The catalog create rule (`/Plants/{plantId}`) accepts any fields, so the
+  app could write `notify_at` to a catalog plant. `sendWateringReminders`
+  clears it, but session 5 should limit the allowed keys.~~ Settled in
+  session 5: `validCatalogPlant` allows only known keys.
+- Firestore triggers can be delivered more than once. A late duplicate of
+  the trigger for a watering would replan a plant already at `nudge` back to
+  `due`, giving one extra reminder. Rare; a `notify_for` field holding the
+  due date the plan was made for would fix it.
+- ~~`sendWateringReminders` and `onPlantWritten` have no `maxInstances`.~~
+  Settled when rebasing onto session 6: both use `MAX_INSTANCES`.
+- The **Link housemate** workflow's `unlink` only clears `householdId`. For
+  the person who set the household up, the app can't then make them a new
+  household (`Households/{uid}` is the one they left). The app's leave and
+  remove don't have this problem; the workflow could be retired.
+- ~~The invite and join callables have no `maxInstances`, App Check or
+  input length limits yet.~~ Settled in session 6; `leaveHousehold` and
+  `removeMember` use the same guards.

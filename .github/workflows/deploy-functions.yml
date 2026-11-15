@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       functions:
-        description: "Functions to deploy, comma-separated"
+        description: "Functions to deploy, comma-separated (searchPlants, deleteAccount, createInvite, joinHousehold, leaveHousehold, removeMember, onPlantWritten, sendWateringReminders)"
         required: true
         default: onPlantWritten
         type: string

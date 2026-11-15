@@ -1,7 +1,7 @@
 name: Deploy on merge
 
 # After CI passes on main, deploys whatever changed in that push: Cloud
-# Functions (anything under functions/) and Firestore rules.
+# Functions (anything under functions/), Firestore rules and Firestore indexes.
 # To roll back, run "Deploy Cloud Functions" or "Deploy Firestore rules" by
 # hand with an older ref. See docs/RELEASE.md.
 on:
@@ -26,6 +26,7 @@ jobs:
     outputs:
       functions: ${{ steps.diff.outputs.functions }}
       rules: ${{ steps.diff.outputs.rules }}
+      indexes: ${{ steps.diff.outputs.indexes }}
     steps:
       - name: Check out
         uses: actions/checkout@v4
@@ -50,6 +51,7 @@ jobs:
           echo "Changed since $base:"; echo "$changed"
           echo "functions=$(echo "$changed" | grep -q '^functions/' && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "rules=$(echo "$changed" | grep -qx 'firestore.rules' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "indexes=$(echo "$changed" | grep -qx 'firestore.indexes.json' && echo true || echo false)" >> "$GITHUB_OUTPUT"
 
   rules:
     name: Deploy Firestore rules
@@ -74,6 +76,30 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/deployFirestoreRules.js ../firestore.rules
+
+  indexes:
+    name: Deploy Firestore indexes
+    needs: changes
+    if: needs.changes.outputs.indexes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        working-directory: functions
+        run: npm ci --omit=dev
+
+      - name: Deploy
+        working-directory: functions
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/deployFirestoreIndexes.js ../firestore.indexes.json
 
   functions:
     name: Deploy Cloud Functions
