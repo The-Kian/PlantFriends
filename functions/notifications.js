@@ -8,7 +8,7 @@
  * See docs/household-sharing-plan.md.
  */
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
+const admin = require("./admin");
 
 const { MAX_INSTANCES } = require("./guards");
 const { logFor } = require("./log");
@@ -57,7 +57,7 @@ const onPlantWritten = functions
   .firestore.document("Households/{householdId}/Plants/{plantId}")
   .onWrite(async (change, context) => {
     const { householdId, plantId } = context.params;
-    const db = admin.firestore();
+    const db = admin.db();
     const before = change.before.exists ? change.before.data() : null;
     const after = change.after.exists ? change.after.data() : null;
     const now = Date.now();

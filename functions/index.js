@@ -7,7 +7,7 @@
  * Returns: IPlant[] mapped to the app's shape (mirrors mapTreflePlantToIPlant).
  */
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
+const admin = require("./admin");
 
 const { anonymiseUserPlant } = require("./anonymise");
 const {
@@ -186,7 +186,7 @@ exports.deleteAccount = functions
     // Takes no input; anything sent is ignored.
     const log = logFor("deleteAccount");
     const uid = requireCaller(context);
-    const db = admin.firestore();
+    const db = admin.db();
     const userRef = db.collection("Users").doc(uid);
 
     try {
@@ -218,7 +218,7 @@ exports.deleteAccount = functions
       [...householdPlants, ...oldPlants].forEach((plantDoc) => {
         writer.create(db.collection("AnonymousPlants").doc(), {
           ...anonymiseUserPlant(plantDoc.data()),
-          anonymisedAt: admin.firestore.FieldValue.serverTimestamp(),
+          anonymisedAt: admin.FieldValue.serverTimestamp(),
         });
       });
       await writer.close();
@@ -298,7 +298,7 @@ async function runHouseholdCall(name, context, limit, run) {
   const log = logFor(name);
   try {
     const result = await run({
-      db: admin.firestore(),
+      db: admin.db(),
       uid,
       authToken: token,
       now: Date.now(),

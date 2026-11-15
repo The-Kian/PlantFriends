@@ -3,7 +3,7 @@
  * input validation.
  */
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
+const admin = require("./admin");
 
 // Upper bound on instances per function, so a flood of calls can't run up
 // the bill. Three testers need nowhere near this.
@@ -62,7 +62,7 @@ function nextWindow(stored, now, limit, windowMs) {
  * to clients by the rules). Throws resource-exhausted when over the limit.
  */
 async function rateLimit(uid, name, limit, windowMs, now = Date.now()) {
-  const db = admin.firestore();
+  const db = admin.db();
   const ref = db.collection("RateLimits").doc(`${name}_${uid}`);
   const allowed = await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);

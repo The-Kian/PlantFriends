@@ -172,6 +172,12 @@ jobs:
         working-directory: functions
         run: node -e "const f = require('./index.js'); console.log(Object.keys(f).join(', '))"
 
+      # Loading isn't enough: a call to an SDK function that no longer exists
+      # only fails when it runs. Exercise everything ./admin.js hands out.
+      - name: 🔌 Call the firebase-admin API the functions use
+        working-directory: functions
+        run: node scripts/checkAdminApi.js
+
   audit:
     name: 🛡 Dependency audit
     runs-on: ubuntu-latest

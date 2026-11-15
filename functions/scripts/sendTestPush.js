@@ -6,7 +6,8 @@
  * account to notify), PLANT_ID (optional: the plant the push opens; defaults
  * to one of the account's household plants).
  */
-const admin = require("firebase-admin");
+const { cert } = require("firebase-admin/app");
+const admin = require("../admin");
 
 const { EXPO_PUSH_URL } = require("../push");
 
@@ -25,10 +26,10 @@ async function main() {
 
   const credentials = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
   admin.initializeApp({
-    credential: admin.credential.cert(credentials),
+    credential: cert(credentials),
     projectId: credentials.project_id,
   });
-  const db = admin.firestore();
+  const db = admin.db();
 
   const user = await admin.auth().getUserByEmail(email).catch(() => fail(`No PlantFriends account uses ${email}.`));
   const devices = (await db.collection(`Users/${user.uid}/Devices`).get()).docs;
