@@ -8,6 +8,7 @@ import {
 } from "@react-native-firebase/firestore";
 
 import { IPlant } from "@/constants/IPlant";
+import { recordHandledError } from "@/services/CrashReporting";
 
 const saveBasePlantToFirebase = async (
   plantData: IPlant,
@@ -30,6 +31,7 @@ const saveBasePlantToFirebase = async (
       await setDoc(plantRef, basePlantData);
     } catch (error) {
       console.error("Error saving base plant data: ", error);
+      recordHandledError(error, "Save base plant");
       return false;
     }
   }

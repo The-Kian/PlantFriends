@@ -221,8 +221,13 @@ describe("Catalog plants", () => {
 });
 
 describe("Closed collections", () => {
-  test("AnonymousPlants, Invites and RateLimits are closed", async () => {
-    for (const path of ["AnonymousPlants/a1", "Invites/i1", "RateLimits/searchPlants_alice"]) {
+  test("AnonymousPlants, Invites, RateLimits and PushTickets are closed", async () => {
+    for (const path of [
+      "AnonymousPlants/a1",
+      "Invites/i1",
+      "RateLimits/searchPlants_alice",
+      "PushTickets/t1",
+    ]) {
       await assertFails(getDoc(doc(db(ALICE), path)));
       await assertFails(setDoc(doc(db(ALICE), path), { a: 1 }));
     }

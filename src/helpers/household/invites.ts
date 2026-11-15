@@ -1,5 +1,12 @@
 import functions from "@react-native-firebase/functions";
 
+import {
+  OFFLINE_MESSAGE,
+  errorCode,
+  isOfflineError,
+  isRateLimited,
+} from "@/helpers/errors/friendlyErrors";
+
 export interface CreatedInvite {
   code: string;
   /** Milliseconds since the epoch. */
@@ -85,14 +92,14 @@ const LEAVE_MESSAGES: Record<string, string> = {
   "not-found": "They're not in this household any more.",
 };
 
-/**
- * The installed @react-native-firebase/functions reports codes like
- * "not-found"; other versions say "functions/not-found", so both are accepted.
- */
-function errorCode(error: unknown): string {
-  return typeof error === "object" && error !== null && "code" in error
-    ? String((error as { code: unknown }).code).replace(/^functions\//, "")
-    : "";
+// The server uses resource-exhausted both for a full household and for its
+// rate limit, so the rate limit is checked first.
+const TOO_MANY_TRIES = "Too many tries. Wait a while and try again.";
+
+function commonMessage(error: unknown): string | undefined {
+  if (isOfflineError(error)) return OFFLINE_MESSAGE;
+  if (isRateLimited(error)) return TOO_MANY_TRIES;
+  return undefined;
 }
 
 /** A friendly message for a failed invite or join call. */
@@ -100,10 +107,10 @@ export function joinErrorMessage(
   error: unknown,
   fallback = "Couldn't join. Check your connection and try again.",
 ): string {
-  return JOIN_MESSAGES[errorCode(error)] ?? fallback;
+  return commonMessage(error) ?? JOIN_MESSAGES[errorCode(error)] ?? fallback;
 }
 
 /** A friendly message for a failed leave or remove call. */
 export function leaveErrorMessage(error: unknown, fallback: string): string {
-  return LEAVE_MESSAGES[errorCode(error)] ?? fallback;
+  return commonMessage(error) ?? LEAVE_MESSAGES[errorCode(error)] ?? fallback;
 }

@@ -87,6 +87,25 @@ describe("joinErrorMessage", () => {
   });
 });
 
+describe("offline and rate limits", () => {
+  const offline = "You're offline. Check your connection and try again.";
+  const tooMany = "Too many tries. Wait a while and try again.";
+  const limited = {
+    code: "functions/resource-exhausted",
+    message: "Too many requests. Try again in a minute.",
+  };
+
+  it("says you're offline rather than blaming the code", () => {
+    expect(joinErrorMessage({ code: "functions/unavailable" })).toBe(offline);
+    expect(leaveErrorMessage({ code: "unavailable" }, "fallback")).toBe(offline);
+  });
+
+  it("doesn't call a rate limit a full household", () => {
+    expect(joinErrorMessage(limited)).toBe(tooMany);
+    expect(leaveErrorMessage(limited, "fallback")).toBe(tooMany);
+  });
+});
+
 describe("leaveErrorMessage", () => {
   it.each([
     ["failed-precondition", "You're the only one in this household."],

@@ -39,7 +39,7 @@ Rules for whoever does the session:
 | 5 | Security rules tests and tighter rules | none | Done |
 | 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
 | 7 | CI and deploy pipeline | 5 | Done |
-| 8 | Monitoring, logging, backups | 3 | Not started |
+| 8 | Monitoring, logging, backups | 3 | Done (Kian's console steps left) |
 | 9 | End-to-end test and manual test script | 1, 2, 4 | Not started |
 | 10 | Privacy policy, store listing, release | all | Not started |
 
@@ -561,16 +561,16 @@ failing test blocks the merge.
 **Read first:** `functions/push.js`, `functions/notifications.js`,
 `src/components/ErrorBoundary.tsx`, `firebase.json`.
 
-- [ ] Structured logs in every function (function name, household ID,
+- [x] Structured logs in every function (function name, household ID,
       counts). No emails, display names or push tokens.
-- [ ] Log push receipt failures, so a silent failure is visible. (The
+- [x] Log push receipt failures, so a silent failure is visible. (The
       summary line for each `sendWateringReminders` run exists already, from
       session 3.)
-- [ ] Set the Crashlytics user ID on sign-in and record non-fatal errors
+- [x] Set the Crashlytics user ID on sign-in and record non-fatal errors
       from the Firestore helpers.
-- [ ] Friendly error states for the failures users can hit: offline,
+- [x] Friendly error states for the failures users can hit: offline,
       search failed, join failed.
-- [ ] Write `docs/OPERATIONS.md`: where to look when something breaks, the
+- [x] Write `docs/OPERATIONS.md`: where to look when something breaks, the
       alerts that exist, and how to restore a backup.
 
 **Kian does:** in the consoles, set up Crashlytics email alerts, a Cloud
@@ -582,6 +582,36 @@ database to prove it works.
 restore has been done once.
 
 **Notes:**
+
+- The server half (logs, push tickets and receipts) reached `main` early,
+  inside #90 ("Update google-services.json…"), which picked up the
+  uncommitted work in the checkout. It is deployed if **Deploy on merge**
+  ran for that merge. The client half, the rules test and the docs are this
+  session's pull request.
+- Logs go through `functions/log.js` (`logFor(name)`), which adds `fn` to
+  every line. Callables log `finished` (info), `refused` (warning: an
+  expected `HttpsError`, code only) and `failed` (error). Only errors
+  should alert.
+- Push delivery: accepted pushes are saved as `PushTickets/{ticketId}`
+  (closed to the app, covered by the rules tests) and each
+  `sendWateringReminders` run checks receipts older than 15 minutes
+  (`checkPushReceipts` in `functions/push.js`). `DeviceNotRegistered` is
+  logged at info and the device removed; anything else is an error.
+- The Crashlytics user ID was already set on sign-in (`AuthProvider`), and
+  `ErrorService` already recorded what it handled. Added: the two save
+  helpers and the `HouseholdProvider` listeners, which only wrote to the
+  console. Offline errors are not sent to Crashlytics.
+- Friendly errors are in `src/helpers/errors/friendlyErrors.ts`. Search
+  shows its message under the search box and no longer raises an alert (it
+  used to raise up to two). Join, leave and invite say "You're offline" and
+  tell a rate limit from a full household (both are `resource-exhausted`).
+- **Not done, for session 9's manual pass:** there is no offline banner, and
+  what a write does with no connection (adding a plant, tapping Watered)
+  wasn't checked on a phone. Firestore queues the write, but the app awaits
+  it, so the screen may wait until the connection is back. See Found along
+  the way.
+- `docs/OPERATIONS.md` has the alert list and the restore steps as
+  checkboxes for Kian, and a "Restore last tested" line to fill in.
 
 ---
 
@@ -644,6 +674,19 @@ a week without Kian stepping in.
 ## Found along the way
 
 Add things here that are outside your session.
+
+- (Session 8) **`release.keystore` and `tmp.txt` are on `main`**, committed
+  in #90, and the repository is public. `tmp.txt` looks like the same
+  keystore in base64. Treat the upload key as exposed: remove both files,
+  and reset the upload key in Play Console (or make a new keystore if the
+  app hasn't been uploaded yet). `.gitignore` covers `*.jks` but not
+  `*.keystore`.
+- (Session 8) Writes are awaited (`savePlantToFirebase`, `logWatering`).
+  With no connection Firestore queues the write and the promise doesn't
+  settle until it syncs, so adding a plant offline may leave the modal open.
+  Check on a phone in session 9; the fix would be not awaiting the server
+  for these writes, or an offline banner.
+- (Session 8) `useFirebasePlantSearch` looks unused.
 
 - (Session 5) The catalog rule lets a client set `isVerified: true` on a new
   plant. Consider forcing it to `false` for client writes.

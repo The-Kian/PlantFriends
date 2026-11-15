@@ -8,7 +8,8 @@ import {
 } from "@react-native-firebase/firestore";
 
 import { IPlant } from "@/constants/IPlant";
-import ErrorService from "@/services/ErrorService";
+import { isOfflineError } from "@/helpers/errors/friendlyErrors";
+import { recordHandledError } from "@/services/CrashReporting";
 
 async function fetchFirebasePlants(plantName: string): Promise<IPlant[]> {
   try {
@@ -33,7 +34,10 @@ async function fetchFirebasePlants(plantName: string): Promise<IPlant[]> {
       id: doc.id,
     })) as IPlant[];
   } catch (error) {
-    ErrorService.handleError(error, "Fetch Firebase Plants");
+    // Callers show the failure; this only reports it.
+    if (!isOfflineError(error)) {
+      recordHandledError(error, "Fetch Firebase Plants");
+    }
     throw error;
   }
 }

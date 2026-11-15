@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { IPlant } from "@/constants/IPlant";
 import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
 import { fetchTreflePlants } from "@/helpers/plants/plantAPI/fetchTreflePlants";
-import ErrorService from "@/services/ErrorService";
 
 export const useCombinedPlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
@@ -55,10 +54,7 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
           apiPlants = (await fetchTreflePlants(debouncedQuery)) || [];
         } catch (apiErr) {
           if (!active) return;
-          console.warn(
-            "Trefle API fetch failed, continuing with Firebase results:",
-            apiErr,
-          );
+          // Keep the Firebase results; the screen explains the rest.
           setError(apiErr as Error);
         }
         if (!active) return;
@@ -74,8 +70,8 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
         setPlants(uniquePlants);
       } catch (err) {
         if (!active) return;
+        // Reported by fetchFirebasePlants; the screen shows the message.
         setError(err as Error);
-        ErrorService.handleError(err, "Search Plants");
       } finally {
         if (active) setLoading(false);
       }

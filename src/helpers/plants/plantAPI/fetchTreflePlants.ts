@@ -1,7 +1,8 @@
 import functions from "@react-native-firebase/functions";
 
 import { IPlant } from "@/constants/IPlant";
-import ErrorService from "@/services/ErrorService";
+import { isOfflineError } from "@/helpers/errors/friendlyErrors";
+import { recordHandledError } from "@/services/CrashReporting";
 import PlantCacheService from "@/services/PlantCacheService";
 
 /**
@@ -38,7 +39,11 @@ export const fetchTreflePlants = async (searchQuery: string): Promise<IPlant[]> 
 
     return plantsData;
   } catch (error) {
-    ErrorService.handleError(error, "Fetch Trefle Plants");
+    // The search screen says what went wrong; no alert on top of it. Being
+    // offline isn't a fault worth reporting.
+    if (!isOfflineError(error)) {
+      recordHandledError(error, "Fetch Trefle Plants");
+    }
     throw error;
   }
 };

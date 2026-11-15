@@ -16,6 +16,7 @@ import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { IUserPlant, IPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { useHousehold } from "@/context/household/HouseholdProvider";
+import { searchErrorMessage } from "@/helpers/errors/friendlyErrors";
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
 import { useTheme } from "@/hooks/utils/useTheme";
@@ -103,8 +104,11 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
           <LoadingSpinner size="small" message={`Searching for ${searchQuery}`} />
         )}
         {error && (
-          <ThemedText style={[styles.status, { color: colors.error }]}>
-            Error fetching plants
+          <ThemedText
+            style={[styles.status, { color: colors.error }]}
+            accessibilityRole="alert"
+          >
+            {searchErrorMessage(error, plants.length > 0)}
           </ThemedText>
         )}
         <PlantSearchResults plants={plants} onSelectPlant={handleSelectPlant} />

@@ -39,6 +39,14 @@ Firebase Functions secrets (recommended) or as an env var in the deploy.
 | `leaveHousehold` | The caller leaves their household for a new one of their own, with no plants. |
 | `removeMember` | `{ uid }`: the household's creator takes a member out, with the same effect as them leaving. |
 
+## Logs and push delivery
+
+Log through `logFor(name)` in `log.js`, which adds the function name as
+`fn`. IDs and counts only: no emails, names, invite codes or push tokens.
+Accepted pushes are kept in `PushTickets` until `sendWateringReminders`
+has checked their Expo receipts (`checkPushReceipts` in `push.js`). What
+the log lines mean is in `docs/OPERATIONS.md`.
+
 ## Tests
 
 `functions/` has no test script of its own. Its tests run with the root Jest

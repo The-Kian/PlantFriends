@@ -5,6 +5,7 @@ import uuid from "react-native-uuid";
 
 import { IHousehold, IUserPlant, IPlant } from "@/constants/IPlant";
 import { docExists, plantDoc } from "@/helpers/firebase/householdPaths";
+import { recordHandledError } from "@/services/CrashReporting";
 
 // Fields a person can edit on a plant. Anything else on the in-memory object
 // (such as merged species data) is never written.
@@ -109,6 +110,7 @@ const saveUserPlantToFirebase = async (
       "saveUserPlantToFirebase: Error saving user plant data: ",
       error,
     );
+    recordHandledError(error, "Save user plant");
     return false;
   }
 };
