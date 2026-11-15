@@ -2,7 +2,8 @@
  * Shared-care notifications.
  *
  * onPlantWritten — when someone waters a plant, tells its other carers it's
- * done ("Kian watered your Monstera"), so nobody waters it twice.
+ * done ("Kian watered your Monstera"), so nobody waters it twice. It also
+ * plans the plant's next reminder (notify_at), which ./reminders.js sends.
  *
  * See docs/household-sharing-plan.md.
  */
@@ -11,6 +12,7 @@ const admin = require("firebase-admin");
 
 const { sendToUsers } = require("./push");
 const { plantName, isWatering, wateredMessages } = require("./plantMessages");
+const { planReminder } = require("./notifyAt");
 
 async function householdTimeZone(db, householdId) {
   const snap = await db.doc(`Households/${householdId}`).get();
@@ -69,6 +71,16 @@ const onPlantWritten = functions.firestore
     if (sent > 0) {
       functions.logger.info("Sent watered notifications", { householdId, plantId, sent });
     }
+
+    // Plan the next reminder when the due date or the reminders switch changed.
+    if (!change.after.exists) return;
+    const after = change.after.data();
+    const plan = planReminder({
+      before: change.before.exists ? change.before.data() : null,
+      after,
+      timeZone: await householdTimeZone(admin.firestore(), householdId),
+    });
+    if (plan) await change.after.ref.update(plan);
   });
 
-module.exports = { onPlantWritten, notifyWatering };
+module.exports = { onPlantWritten, notifyWatering, householdTimeZone, basePlantName };

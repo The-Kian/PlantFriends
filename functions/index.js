@@ -309,3 +309,6 @@ exports.removeMember = functions.https.onCall((data, context) =>
 
 // Shared-care notifications: see ./notifications.js.
 exports.onPlantWritten = require("./notifications").onPlantWritten;
+
+// Watering reminders, every 15 minutes: see ./reminders.js.
+exports.sendWateringReminders = require("./reminders").sendWateringReminders;

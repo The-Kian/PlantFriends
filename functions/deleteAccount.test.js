@@ -106,6 +106,7 @@ jest.mock("firebase-functions", () => {
     https,
     runWith: () => ({ https }),
     firestore: { document: () => ({ onWrite: (handler) => handler }) },
+    pubsub: { schedule: () => ({ onRun: (handler) => handler }) },
     logger: { error: jest.fn(), info: jest.fn() },
   };
 }, { virtual: true });

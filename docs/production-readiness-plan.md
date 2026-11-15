@@ -34,7 +34,7 @@ Rules for whoever does the session:
 | --- | --- | --- | --- |
 | 1 | Invite and join a household | none | Done, awaiting deploy |
 | 2 | Leave a household, remove a member | 1 | Done, awaiting deploy |
-| 3 | Server-side watering reminders | none | Not started |
+| 3 | Server-side watering reminders | none | Done, awaiting deploy |
 | 4 | Client switch to server reminders, notification settings | 3 | Not started |
 | 5 | Security rules tests and tighter rules | none | Not started |
 | 6 | App Check and rate limiting | none | Not started |
@@ -186,19 +186,19 @@ This is phase 5 of `docs/household-sharing-plan.md` (the section
 **Read first:** `docs/household-sharing-plan.md`, `functions/notifications.js`,
 `functions/push.js`, `functions/plantMessages.js`, `firebase.json`.
 
-- [ ] `functions/notifyAt.js`: pure function that moves a due time out of
+- [x] `functions/notifyAt.js`: pure function that moves a due time out of
       quiet hours (21:00 to 08:00 in the household's `timeZone`). Test it
       around midnight and around clock changes.
-- [ ] `onPlantWritten` sets `notify_at` and `notify_stage` when
+- [x] `onPlantWritten` sets `notify_at` and `notify_stage` when
       `next_watering_date` or `reminders_enabled` changes. Make sure its own
       write can't trigger itself in a loop.
-- [ ] `sendWateringReminders`, scheduled every 15 minutes: collection-group
+- [x] `sendWateringReminders`, scheduled every 15 minutes: collection-group
       query on `notify_at <= now`, push to carers, move `due` to `nudge`,
       then clear. Use the `lastUpdateTime` precondition from the plan.
-- [ ] `firestore.indexes.json` with the collection-group index, referenced
+- [x] `firestore.indexes.json` with the collection-group index, referenced
       from `firebase.json`, and deployed by the rules workflow.
-- [ ] Add the new function to the **Deploy Cloud Functions** workflow's options.
-- [ ] Tests with fake Firestore and fetch, as in `push.test.js`.
+- [x] Add the new function to the **Deploy Cloud Functions** workflow's options.
+- [x] Tests with fake Firestore and fetch, as in `push.test.js`.
 
 **Kian does:** deploy functions and indexes. Enable Cloud Scheduler if the
 deploy asks. Set a test plant due in a few minutes and wait for the push.
@@ -206,7 +206,25 @@ deploy asks. Set a test plant due in a few minutes and wait for the push.
 **Done when:** a due plant sends one push to each carer, one nudge a day
 later, then nothing.
 
-**Notes:**
+**Notes for session 4:**
+
+- Until session 4 ships, a phone on the old build gets both its local
+  reminder and the server push for the same plant. That's expected.
+- `onPlantWritten` plans `notify_at` and `notify_stage` (`planReminder` in
+  `functions/notifyAt.js`) when `next_watering_date` or `reminders_enabled`
+  changes, including on create. A plant moved in by `joinHousehold` is planned
+  the same way. Its own write only changes the two notify fields, so it
+  can't trigger itself.
+- `functions/reminders.js` has the scheduled function. It sends first and
+  then updates with a `lastUpdateTime` precondition. If someone watered the
+  plant in between, the update is skipped and the new plan stays, but that
+  one push has already gone out.
+- Push `data` is `{ plantId, householdId, type }` with `type` of `due` or
+  `nudge` (and `watered` from `onPlantWritten`). The client can dismiss a
+  delivered reminder by `plantId`.
+- The index deploy is a separate job in the **Deploy Firestore rules** workflow.
+  It needs the service account to be allowed to manage indexes.
+
 
 ---
 
@@ -417,3 +435,9 @@ Add things here that are outside your session.
 - `deleteAccount` writes anonymised copies of a leaving member's plants even
   though the plants now stay. Fine for now; revisit with the privacy policy (session 10).
 - Removing someone doesn't tell them. Their app just switches to a household of their own.
+- A plant whose due date is already in the past when it's added or edited gets a
+  reminder on the next run (within 15 minutes). That's by design, but may feel odd.
+- Reminders are per plant: someone with ten due plants gets ten pushes. Batching
+  is listed as future work in the sharing plan.
+- `onPlantWritten` reads the household for its time zone on every plant write,
+  even when it plans nothing. Cheap now; cache or skip it if writes grow.

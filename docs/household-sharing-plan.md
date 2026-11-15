@@ -28,11 +28,12 @@ Decisions made so far:
   with whoever is left. A leaver gets a household of their own again. If the
   creator goes, the household passes to the longest-standing member.
 
-**Status:** phases 1 to 4 are on `main`. Phase 4's function still needs
-deploying (the **Deploy Cloud Functions** workflow) and checking on two
-phones. Test builds come from the **Build Android test app** workflow (see
-`docs/ci-builds.md`), housemates join with an invite code (or **Link housemate**), and
-**Send test push** checks a phone can receive notifications.
+**Status:** phases 1 to 4 are on `main`. Phase 5's server side (planning in
+`onPlantWritten`, `sendWateringReminders`, quiet hours, the index) is written
+but not yet deployed, and the app still schedules local reminders until the
+client switch. Test builds come from the **Build Android test app** workflow
+(see `docs/ci-builds.md`), housemates join with an invite code (or **Link
+housemate**), and **Send test push** checks a phone can receive notifications.
 
 ## Data model
 

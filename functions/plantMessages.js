@@ -79,4 +79,28 @@ function wateredMessages({ plant, plantId, householdId, name, now, timeZone }) {
   return messages;
 }
 
-module.exports = { DAY_MS, plantName, formatDue, isWatering, wateredMessages };
+/**
+ * The push for a plant that is due ("due") or still unwatered a day later
+ * ("nudge"). It goes to every carer. On a shared plant it says "whoever gets
+ * there first", as the others hear when one of them waters it.
+ */
+function reminderMessage({ plant, plantId, householdId, name, stage }) {
+  const data = { plantId, householdId, type: stage };
+  if (stage === "nudge") {
+    return {
+      title: `The ${name} is still thirsty 💧`,
+      body: plant.shared ? "Whoever gets there first, tap Watered." : "Tap Watered when it's done.",
+      data,
+    };
+  }
+  if (plant.shared) {
+    return {
+      title: `The ${name} needs watering 💧`,
+      body: "Whoever gets there first, tap Watered.",
+      data,
+    };
+  }
+  return { title: `Time to water the ${name} 💧`, body: "Tap Watered when it's done.", data };
+}
+
+module.exports = { reminderMessage, DAY_MS, plantName, formatDue, isWatering, wateredMessages };

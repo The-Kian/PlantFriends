@@ -1,4 +1,4 @@
-const { DAY_MS, plantName, isWatering, wateredMessages } = require("./plantMessages");
+const { DAY_MS, plantName, isWatering, wateredMessages, reminderMessage } = require("./plantMessages");
 
 const NOW = Date.parse("2026-10-05T10:00:00Z"); // a Monday, 11:00 in London
 const TZ = "Europe/London";
@@ -85,5 +85,29 @@ describe("wateredMessages", () => {
     expect(wateredMessages({ plant, name: "Monstera", ...ids })[0].message.body).toBe(
       "No need to water it.",
     );
+  });
+});
+
+describe("reminderMessage", () => {
+  const args = { plantId: "p1", householdId: "h1", name: "Monstera" };
+
+  it("is short and personal on someone's own plant", () => {
+    expect(reminderMessage({ plant: samsMonstera, stage: "due", ...args })).toEqual({
+      title: "Time to water the Monstera 💧",
+      body: "Tap Watered when it's done.",
+      data: { plantId: "p1", householdId: "h1", type: "due" },
+    });
+  });
+
+  it("asks whoever gets there first on a shared plant", () => {
+    expect(reminderMessage({ plant: sharedPothos, stage: "due", ...args }).title).toBe(
+      "The Monstera needs watering 💧",
+    );
+  });
+
+  it("nudges once with 'still thirsty'", () => {
+    const nudge = reminderMessage({ plant: sharedPothos, stage: "nudge", ...args });
+    expect(nudge.title).toBe("The Monstera is still thirsty 💧");
+    expect(nudge.data.type).toBe("nudge");
   });
 });
