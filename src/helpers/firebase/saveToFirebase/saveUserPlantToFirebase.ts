@@ -5,6 +5,7 @@ import uuid from "react-native-uuid";
 
 import { IHousehold, IUserPlant, IPlant } from "@/constants/IPlant";
 import { docExists, plantDoc } from "@/helpers/firebase/householdPaths";
+import { queuedWrite } from "@/helpers/firebase/queuedWrite";
 import { recordHandledError } from "@/services/CrashReporting";
 
 // Fields a person can edit on a plant. Anything else on the in-memory object
@@ -103,7 +104,7 @@ const saveUserPlantToFirebase = async (
       });
     }
 
-    await setDoc(ref, docData, { merge: true });
+    await queuedWrite(setDoc(ref, docData, { merge: true }), "Save user plant");
     return true;
   } catch (error) {
     console.error(

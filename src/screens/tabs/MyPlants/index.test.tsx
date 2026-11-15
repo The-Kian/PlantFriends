@@ -87,7 +87,7 @@ describe("MyPlantsScreen", () => {
 
     // Simulate deleting the plant
     // Living Room is the first group, so its plant has the first delete button.
-    const deleteButton = screen.getAllByLabelText("Delete")[0];
+    const deleteButton = screen.getAllByLabelText(/^Delete /)[0];
     fireEvent.press(deleteButton);
 
     // Verify the plant is no longer visible

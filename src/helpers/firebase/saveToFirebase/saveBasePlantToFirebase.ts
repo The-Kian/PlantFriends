@@ -8,6 +8,7 @@ import {
 } from "@react-native-firebase/firestore";
 
 import { IPlant } from "@/constants/IPlant";
+import { queuedWrite } from "@/helpers/firebase/queuedWrite";
 import { recordHandledError } from "@/services/CrashReporting";
 
 const saveBasePlantToFirebase = async (
@@ -28,7 +29,7 @@ const saveBasePlantToFirebase = async (
         isVerified: plantData.isVerified ?? false,
         slug: plantData.name ? plantData.name.toLowerCase() : "",
       };
-      await setDoc(plantRef, basePlantData);
+      await queuedWrite(setDoc(plantRef, basePlantData), "Save base plant");
     } catch (error) {
       console.error("Error saving base plant data: ", error);
       recordHandledError(error, "Save base plant");
