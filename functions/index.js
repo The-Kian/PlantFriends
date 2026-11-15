@@ -10,7 +10,13 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
 const { anonymiseUserPlant } = require("./anonymise");
-const { createInviteHandler, joinHouseholdHandler } = require("./households");
+const {
+  createInviteHandler,
+  joinHouseholdHandler,
+  leaveHouseholdHandler,
+  removeMemberHandler,
+} = require("./households");
+const { unlinkWrites, createdByUpdate } = require("./householdAdmin");
 
 admin.initializeApp();
 
@@ -151,8 +157,8 @@ exports.searchPlants = functions
  * 1. Copies an anonymised version of each of their plants into the
  *    `AnonymousPlants` collection (not readable by clients).
  * 2. Deletes their household with its plants if they are its only member.
- *    In a shared household it deletes only the plants they added and takes
- *    them off the members and carers, so housemates keep their own plants.
+ *    In a shared household they leave it: all plants stay, and plants only
+ *    they looked after become shared with whoever is left.
  * 3. Deletes `Users/{uid}` and everything under it.
  * 4. Deletes the Firebase Auth user.
  *
@@ -206,24 +212,21 @@ exports.deleteAccount = functions.https.onCall(async (data, context) => {
     await writer.close();
 
     if (isMember && hasHousemates) {
-      const { FieldValue } = admin.firestore;
+      // Same as leaving: the plants stay, and the ones only they looked
+      // after become shared with whoever is left.
+      const household = householdSnap.data();
+      const allPlants = (await householdRef.collection("Plants").get()).docs.map(
+        (plantDoc) => ({ id: plantDoc.ref.id, data: plantDoc.data() }),
+      );
+      const writes = unlinkWrites({ household, plants: allPlants, uid });
       const cleanup = db.bulkWriter();
-      householdPlants.forEach((plantDoc) => cleanup.delete(plantDoc.ref));
       cleanup.update(householdRef, {
-        memberIds: FieldValue.arrayRemove(uid),
-        [`members.${uid}`]: FieldValue.delete(),
+        ...writes.household,
+        ...createdByUpdate(household, uid),
       });
-      const remaining = await householdRef
-        .collection("Plants")
-        .where("carerIds", "array-contains", uid)
-        .get();
-      remaining.docs
-        .filter((plantDoc) => plantDoc.data().addedBy !== uid)
-        .forEach((plantDoc) =>
-          cleanup.update(plantDoc.ref, {
-            carerIds: FieldValue.arrayRemove(uid),
-          }),
-        );
+      writes.plantUpdates.forEach(({ id, update }) =>
+        cleanup.update(householdRef.collection("Plants").doc(id), update),
+      );
       await cleanup.close();
     } else if (isMember) {
       await db.recursiveDelete(householdRef);
@@ -287,6 +290,20 @@ exports.createInvite = functions.https.onCall((data, context) =>
 exports.joinHousehold = functions.https.onCall((data, context) =>
   runHouseholdCall("joinHousehold", context, (args) =>
     joinHouseholdHandler({ ...args, data }),
+  ),
+);
+
+/** leaveHousehold — the caller leaves their household. */
+exports.leaveHousehold = functions.https.onCall((data, context) =>
+  runHouseholdCall("leaveHousehold", context, (args) =>
+    leaveHouseholdHandler(args),
+  ),
+);
+
+/** removeMember — the household's creator removes someone ({ uid }). */
+exports.removeMember = functions.https.onCall((data, context) =>
+  runHouseholdCall("removeMember", context, (args) =>
+    removeMemberHandler({ ...args, data }),
   ),
 );
 

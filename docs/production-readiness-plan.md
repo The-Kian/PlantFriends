@@ -33,7 +33,7 @@ Rules for whoever does the session:
 | # | Session | Depends on | Status |
 | --- | --- | --- | --- |
 | 1 | Invite and join a household | none | Done, awaiting deploy |
-| 2 | Leave a household, remove a member | 1 | Not started |
+| 2 | Leave a household, remove a member | 1 | Done, awaiting deploy |
 | 3 | Server-side watering reminders | none | Not started |
 | 4 | Client switch to server reminders, notification settings | 3 | Not started |
 | 5 | Security rules tests and tighter rules | none | Not started |
@@ -53,8 +53,8 @@ readiness.
   `Households/{hid}/Plants`, cards show who watered, phones register for
   push, and `onPlantWritten` tells carers when a housemate waters.
 - Housemates can invite and join with a code from Profile (session 1, once
-  deployed). There is no leave in the app yet, so the **Link housemate**
-  workflow (`functions/householdAdmin.js`) still does that.
+  deployed), and leave or remove (session 2, once deployed). The **Link housemate**
+  workflow (`functions/householdAdmin.js`) is only a fallback now.
 - Reminders are still scheduled on the phone (`src/services/NotificationService.ts`).
   The scheduled `sendWateringReminders` function doesn't exist yet.
 - `functions/index.js` exports `searchPlants`, `deleteAccount`,
@@ -141,17 +141,22 @@ A mistaken join can be undone without the Firebase console.
 **Read first:** the session 1 code, `functions/index.js` (`deleteAccount`,
 which already handles a member disappearing), `functions/householdAdmin.js`.
 
-- [ ] `leaveHousehold` callable function: removes the caller from
+- [x] `leaveHousehold` callable function: removes the caller from
       `memberIds`, `members` and every `carerIds`, and puts them back in
       their solo household (`Households/{uid}`). Plants only they cared for
       become shared with whoever is left, the same as account deletion.
       Share that logic with `deleteAccount`.
-- [ ] `removeMember(uid)` callable function: only the household's
+      **Decided:** the plan said "the same as account deletion", but
+      `deleteAccount` used to delete the plants the leaver added. Leaving now
+      hands them over (`unlinkWrites`), and `deleteAccount` was changed to
+      match, so both work the same way. The plants stay and `addedBy` keeps
+      the old uid, which shows no name.
+- [x] `removeMember(uid)` callable function: only the household's
       `createdBy` may call it. Same effect as that member leaving.
-- [ ] If the creator leaves, pass `createdBy` to the longest-standing member.
-- [ ] Profile: **Leave household** with a confirmation, and a remove button
+- [x] If the creator leaves, pass `createdBy` to the longest-standing member.
+- [x] Profile: **Leave household** with a confirmation, and a remove button
       beside each member for the creator.
-- [ ] Tests: last member leaves, creator leaves, removing yourself,
+- [x] Tests: last member leaves, creator leaves, removing yourself,
       non-creator tries to remove someone.
 
 **Kian does:** deploy functions, then leave and rejoin on a test phone.
@@ -159,7 +164,17 @@ which already handles a member disappearing), `functions/householdAdmin.js`.
 **Done when:** leaving returns you to your own empty household and the
 others no longer see you as a carer.
 
-**Notes:**
+**Notes for session 3:**
+
+- `leaveHousehold` and `removeMember` are in `functions/households.js`;
+  both go through `removeFromHousehold`. `deleteAccount` uses `unlinkWrites`
+  and `createdByUpdate` from `functions/householdAdmin.js`.
+- A leaver's `Users/{uid}.householdId` is cleared, and the app then makes a
+  new solo household. The provider had a bug where this only worked once per
+  app session (`settingUp` was never reset). Fixed in `HouseholdProvider`.
+- `deleteAccount` still writes anonymised copies of the plants the person
+  added, even though those plants now stay in the household.
+
 
 ---
 
@@ -399,3 +414,6 @@ Add things here that are outside your session.
   until session 3, which will need to recheck them.
 - The invite and join callables have no `maxInstances`, App Check or input
   length limits yet (session 6).
+- `deleteAccount` writes anonymised copies of a leaving member's plants even
+  though the plants now stay. Fine for now; revisit with the privacy policy (session 10).
+- Removing someone doesn't tell them. Their app just switches to a household of their own.

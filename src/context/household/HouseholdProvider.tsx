@@ -134,9 +134,17 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         setNotificationPrefs(profile.notificationPrefs ?? {});
 
         if (!profile.householdId) {
+          // Also what happens after leaving a household: drop the old one
+          // (stops its listeners) and set up a household of their own.
+          setHouseholdId(null);
+          setHousehold(null);
+          setLoading(true);
+          dispatch(setUserPlants([]));
           setUpHousehold(user);
           return;
         }
+        // Set up is done; a later clear (leaving) must set up again.
+        settingUp.current = false;
         setHouseholdId(profile.householdId);
 
         if (!profile.plantsMigratedAt && !migrating.current) {

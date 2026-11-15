@@ -147,9 +147,10 @@ describe("deleteAccount", () => {
     expect(store.has("Users/u1")).toBe(false);
   });
 
-  it("leaves a shared household and housemates' plants in place", async () => {
+  it("leaves a shared household, which keeps every plant", async () => {
     store.set("Users/u2", { householdId: "u1", plantsMigratedAt: 1 });
     store.set("Households/u1", {
+      createdBy: "u2",
       memberIds: ["u1", "u2"],
       members: { u1: { displayName: "Kian" }, u2: { displayName: "Sam" } },
     });
@@ -167,9 +168,16 @@ describe("deleteAccount", () => {
     await deleteAccount({}, { auth: { uid: "u2" } });
 
     expect(anonymousPlants()).toHaveLength(1);
-    expect(store.has("Households/u1/Plants/mine")).toBe(false);
+    // Their own plant stays, now shared with the one left.
+    expect(store.get("Households/u1/Plants/mine")).toEqual({
+      plantId: "fern",
+      addedBy: "u2",
+      carerIds: ["u1"],
+      shared: true,
+    });
     expect(store.get("Households/u1/Plants/shared").carerIds).toEqual(["u1"]);
     expect(store.get("Households/u1")).toEqual({
+      createdBy: "u1",
       memberIds: ["u1"],
       members: { u1: { displayName: "Kian" } },
     });

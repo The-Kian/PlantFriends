@@ -1,5 +1,8 @@
 jest.mock("firebase-admin", () => ({
-  firestore: { Timestamp: { fromMillis: (ms) => ({ ms, toMillis: () => ms }) } },
+  firestore: {
+    Timestamp: { fromMillis: (ms) => ({ ms, toMillis: () => ms }) },
+    FieldValue: { delete: () => ({ __delete: true }) },
+  },
 }), { virtual: true }); // CI doesn't install functions/ dependencies
 
 jest.mock("firebase-functions", () => {
@@ -13,7 +16,12 @@ jest.mock("firebase-functions", () => {
 }, { virtual: true });
 
 const { createFakeFirestore } = require("./fakeFirestore");
-const { createInviteHandler, joinHouseholdHandler } = require("./households");
+const {
+  createInviteHandler,
+  joinHouseholdHandler,
+  leaveHouseholdHandler,
+  removeMemberHandler,
+} = require("./households");
 const { ALPHABET } = require("./inviteCode");
 
 const NOW = Date.parse("2026-11-15T10:00:00Z");
@@ -273,5 +281,91 @@ describe("joinHouseholdHandler", () => {
     fake.store.set("Users/alex", {});
     await join({ code: CODE }, "alex");
     expect(fake.store.get("Households/flat").memberIds).toEqual(["kian", "sam", "alex"]);
+  });
+});
+
+describe("leaving and removing", () => {
+  beforeEach(() => {
+    // Kian made the flat, then Sam and Alex joined.
+    fake.store.set("Users/kian", { householdId: "flat" });
+    fake.store.set("Users/sam", { householdId: "flat" });
+    fake.store.set("Users/alex", { householdId: "flat" });
+    fake.store.set("Households/flat", {
+      name: "The Flat",
+      createdBy: "kian",
+      ...members("kian", "sam", "alex"),
+    });
+    fake.store.set("Households/flat/Plants/pothos", {
+      addedBy: "kian", carerIds: ["kian", "sam", "alex"], shared: true,
+    });
+    fake.store.set("Households/flat/Plants/fern", {
+      addedBy: "sam", carerIds: ["sam"], shared: false,
+    });
+    fake.store.set("Households/flat/Plants/cactus", {
+      addedBy: "kian", carerIds: ["kian"], shared: false,
+    });
+  });
+
+  const leave = (uid) => leaveHouseholdHandler({ db, uid });
+  const remove = (uid, target) => removeMemberHandler({ db, uid, data: { uid: target } });
+
+  it("lets a member leave, handing their own plants to the others", async () => {
+    expect(await leave("sam")).toEqual({ left: true });
+
+    expect(fake.store.get("Households/flat").memberIds).toEqual(["kian", "alex"]);
+    expect(fake.store.get("Households/flat").members.sam).toBeUndefined();
+    expect(fake.store.get("Households/flat").createdBy).toBe("kian");
+    expect(fake.store.get("Households/flat/Plants/pothos").carerIds).toEqual(["kian", "alex"]);
+    expect(fake.store.get("Households/flat/Plants/fern")).toEqual({
+      addedBy: "sam", carerIds: ["kian", "alex"], shared: true,
+    });
+    expect(fake.store.get("Households/flat/Plants/cactus").carerIds).toEqual(["kian"]);
+    expect(fake.store.get("Users/sam")).toEqual({});
+  });
+
+  it("passes the household to the longest-standing member when its creator leaves", async () => {
+    await leave("kian");
+    expect(fake.store.get("Households/flat").createdBy).toBe("sam");
+    expect(fake.store.get("Households/flat").memberIds).toEqual(["sam", "alex"]);
+  });
+
+  it("won't let the last member leave", async () => {
+    fake.store.set("Households/flat", { name: "The Flat", createdBy: "kian", ...members("kian") });
+    await rejectsWith(leave("kian"), "failed-precondition", "You're the only member of this household.");
+    expect(fake.store.get("Users/kian")).toEqual({ householdId: "flat" });
+  });
+
+  it("refuses someone who isn't in the household", async () => {
+    fake.store.set("Users/zoe", { householdId: "flat" });
+    await rejectsWith(leave("zoe"), "permission-denied");
+  });
+
+  it("lets the creator remove someone", async () => {
+    expect(await remove("kian", "sam")).toEqual({ removed: true });
+    expect(fake.store.get("Households/flat").memberIds).toEqual(["kian", "alex"]);
+    expect(fake.store.get("Households/flat/Plants/fern").carerIds).toEqual(["kian", "alex"]);
+    expect(fake.store.get("Users/sam")).toEqual({});
+    expect(fake.store.get("Users/kian")).toEqual({ householdId: "flat" });
+  });
+
+  it("treats removing yourself as leaving", async () => {
+    await remove("kian", "kian");
+    expect(fake.store.get("Households/flat").createdBy).toBe("sam");
+    expect(fake.store.get("Users/kian")).toEqual({});
+  });
+
+  it("refuses someone who isn't the creator", async () => {
+    const before = JSON.stringify([...fake.store.entries()]);
+    await rejectsWith(
+      remove("sam", "alex"),
+      "permission-denied",
+      "Only the person who made this household can remove people.",
+    );
+    expect(JSON.stringify([...fake.store.entries()])).toBe(before);
+  });
+
+  it("says so when the person isn't in the household", async () => {
+    await rejectsWith(remove("kian", "zoe"), "not-found");
+    await rejectsWith(removeMemberHandler({ db, uid: "kian", data: {} }), "invalid-argument");
   });
 });

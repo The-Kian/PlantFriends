@@ -9,6 +9,10 @@ import {
   joinHousehold,
   previewInvite,
 } from "@/helpers/household/invites";
+import {
+  leaveHousehold,
+  removeMember,
+} from "@/helpers/household/membership";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockHousehold, mockHouseholdContext } from "@/test-utils/MockHousehold";
@@ -20,6 +24,12 @@ jest.mock("@/helpers/household/invites", () => ({
   createInvite: jest.fn(),
   previewInvite: jest.fn(),
   joinHousehold: jest.fn(),
+}));
+
+jest.mock("@/helpers/household/membership", () => ({
+  ...jest.requireActual("@/helpers/household/membership"),
+  leaveHousehold: jest.fn(),
+  removeMember: jest.fn(),
 }));
 
 const renderCard = (household = mockHousehold) =>
@@ -195,5 +205,111 @@ describe("HouseholdCard", () => {
         expect.any(Array),
       ),
     );
+  });
+
+  describe("leaving", () => {
+    it("asks first, then leaves", async () => {
+      jest.mocked(leaveHousehold).mockResolvedValue();
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Leave household"));
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Leave The Flat?",
+        "Plants only you look after will stay with the household. You'll get a household of your own.",
+        expect.any(Array),
+      );
+      expect(leaveHousehold).not.toHaveBeenCalled();
+
+      pressAlertButton("Leave");
+      await waitFor(() => expect(leaveHousehold).toHaveBeenCalledTimes(1));
+    });
+
+    it("doesn't leave when the alert is cancelled", () => {
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Leave household"));
+      pressAlertButton("Cancel");
+
+      expect(leaveHousehold).not.toHaveBeenCalled();
+    });
+
+    it("is hidden when you're the only member", () => {
+      renderCard({
+        ...mockHousehold,
+        memberIds: ["user1"],
+        members: { user1: { displayName: "Kian" } },
+      });
+
+      expect(screen.queryByLabelText("Leave household")).toBeNull();
+    });
+
+    it("shows a message when it fails", async () => {
+      jest.mocked(leaveHousehold).mockRejectedValue({ code: "failed-precondition" });
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Leave household"));
+      pressAlertButton("Leave");
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenLastCalledWith(
+          "Leave household",
+          "You're the only member of this household.",
+          expect.any(Array),
+        ),
+      );
+    });
+  });
+
+  describe("removing a member", () => {
+    it("lets the creator remove a housemate after a confirmation", async () => {
+      jest.mocked(removeMember).mockResolvedValue();
+      renderCard(); // mockHousehold.createdBy is user1, the signed-in user
+
+      expect(screen.queryByLabelText("Remove Kian")).toBeNull();
+      fireEvent.press(screen.getByLabelText("Remove Sam"));
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Remove Sam from The Flat?",
+        "Plants only Sam looks after will stay with the household.",
+        expect.any(Array),
+      );
+      expect(removeMember).not.toHaveBeenCalled();
+
+      pressAlertButton("Remove");
+      await waitFor(() => expect(removeMember).toHaveBeenCalledWith("user2"));
+    });
+
+    it("doesn't remove when the alert is cancelled", () => {
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Remove Sam"));
+      pressAlertButton("Cancel");
+
+      expect(removeMember).not.toHaveBeenCalled();
+    });
+
+    it("shows no remove buttons to anyone but the creator", () => {
+      renderCard({ ...mockHousehold, createdBy: "user2" });
+
+      expect(screen.queryByLabelText("Remove Sam")).toBeNull();
+      expect(screen.queryByLabelText("Remove Kian")).toBeNull();
+    });
+
+    it("shows a message when it fails", async () => {
+      jest.mocked(removeMember).mockRejectedValue({ code: "not-found" });
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Remove Sam"));
+      pressAlertButton("Remove");
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenLastCalledWith(
+          "Remove member",
+          "That person isn't in this household.",
+          expect.any(Array),
+        ),
+      );
+    });
   });
 });

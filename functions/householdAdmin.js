@@ -85,4 +85,21 @@ function unlinkWrites({ household, plants, uid }) {
   };
 }
 
-module.exports = { displayNameFor, linkWrites, moveWrites, unlinkWrites };
+/**
+ * Who `createdBy` should be once `uid` is out of the household: unchanged
+ * unless it was them, then the longest-standing member left. memberIds is in
+ * the order people joined, so that's the first one.
+ */
+function creatorAfterRemoval({ household, uid }) {
+  const remaining = (household.memberIds || []).filter((id) => id !== uid);
+  if (household.createdBy !== uid || remaining.length === 0) return household.createdBy;
+  return remaining[0];
+}
+
+/** { createdBy } to write when someone leaves, or nothing if it doesn't change. */
+function createdByUpdate(household, uid) {
+  const createdBy = creatorAfterRemoval({ household, uid });
+  return createdBy && createdBy !== household.createdBy ? { createdBy } : {};
+}
+
+module.exports = { displayNameFor, linkWrites, moveWrites, unlinkWrites, creatorAfterRemoval, createdByUpdate };

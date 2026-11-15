@@ -9,7 +9,13 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
 const { generateCode, normaliseCode } = require("./inviteCode");
-const { displayNameFor, linkWrites, moveWrites } = require("./householdAdmin");
+const {
+  displayNameFor,
+  linkWrites,
+  moveWrites,
+  unlinkWrites,
+  createdByUpdate,
+} = require("./householdAdmin");
 
 const MAX_MEMBERS = 10;
 const INVITE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
@@ -137,4 +143,98 @@ async function joinHouseholdHandler({ db, uid, authToken, data, now }) {
   });
 }
 
-module.exports = { MAX_MEMBERS, createInviteHandler, joinHouseholdHandler };
+/**
+ * Takes `target` out of the caller's household, in one transaction. Their own
+ * plants stay with whoever is left, their householdId is cleared (the app
+ * then sets them up a household of their own), and if they made the household
+ * it passes to the longest-standing member.
+ */
+async function removeFromHousehold({ db, householdId, target, isAllowed }) {
+  return db.runTransaction(async (transaction) => {
+    const householdRef = db.doc(`Households/${householdId}`);
+    const householdSnap = await transaction.get(householdRef);
+    const household = householdSnap.exists ? householdSnap.data() : null;
+    const memberIds = (household && household.memberIds) || [];
+    isAllowed(household, memberIds);
+    if (!memberIds.includes(target)) {
+      throw new HttpsError("not-found", "That person isn't in this household.");
+    }
+    if (memberIds.length < 2) {
+      throw new HttpsError("failed-precondition", "You're the only member of this household.");
+    }
+    const plantsRef = householdRef.collection("Plants");
+    const plants = plantsOf(await transaction.get(plantsRef));
+
+    const writes = unlinkWrites({ household, plants, uid: target });
+    transaction.update(householdRef, {
+      ...writes.household,
+      ...createdByUpdate(household, target),
+    });
+    writes.plantUpdates.forEach(({ id, update }) =>
+      transaction.update(plantsRef.doc(id), update),
+    );
+    transaction.set(
+      db.doc(`Users/${target}`),
+      { householdId: admin.firestore.FieldValue.delete() },
+      { merge: true },
+    );
+  });
+}
+
+async function householdIdOf(db, uid) {
+  const userSnap = await db.doc(`Users/${uid}`).get();
+  return (userSnap.exists && userSnap.get("householdId")) || uid;
+}
+
+/** The caller leaves their household. */
+async function leaveHouseholdHandler({ db, uid }) {
+  const householdId = await householdIdOf(db, uid);
+  await removeFromHousehold({
+    db,
+    householdId,
+    target: uid,
+    isAllowed: (household, memberIds) => {
+      if (!household || !memberIds.includes(uid)) {
+        throw new HttpsError("permission-denied", "You're not in this household.");
+      }
+    },
+  });
+  return { left: true };
+}
+
+/**
+ * The person who made the household takes someone out of it. Naming yourself
+ * is the same as leaving.
+ */
+async function removeMemberHandler({ db, uid, data }) {
+  const target = data && typeof data.uid === "string" ? data.uid : "";
+  if (!target) {
+    throw new HttpsError("invalid-argument", "Say who to remove.");
+  }
+  const householdId = await householdIdOf(db, uid);
+  await removeFromHousehold({
+    db,
+    householdId,
+    target,
+    isAllowed: (household, memberIds) => {
+      if (!household || !memberIds.includes(uid)) {
+        throw new HttpsError("permission-denied", "You're not in this household.");
+      }
+      if (target !== uid && household.createdBy !== uid) {
+        throw new HttpsError(
+          "permission-denied",
+          "Only the person who made this household can remove people.",
+        );
+      }
+    },
+  });
+  return { removed: true };
+}
+
+module.exports = {
+  MAX_MEMBERS,
+  createInviteHandler,
+  joinHouseholdHandler,
+  leaveHouseholdHandler,
+  removeMemberHandler,
+};

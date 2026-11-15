@@ -61,7 +61,12 @@ function createFakeFirestore() {
 
   function applySet(path, data, options) {
     const base = options && options.merge ? store.get(path) || {} : {};
-    store.set(path, clone({ ...base, ...data }));
+    const merged = { ...base, ...data };
+    // FieldValue.delete() is faked as { __delete: true }.
+    Object.keys(merged).forEach((key) => {
+      if (merged[key] && merged[key].__delete) delete merged[key];
+    });
+    store.set(path, clone(merged));
   }
 
   function applyUpdate(path, changes) {

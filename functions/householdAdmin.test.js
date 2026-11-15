@@ -1,4 +1,4 @@
-const { displayNameFor, linkWrites, moveWrites, unlinkWrites } = require("./householdAdmin");
+const { displayNameFor, linkWrites, moveWrites, unlinkWrites, creatorAfterRemoval } = require("./householdAdmin");
 
 const household = {
   memberIds: ["kian"],
@@ -96,5 +96,17 @@ describe("moveWrites", () => {
 
   it("does nothing when there are no plants", () => {
     expect(moveWrites({ plants: [], uid: "sam" })).toEqual([]);
+  });
+});
+
+describe("creatorAfterRemoval", () => {
+  const flat = { createdBy: "kian", memberIds: ["kian", "sam", "alex"] };
+
+  it("passes the household to the longest-standing member when the creator goes", () => {
+    expect(creatorAfterRemoval({ household: flat, uid: "kian" })).toBe("sam");
+  });
+
+  it("keeps the creator when someone else goes", () => {
+    expect(creatorAfterRemoval({ household: flat, uid: "sam" })).toBe("kian");
   });
 });

@@ -187,6 +187,35 @@ describe("HouseholdProvider", () => {
     expect(errorOf()).toBeNull();
   });
 
+  it("sets up a new household each time the householdId is cleared, as after leaving", async () => {
+    let onProfile: (snap: Snapshot) => void = () => {};
+    jest.mocked(onSnapshot).mockImplementation(((
+      ref: { _path: string },
+      onNext: (snap: Snapshot) => void,
+    ) => {
+      // The profile's mock path ends in the uid (household IDs here differ from it).
+      if (ref._path.endsWith(`/${mockUser.uid}`)) onProfile = onNext;
+      return jest.fn();
+    }) as unknown as typeof onSnapshot);
+    const store = mountProvider();
+
+    // First sign-in: no household yet, so one is set up.
+    act(() => onProfile({ data: () => ({}) }));
+    await waitFor(() => expect(createSoloHousehold).toHaveBeenCalledTimes(1));
+
+    // The set-up writes householdId; the profile now has one.
+    act(() => onProfile({ data: () => ({ householdId: "solo1", plantsMigratedAt: 1 }) }));
+
+    // Joined a shared household, then left: the server clears householdId.
+    act(() => onProfile({ data: () => ({ householdId: "shared", plantsMigratedAt: 1 }) }));
+    act(() => onProfile({ data: () => ({ plantsMigratedAt: 1 }) }));
+
+    await waitFor(() => expect(createSoloHousehold).toHaveBeenCalledTimes(2));
+    // Nothing from the old household is left on screen.
+    expect(screen.getByText("loading")).toBeTruthy();
+    expect(store.getState().userPlants).toEqual([]);
+  });
+
   it("does nothing while signed out", () => {
     mountProvider(null);
 

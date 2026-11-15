@@ -22,8 +22,11 @@ Decisions made so far:
   from on-device scheduling to the server. A local reminder can't know that a
   housemate already watered the plant, which is the exact case we're selling.
 - **Sync:** a live Firestore listener while the app is open.
-- **Leaving:** when a member deletes their account, the household keeps its
-  plants. Plants only they looked after become shared with whoever is left.
+- **Leaving:** when a member leaves (`leaveHousehold`), is removed by the
+  household's creator (`removeMember`), or deletes their account, the
+  household keeps its plants. Plants only they looked after become shared
+  with whoever is left. A leaver gets a household of their own again. If the
+  creator goes, the household passes to the longest-standing member.
 
 **Status:** phases 1 to 4 are on `main`. Phase 4's function still needs
 deploying (the **Deploy Cloud Functions** workflow) and checking on two
@@ -189,7 +192,16 @@ so the stale "needs watering" banner disappears from the notification centre.
 
 The writes are worked out by `linkWrites` and `moveWrites` in
 `functions/householdAdmin.js`, which the Link housemate workflow (`linkWrites`
-only) also uses. That workflow stays until leaving a household is in the app.
+only) also uses. Leaving and removing are in the app now (see below), so that workflow is only a fallback.
+
+### Leaving and removing
+
+`leaveHousehold` and `removeMember({ uid })` run in one transaction: they take the
+person out of `memberIds` and `members`, off every plant's `carerIds` (plants
+only they looked after become shared with the rest), pass `createdBy` on if it
+was them, and clear their `Users/{uid}.householdId`. Their app then creates
+their solo household again. The last member can't leave, and only the creator
+can remove someone else. Profile has **Leave household** and, for the creator, **Remove**.
 
 ## Firestore rules
 
@@ -237,7 +249,6 @@ and data.
 
 ## Out of scope for the MVP
 
-- Leaving a household or removing a member in the app (invite codes are done)
 - Assigning plants or rotating turns
 - A full watering history (only the last watering is stored for now)
 - Batching several due plants into one push ("3 plants need water"). Worth
