@@ -53,8 +53,12 @@ function moveWrites({ plants, uid }) {
 /**
  * The writes that take `uid` out of a household. Plants only they looked
  * after become shared with whoever is left, so none is left with no carer.
- * Their own householdId is cleared; the app then sets them up a household
- * of their own again.
+ * If they set the household up, it passes to the longest-standing member
+ * (the first left in `memberIds`, which only ever has people appended).
+ *
+ * Used by leaving, removing a member and deleting an account. Leaving and
+ * removing then give them a household of their own (functions/households.js);
+ * the Link housemate workflow clears their householdId and the app does it.
  */
 function unlinkWrites({ household, plants, uid }) {
   const memberIds = household.memberIds || [];
@@ -78,8 +82,12 @@ function unlinkWrites({ household, plants, uid }) {
       update: left.length > 0 ? { carerIds: left } : { carerIds: remaining, shared: true },
     });
   }
+  const householdUpdate = { memberIds: remaining, members };
+  if (household.createdBy === uid) {
+    householdUpdate.createdBy = remaining[0];
+  }
   return {
-    household: { memberIds: remaining, members },
+    household: householdUpdate,
     plantUpdates,
     clearUserHousehold: true,
   };

@@ -2,7 +2,8 @@
  * Shared-care notifications.
  *
  * onPlantWritten — when someone waters a plant, tells its other carers it's
- * done ("Kian watered your Monstera"), so nobody waters it twice.
+ * done ("Kian watered your Monstera"), so nobody waters it twice. It also
+ * plans the plant's next watering reminder (./reminders.js).
  *
  * See docs/household-sharing-plan.md.
  */
@@ -10,23 +11,10 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 const { MAX_INSTANCES } = require("./guards");
+const { basePlantName, householdTimeZone } = require("./lookups");
 const { sendToUsers } = require("./push");
+const { planReminder } = require("./reminders");
 const { plantName, isWatering, wateredMessages } = require("./plantMessages");
-
-async function householdTimeZone(db, householdId) {
-  const snap = await db.doc(`Households/${householdId}`).get();
-  return (snap.exists && snap.get("timeZone")) || "UTC";
-}
-
-async function basePlantName(db, plant) {
-  if (!plant.plantId) return null;
-  try {
-    const snap = await db.doc(`Plants/${plant.plantId}`).get();
-    return snap.exists ? snap.get("name") || null : null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Sends the "already watered" pushes for one write to a household plant.
@@ -68,19 +56,34 @@ const onPlantWritten = functions
   .firestore.document("Households/{householdId}/Plants/{plantId}")
   .onWrite(async (change, context) => {
     const { householdId, plantId } = context.params;
-    const sent = await notifyWatering({
-      db: admin.firestore(),
-      before: change.before.exists ? change.before.data() : null,
-      after: change.after.exists ? change.after.data() : null,
-      householdId,
-      plantId,
-      now: Date.now(),
-    });
+    const db = admin.firestore();
+    const before = change.before.exists ? change.before.data() : null;
+    const after = change.after.exists ? change.after.data() : null;
+    const now = Date.now();
+
+    const [sent, plan] = await Promise.all([
+      notifyWatering({ db, before, after, householdId, plantId, now }),
+      planReminder({
+        db,
+        ref: change.after.ref,
+        householdId,
+        before,
+        after,
+        now,
+      }),
+    ]);
     if (sent > 0) {
       functions.logger.info("Sent watered notifications", {
         householdId,
         plantId,
         sent,
+      });
+    }
+    if (plan) {
+      functions.logger.info("Planned reminder", {
+        householdId,
+        plantId,
+        ...plan,
       });
     }
   });

@@ -18,7 +18,12 @@ function docRef(path) {
 
 function snapshot(path) {
   const data = store.get(path);
-  return { ref: docRef(path), exists: data !== undefined, data: () => data };
+  return {
+    id: path.split("/").pop(),
+    ref: docRef(path),
+    exists: data !== undefined,
+    data: () => data,
+  };
 }
 
 function childDocs(path) {
@@ -88,30 +93,41 @@ firestore.FieldValue = {
   delete: () => DELETE,
 };
 
-jest.mock("firebase-admin", () => ({
-  initializeApp: jest.fn(),
-  firestore,
-  auth: () => ({ deleteUser: async (uid) => deletedUsers.push(uid) }),
-}), { virtual: true }); // CI doesn't install functions/ dependencies
+jest.mock(
+  "firebase-admin",
+  () => ({
+    initializeApp: jest.fn(),
+    firestore,
+    auth: () => ({ deleteUser: async (uid) => deletedUsers.push(uid) }),
+  }),
+  { virtual: true }
+); // CI doesn't install functions/ dependencies
 
-jest.mock("firebase-functions/v1", () => {
-  class HttpsError extends Error {
-    constructor(code, message) {
-      super(message);
-      this.code = code;
+jest.mock(
+  "firebase-functions/v1",
+  () => {
+    class HttpsError extends Error {
+      constructor(code, message) {
+        super(message);
+        this.code = code;
+      }
     }
-  }
-  const https = { onCall: (handler) => handler, HttpsError };
-  return {
-    https,
-    runWith: () => ({
+    const https = { onCall: (handler) => handler, HttpsError };
+    const pubsub = { schedule: () => ({ onRun: (handler) => handler }) };
+    return {
       https,
+      pubsub,
+      runWith: () => ({
+        https,
+        pubsub,
+        firestore: { document: () => ({ onWrite: (handler) => handler }) },
+      }),
       firestore: { document: () => ({ onWrite: (handler) => handler }) },
-    }),
-    firestore: { document: () => ({ onWrite: (handler) => handler }) },
-    logger: { error: jest.fn(), info: jest.fn() },
-  };
-}, { virtual: true });
+      logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
+    };
+  },
+  { virtual: true }
+);
 
 const { deleteAccount } = require("./index");
 
@@ -177,5 +193,32 @@ describe("deleteAccount", () => {
       members: { u1: { displayName: "Kian" } },
     });
     expect(store.has("Users/u2")).toBe(false);
+  });
+
+  it("shares plants only they looked after, and hands over the household", async () => {
+    store.set("Users/u1", { householdId: "u1", plantsMigratedAt: 1 });
+    store.set("Households/u1", {
+      createdBy: "u1",
+      memberIds: ["u1", "u2"],
+      members: { u1: { displayName: "Kian" }, u2: { displayName: "Sam" } },
+    });
+    store.set("Households/u1/Plants/sams", {
+      plantId: "fern",
+      addedBy: "u2",
+      carerIds: ["u1"],
+      shared: false,
+    });
+
+    await deleteAccount({}, { auth: { uid: "u1" } });
+
+    expect(store.get("Households/u1/Plants/sams")).toMatchObject({
+      carerIds: ["u2"],
+      shared: true,
+    });
+    expect(store.get("Households/u1")).toEqual({
+      createdBy: "u2",
+      memberIds: ["u2"],
+      members: { u2: { displayName: "Sam" } },
+    });
   });
 });

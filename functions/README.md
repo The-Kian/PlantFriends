@@ -32,9 +32,12 @@ Firebase Functions secrets (recommended) or as an env var in the deploy.
 | --- | --- |
 | `searchPlants` | Proxies plant searches to Trefle. Needs the `TREFLE_API_KEY` secret. |
 | `deleteAccount` | Deletes the caller's account and data. |
-| `onPlantWritten` | Tells carers when a housemate waters a plant. |
+| `onPlantWritten` | Tells carers when a housemate waters a plant, and plans the plant's next reminder (`notify_at`, `notify_stage`). |
+| `sendWateringReminders` | Every 15 minutes: sends "needs watering" to carers of plants that are due, and one "still thirsty" nudge a day later. Quiet hours 21:00 to 08:00 in the household's time zone (`notifyAt.js`). Needs the Cloud Scheduler API and the `Plants.notify_at` collection-group index (`firestore.indexes.json`). |
 | `createInvite` | A household member gets an invite code (8 characters, 7 days, up to 10 members per household). Writes `Invites/{code}`. |
 | `joinHousehold` | Joins the caller to the household a code belongs to, moving their plants across. `{ preview: true }` checks the code and writes nothing. |
+| `leaveHousehold` | The caller leaves their household for a new one of their own, with no plants. |
+| `removeMember` | `{ uid }`: the household's creator takes a member out, with the same effect as them leaving. |
 
 ## Tests
 
@@ -42,11 +45,12 @@ Firebase Functions secrets (recommended) or as an env var in the deploy.
 (`pnpm exec jest functions`, also part of `pnpm test`), with the Firebase
 packages mocked.
 
-## Linking housemates (also possible with an invite code in the app)
+## Linking housemates (the app does this now)
 
 The **Link housemate** workflow (GitHub → Actions) adds someone to another
-person's household, or takes them out. Use it to remove someone until the app
-can leave a household. It runs `scripts/householdAdmin.js`
+person's household, or takes them out. The app can invite, join, leave and
+remove, so this is only a fallback. Don't use it to unlink whoever set the
+household up: use **Leave household** in the app. It runs `scripts/householdAdmin.js`
 with a service account key stored as the `FIREBASE_SERVICE_ACCOUNT`
 repository secret.
 
@@ -62,10 +66,13 @@ To set the secret up once:
 Both people must have opened the app at least once, so their accounts and
 households exist.
 
-## Deploying Firestore rules
+## Deploying Firestore rules and indexes
 
-The **Deploy Firestore rules** workflow publishes `firestore.rules` with the
-same `FIREBASE_SERVICE_ACCOUNT` secret. Its service account
+The **Deploy Firestore rules** workflow publishes `firestore.rules`, then
+`firestore.indexes.json` (`scripts/deployFirestoreIndexes.js`), with the
+same `FIREBASE_SERVICE_ACCOUNT` secret. Publishing indexes needs the
+**Firebase Admin** role (or **Cloud Datastore Index Admin**). Index builds
+take a few minutes after the workflow finishes. Its service account
 (`firebase-adminsdk-…`) needs the **Service Usage Consumer** role in Google
 Cloud IAM as well as its default Firebase roles. **Deploy on merge** publishes rules by
 itself when a rules change is merged into `main` and CI passes. To try a branch's rules before merging, run it from

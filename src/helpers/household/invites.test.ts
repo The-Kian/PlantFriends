@@ -5,7 +5,10 @@ import {
   formatInviteCode,
   joinErrorMessage,
   joinHousehold,
+  leaveErrorMessage,
+  leaveHousehold,
   previewInvite,
+  removeMember,
 } from "./invites";
 
 const mockCallable = jest.fn();
@@ -44,6 +47,21 @@ describe("invites", () => {
     expect(mockCallable).toHaveBeenCalledWith({ code: "K7PX-M3QH" });
   });
 
+  it("leaves the household", async () => {
+    mockCallable.mockResolvedValue({ data: { householdId: "u1" } });
+
+    expect(await leaveHousehold()).toEqual({ householdId: "u1" });
+    expect(httpsCallable).toHaveBeenCalledWith("leaveHousehold");
+  });
+
+  it("removes a member", async () => {
+    mockCallable.mockResolvedValue({ data: { householdId: "u2" } });
+
+    await removeMember("u2");
+    expect(httpsCallable).toHaveBeenCalledWith("removeMember");
+    expect(mockCallable).toHaveBeenCalledWith({ uid: "u2" });
+  });
+
   it("formats a code", () => {
     expect(formatInviteCode("K7PXM3QH")).toBe("K7PX-M3QH");
   });
@@ -66,5 +84,19 @@ describe("joinErrorMessage", () => {
     expect(joinErrorMessage({ code: "internal" })).toBe(fallback);
     expect(joinErrorMessage(new Error("boom"))).toBe(fallback);
     expect(joinErrorMessage(null)).toBe(fallback);
+  });
+});
+
+describe("leaveErrorMessage", () => {
+  it.each([
+    ["failed-precondition", "You're the only one in this household."],
+    ["permission-denied", "Only the person who set up the household can remove people."],
+    ["not-found", "They're not in this household any more."],
+  ])("explains %s", (code, message) => {
+    expect(leaveErrorMessage({ code: `functions/${code}` }, "fallback")).toBe(message);
+  });
+
+  it("falls back for anything else", () => {
+    expect(leaveErrorMessage({ code: "internal" }, "fallback")).toBe("fallback");
   });
 });

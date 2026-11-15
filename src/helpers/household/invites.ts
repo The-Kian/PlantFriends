@@ -44,12 +44,33 @@ export async function joinHousehold(
   return result.data;
 }
 
+/** Leaves the household for an empty one of your own. */
+export async function leaveHousehold(): Promise<{ householdId: string }> {
+  const callable = functions().httpsCallable<undefined, { householdId: string }>(
+    "leaveHousehold",
+  );
+  const result = await callable();
+  return result.data;
+}
+
+/** Takes a member out of the household. Only its creator may. */
+export async function removeMember(
+  uid: string,
+): Promise<{ householdId: string }> {
+  const callable = functions().httpsCallable<
+    { uid: string },
+    { householdId: string }
+  >("removeMember");
+  const result = await callable({ uid });
+  return result.data;
+}
+
 /** "K7PXM3QH" becomes "K7PX-M3QH". */
 export function formatInviteCode(code: string): string {
   return `${code.slice(0, 4)}-${code.slice(4)}`;
 }
 
-const MESSAGES: Record<string, string> = {
+const JOIN_MESSAGES: Record<string, string> = {
   "invalid-argument": "Codes are 8 letters and numbers.",
   "not-found": "That code isn't valid or has expired.",
   "already-exists": "You're already in this household.",
@@ -57,18 +78,32 @@ const MESSAGES: Record<string, string> = {
   "resource-exhausted": "This household is full.",
 };
 
+const LEAVE_MESSAGES: Record<string, string> = {
+  "failed-precondition": "You're the only one in this household.",
+  "permission-denied":
+    "Only the person who set up the household can remove people.",
+  "not-found": "They're not in this household any more.",
+};
+
 /**
- * A friendly message for a failed invite call. The installed
- * @react-native-firebase/functions reports codes like "not-found"; other
- * versions say "functions/not-found", so both are accepted.
+ * The installed @react-native-firebase/functions reports codes like
+ * "not-found"; other versions say "functions/not-found", so both are accepted.
  */
+function errorCode(error: unknown): string {
+  return typeof error === "object" && error !== null && "code" in error
+    ? String((error as { code: unknown }).code).replace(/^functions\//, "")
+    : "";
+}
+
+/** A friendly message for a failed invite or join call. */
 export function joinErrorMessage(
   error: unknown,
   fallback = "Couldn't join. Check your connection and try again.",
 ): string {
-  const code =
-    typeof error === "object" && error !== null && "code" in error
-      ? String((error as { code: unknown }).code).replace(/^functions\//, "")
-      : "";
-  return MESSAGES[code] ?? fallback;
+  return JOIN_MESSAGES[errorCode(error)] ?? fallback;
+}
+
+/** A friendly message for a failed leave or remove call. */
+export function leaveErrorMessage(error: unknown, fallback: string): string {
+  return LEAVE_MESSAGES[errorCode(error)] ?? fallback;
 }

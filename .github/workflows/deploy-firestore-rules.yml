@@ -1,8 +1,8 @@
 name: Deploy Firestore rules
 
-# Publishes firestore.rules to Firebase from a branch, tag or commit. Merges
-# to main are deployed by "Deploy on merge" once CI passes; use this to try a
-# PR's rules on a phone, or to roll back to an older ref.
+# Publishes firestore.rules and firestore.indexes.json to Firebase from a
+# branch, tag or commit. Merges to main are deployed by "Deploy on merge" once
+# CI passes; use this to try a PR's rules on a phone, or to roll back.
 on:
   workflow_dispatch:
     inputs:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy rules from ${{ inputs.ref || github.ref_name }}
+    name: Deploy rules and indexes from ${{ inputs.ref || github.ref_name }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -42,3 +42,9 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node scripts/deployFirestoreRules.js ../firestore.rules
+
+      - name: Deploy indexes
+        working-directory: functions
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/deployFirestoreIndexes.js ../firestore.indexes.json

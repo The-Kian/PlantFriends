@@ -22,10 +22,15 @@ Decisions made so far:
   from on-device scheduling to the server. A local reminder can't know that a
   housemate already watered the plant, which is the exact case we're selling.
 - **Sync:** a live Firestore listener while the app is open.
-- **Leaving:** when a member deletes their account, the household keeps its
-  plants. Plants only they looked after become shared with whoever is left.
+- **Leaving:** a member can leave from Profile, and whoever set the
+  household up can remove someone (`leaveHousehold`, `removeMember`). The
+  household keeps its plants either way, and so it does when a member
+  deletes their account. Plants only they looked after become shared with
+  whoever is left. See "Leaving a household".
 
-**Status:** phases 1 to 4 are on `main`. Phase 4's function still needs
+**Status:** phases 1 to 4 are on `main`. The server half of phase 5
+(planning and sending reminders) is written; the app still schedules its own
+reminders until session 4 of `docs/production-readiness-plan.md`. Phase 4's function still needs
 deploying (the **Deploy Cloud Functions** workflow) and checking on two
 phones. Test builds come from the **Build Android test app** workflow (see
 `docs/ci-builds.md`), housemates join with an invite code (or **Link housemate**), and
@@ -189,7 +194,34 @@ so the stale "needs watering" banner disappears from the notification centre.
 
 The writes are worked out by `linkWrites` and `moveWrites` in
 `functions/householdAdmin.js`, which the Link housemate workflow (`linkWrites`
-only) also uses. That workflow stays until leaving a household is in the app.
+only) also uses.
+
+## Leaving a household
+
+- **Leave.** Any member of a household with someone else in it can tap
+  **Leave household** on Profile. `leaveHousehold` does, in one transaction:
+  - takes them out of `memberIds`, `members` and every plant's `carerIds`
+  - makes plants only they looked after shared with everyone left, so no
+    plant is left without a carer (their plants stay in the household)
+  - if they set the household up, makes the longest-standing member
+    (the first left in `memberIds`) its `createdBy`
+  - gives them a new household of their own with no plants, and points
+    `Users/{uid}.householdId` at it. Its ID is their uid, unless that's
+    taken (it is when they set up the household they're leaving), in which
+    case it gets a random ID.
+- **Remove.** Whoever set the household up (`createdBy`) sees a remove
+  button beside every other member. `removeMember({ uid })` has the same
+  effect as that member leaving. Nobody else can remove people, and removing
+  yourself is refused (that's leaving).
+- The last member can't leave: there is nowhere to go that they aren't already.
+- Invites are multi-use, so a code shared earlier still works after someone
+  leaves. Someone who left can join again with a code.
+- Account deletion uses the same writes (`unlinkWrites`), except the plants
+  they added are deleted.
+
+The **Link housemate** workflow can still unlink someone, but its `unlink`
+clears `householdId` and relies on the app, which can't set up a household
+for a creator who was unlinked from their own. Use the app instead.
 
 ## Firestore rules
 
@@ -237,7 +269,6 @@ and data.
 
 ## Out of scope for the MVP
 
-- Leaving a household or removing a member in the app (invite codes are done)
 - Assigning plants or rotating turns
 - A full watering history (only the last watering is stored for now)
 - Batching several due plants into one push ("3 plants need water"). Worth

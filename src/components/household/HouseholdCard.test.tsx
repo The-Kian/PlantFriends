@@ -7,7 +7,9 @@ import { HouseholdContext } from "@/context/household/HouseholdProvider";
 import {
   createInvite,
   joinHousehold,
+  leaveHousehold,
   previewInvite,
+  removeMember,
 } from "@/helpers/household/invites";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
@@ -20,6 +22,8 @@ jest.mock("@/helpers/household/invites", () => ({
   createInvite: jest.fn(),
   previewInvite: jest.fn(),
   joinHousehold: jest.fn(),
+  leaveHousehold: jest.fn(),
+  removeMember: jest.fn(),
 }));
 
 const renderCard = (household = mockHousehold) =>
@@ -195,5 +199,97 @@ describe("HouseholdCard", () => {
         expect.any(Array),
       ),
     );
+  });
+
+  describe("leaving and removing", () => {
+    const solo = {
+      ...mockHousehold,
+      memberIds: ["user1"],
+      members: { user1: { displayName: "Kian" } },
+    };
+
+    it("asks before leaving, then leaves", async () => {
+      jest.mocked(leaveHousehold).mockResolvedValue({ householdId: "user1" });
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Leave household"));
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Leave The Flat?",
+        "You'll go back to a household of your own, with no plants. Plants here stay with your housemates.",
+        expect.any(Array),
+      );
+      expect(leaveHousehold).not.toHaveBeenCalled();
+
+      pressAlertButton("Leave");
+      await waitFor(() => expect(leaveHousehold).toHaveBeenCalledTimes(1));
+    });
+
+    it("doesn't leave when cancelled", () => {
+      renderCard();
+      fireEvent.press(screen.getByLabelText("Leave household"));
+      pressAlertButton("Cancel");
+      expect(leaveHousehold).not.toHaveBeenCalled();
+    });
+
+    it("has no leave button when you're the only member", () => {
+      renderCard(solo);
+      expect(screen.queryByLabelText("Leave household")).toBeNull();
+    });
+
+    it("explains a failed leave", async () => {
+      jest.mocked(leaveHousehold).mockRejectedValue({ code: "failed-precondition" });
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Leave household"));
+      pressAlertButton("Leave");
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenLastCalledWith(
+          "Leave household",
+          "You're the only one in this household.",
+          expect.any(Array),
+        ),
+      );
+    });
+
+    it("lets the creator remove someone else, after asking", async () => {
+      jest.mocked(removeMember).mockResolvedValue({ householdId: "user2" });
+      renderCard(); // user1 created The Flat
+
+      expect(screen.queryByLabelText("Remove Kian")).toBeNull();
+      fireEvent.press(screen.getByLabelText("Remove Sam"));
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Remove Sam?",
+        "Sam will go back to a household of their own. Plants only they looked after will be shared with everyone left.",
+        expect.any(Array),
+      );
+      expect(removeMember).not.toHaveBeenCalled();
+      pressAlertButton("Remove");
+      await waitFor(() => expect(removeMember).toHaveBeenCalledWith("user2"));
+    });
+
+    it("shows no remove buttons to other members", () => {
+      renderCard({ ...mockHousehold, createdBy: "user2" });
+      expect(screen.queryByLabelText("Remove Sam")).toBeNull();
+      expect(screen.queryByLabelText("Remove Kian")).toBeNull();
+    });
+
+    it("explains a failed remove", async () => {
+      jest.mocked(removeMember).mockRejectedValue({ code: "functions/permission-denied" });
+      renderCard();
+
+      fireEvent.press(screen.getByLabelText("Remove Sam"));
+      pressAlertButton("Remove");
+
+      await waitFor(() =>
+        expect(Alert.alert).toHaveBeenLastCalledWith(
+          "Remove housemate",
+          "Only the person who set up the household can remove people.",
+          expect.any(Array),
+        ),
+      );
+    });
   });
 });

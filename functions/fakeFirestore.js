@@ -14,6 +14,7 @@ function clone(value) {
 function createFakeFirestore() {
   const store = new Map();
   const created = []; // paths of documents made with create(), for assertions
+  let autoId = 0;
 
   const alreadyExists = (path) =>
     Object.assign(new Error(`${path} already exists`), { code: 6 });
@@ -48,7 +49,7 @@ function createFakeFirestore() {
   function collectionRef(path) {
     return {
       path,
-      doc: (id) => docRef(`${path}/${id}`),
+      doc: (id) => docRef(`${path}/${id === undefined ? `auto${autoId++}` : id}`),
       get: async () => ({ docs: childDocs(path) }),
     };
   }
