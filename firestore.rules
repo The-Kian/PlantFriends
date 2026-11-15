@@ -65,7 +65,7 @@ service cloud.firestore {
       // A user may check whether their own household exists yet; its ID is their uid.
       allow read: if (request.auth != null && hid == request.auth.uid && resource == null)
         || isMember(hid);
-      // Anyone can create a household of their own. Adding members is admin-only for now.
+      // Anyone can create a household of their own. Members are added by the joinHousehold Cloud Function, never from the app.
       allow create: if request.auth != null
         && hid == request.auth.uid
         && request.resource.data.memberIds == [request.auth.uid]
@@ -148,7 +148,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Collections not matched here (Invites, RateLimits) are closed to clients:
+    // Invite codes. Written and read only by Cloud Functions.
+    match /Invites/{code} {
+      allow read, write: if false;
+    }
+
+    // Other collections not matched here (RateLimits) are closed to clients:
     // Firestore denies anything no rule allows.
 
     // Anonymised plants kept after account deletion. Written only by the

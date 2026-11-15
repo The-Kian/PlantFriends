@@ -26,10 +26,27 @@ firebase functions:secrets:set TREFLE_API_KEY
 The function reads `process.env.TREFLE_API_KEY`. You can either set it via
 Firebase Functions secrets (recommended) or as an env var in the deploy.
 
-## Linking housemates (until the app has invites)
+## Functions
+
+| Function | What it does |
+| --- | --- |
+| `searchPlants` | Proxies plant searches to Trefle. Needs the `TREFLE_API_KEY` secret. |
+| `deleteAccount` | Deletes the caller's account and data. |
+| `onPlantWritten` | Tells carers when a housemate waters a plant. |
+| `createInvite` | A household member gets an invite code (8 characters, 7 days, up to 10 members per household). Writes `Invites/{code}`. |
+| `joinHousehold` | Joins the caller to the household a code belongs to, moving their plants across. `{ preview: true }` checks the code and writes nothing. |
+
+## Tests
+
+`functions/` has no test script of its own. Its tests run with the root Jest
+(`pnpm exec jest functions`, also part of `pnpm test`), with the Firebase
+packages mocked.
+
+## Linking housemates (also possible with an invite code in the app)
 
 The **Link housemate** workflow (GitHub → Actions) adds someone to another
-person's household, or takes them out. It runs `scripts/householdAdmin.js`
+person's household, or takes them out. Use it to remove someone until the app
+can leave a household. It runs `scripts/householdAdmin.js`
 with a service account key stored as the `FIREBASE_SERVICE_ACCOUNT`
 repository secret.
 

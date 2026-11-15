@@ -39,6 +39,18 @@ function linkWrites({ householdId, household, plants, uid, name }) {
 }
 
 /**
+ * The plants someone brings with them when they join a household. They stay
+ * theirs: the same document ID and data, as personal plants that only they
+ * look after.
+ */
+function moveWrites({ plants, uid }) {
+  return plants.map((p) => ({
+    id: p.id,
+    data: { ...p.data, addedBy: uid, userId: uid, carerIds: [uid], shared: false },
+  }));
+}
+
+/**
  * The writes that take `uid` out of a household. Plants only they looked
  * after become shared with whoever is left, so none is left with no carer.
  * Their own householdId is cleared; the app then sets them up a household
@@ -73,4 +85,4 @@ function unlinkWrites({ household, plants, uid }) {
   };
 }
 
-module.exports = { displayNameFor, linkWrites, unlinkWrites };
+module.exports = { displayNameFor, linkWrites, moveWrites, unlinkWrites };

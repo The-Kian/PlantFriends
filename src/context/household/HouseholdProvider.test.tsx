@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 
 import { Text } from "react-native";
 
-import { render, screen, waitFor } from "@testing-library/react-native";
+import { act, render, screen, waitFor } from "@testing-library/react-native";
 
 import { AuthContext } from "@/context/auth/AuthProvider";
 import fetchFirebasePlantById from "@/helpers/firebase/fetchFirebasePlantById";
@@ -55,8 +55,12 @@ function serveSnapshots(profile: object, plants: object[] = []) {
   }) as unknown as typeof onSnapshot);
 }
 
+let currentError: string | null = null;
+const errorOf = () => currentError;
+
 function HouseholdName() {
-  const { household, loading } = useHousehold();
+  const { household, loading, error } = useHousehold();
+  currentError = error;
   return <Text>{loading ? "loading" : household?.name ?? "no household"}</Text>;
 }
 
@@ -125,6 +129,62 @@ describe("HouseholdProvider", () => {
     await waitFor(() => {
       expect(migrateUserPlants).toHaveBeenCalledWith(mockUser, "household1");
     });
+  });
+
+  it("switches to a new household when the profile's householdId changes", async () => {
+    type Listener = {
+      path: string;
+      onNext: (snap: Snapshot) => void;
+      onError: (e: Error) => void;
+      unsubscribe: jest.Mock;
+    };
+    const listeners: Listener[] = [];
+    jest.mocked(onSnapshot).mockImplementation(((
+      ref: { _path: string },
+      onNext: Listener["onNext"],
+      onError: Listener["onError"],
+    ) => {
+      const unsubscribe = jest.fn();
+      listeners.push({ path: ref._path, onNext, onError, unsubscribe });
+      return unsubscribe;
+    }) as unknown as typeof onSnapshot);
+    const live = (suffix: string) =>
+      listeners.filter((l) => l.path.endsWith(suffix) && !l.unsubscribe.mock.calls.length);
+
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    const store = mountProvider();
+    const profile = live(`/${mockUser.uid}`)[0];
+    act(() => {
+      profile.onNext({ data: () => ({ householdId: "old", plantsMigratedAt: 1 }) });
+    });
+    await waitFor(() => expect(live("/Plants")).toHaveLength(1));
+    const oldPlants = live("/Plants")[0];
+    expect(oldPlants.path).toContain("/old/");
+
+    // The old household's plants listener fails: an error shows.
+    act(() => oldPlants.onError(new Error("permission-denied")));
+    expect(errorOf()).toBe("Failed to load your plants. Please try again.");
+
+    // Joining a household updates the profile.
+    act(() => {
+      profile.onNext({ data: () => ({ householdId: "new", plantsMigratedAt: 1 }) });
+    });
+
+    await waitFor(() => expect(oldPlants.unsubscribe).toHaveBeenCalled());
+    await waitFor(() => expect(live("/Plants")).toHaveLength(1));
+    const newPlants = live("/Plants")[0];
+    expect(newPlants.path).toContain("/new/");
+    expect(live("/new")).toHaveLength(1);
+
+    await act(async () => {
+      newPlants.onNext({ docs: [{ data: () => ({ ...mockUserPlant, id: "9" }) }] });
+    });
+
+    await waitFor(() =>
+      expect(store.getState().userPlants).toEqual([expect.objectContaining({ id: "9" })]),
+    );
+    expect(screen.queryByText("loading")).toBeNull();
+    expect(errorOf()).toBeNull();
   });
 
   it("does nothing while signed out", () => {

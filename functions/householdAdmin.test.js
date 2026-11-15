@@ -1,4 +1,4 @@
-const { displayNameFor, linkWrites, unlinkWrites } = require("./householdAdmin");
+const { displayNameFor, linkWrites, moveWrites, unlinkWrites } = require("./householdAdmin");
 
 const household = {
   memberIds: ["kian"],
@@ -69,5 +69,32 @@ describe("unlinkWrites", () => {
 
   it("does nothing for someone not in the household", () => {
     expect(unlinkWrites({ household, plants, uid: "sam" })).toBeNull();
+  });
+});
+
+describe("moveWrites", () => {
+  it("keeps each plant and makes it personal to the person moving", () => {
+    const moved = moveWrites({
+      plants: [
+        {
+          id: "pothos",
+          data: { plantId: "p1", addedBy: "old", userId: "old", carerIds: ["old", "x"], shared: true, custom_name: "Polly" },
+        },
+        { id: "fern", data: { addedBy: "sam" } },
+      ],
+      uid: "sam",
+    });
+
+    expect(moved).toEqual([
+      {
+        id: "pothos",
+        data: { plantId: "p1", custom_name: "Polly", addedBy: "sam", userId: "sam", carerIds: ["sam"], shared: false },
+      },
+      { id: "fern", data: { addedBy: "sam", userId: "sam", carerIds: ["sam"], shared: false } },
+    ]);
+  });
+
+  it("does nothing when there are no plants", () => {
+    expect(moveWrites({ plants: [], uid: "sam" })).toEqual([]);
   });
 });

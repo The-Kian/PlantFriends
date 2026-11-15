@@ -32,7 +32,7 @@ Rules for whoever does the session:
 
 | # | Session | Depends on | Status |
 | --- | --- | --- | --- |
-| 1 | Invite and join a household | none | Not started |
+| 1 | Invite and join a household | none | Done, awaiting deploy |
 | 2 | Leave a household, remove a member | 1 | Not started |
 | 3 | Server-side watering reminders | none | Not started |
 | 4 | Client switch to server reminders, notification settings | 3 | Not started |
@@ -52,12 +52,13 @@ readiness.
 - Household sharing phases 1 to 4 are on `main`: plants live under
   `Households/{hid}/Plants`, cards show who watered, phones register for
   push, and `onPlantWritten` tells carers when a housemate waters.
-- Housemates are linked by hand with the **Link housemate** workflow
-  (`functions/householdAdmin.js`). There is no invite, join or leave in the app.
+- Housemates can invite and join with a code from Profile (session 1, once
+  deployed). There is no leave in the app yet, so the **Link housemate**
+  workflow (`functions/householdAdmin.js`) still does that.
 - Reminders are still scheduled on the phone (`src/services/NotificationService.ts`).
   The scheduled `sendWateringReminders` function doesn't exist yet.
-- `functions/index.js` exports `searchPlants`, `deleteAccount` and
-  `onPlantWritten`. None use App Check, and `searchPlants` has no rate limit.
+- `functions/index.js` exports `searchPlants`, `deleteAccount`,
+  `onPlantWritten`, and now `createInvite` and `joinHousehold`. None use App Check, and `searchPlants` has no rate limit.
 - There are no security rules tests and no end-to-end tests.
 - CI (`.github/workflows/lint_and_test.yml`) runs type check, lint and the
   root Jest. Functions and rules are deployed by manual workflows.
@@ -75,25 +76,40 @@ a code. This removes the need for the Link housemate workflow.
 `functions/index.js`, `firestore.rules`, `src/context/household/HouseholdProvider.tsx`,
 `src/helpers/household/setupHousehold.ts`, the Profile screen under `src/screens/settings`.
 
-- [ ] `createInvite` callable function: the caller must be a member. It
+- [x] `createInvite` callable function: the caller must be a member. It
       writes `Invites/{code}` with `householdId`, `createdBy`, `expiresAt`
       (7 days) and returns the code. Use a short code that is easy to type
       (8 characters, no look-alike letters), generated with a secure random source.
-- [ ] `joinHousehold(code)` callable function: checks the invite exists and
+- [x] `joinHousehold(code)` callable function: checks the invite exists and
       hasn't expired, then in one transaction does what
       `householdAdmin.js` does (add to `memberIds` and `members`, set
       `Users/{uid}.householdId`, add to `carerIds` on shared plants). Reuse
       that module rather than copying it. Cap household size at 10.
-- [ ] Decide what happens to the joiner's existing plants and write it down
+- [x] Decide what happens to the joiner's existing plants and write it down
       here. Suggested: move them into the new household as personal plants.
-- [ ] `Invites` rule: no client read or write.
-- [ ] Profile: a Household card with the name, the members, an **Invite
+      **Decided:**
+      - Codes are 8 characters from `ABCDEFGHJKMNPQRSTUVWXYZ23456789`, picked
+        with `crypto.randomInt`, shown as `XXXX-XXXX`. Input is upper-cased
+        and stripped of spaces and hyphens.
+      - Invites are multi-use and expire 7 days after creation. Every
+        `createInvite` call makes a new code.
+      - Households hold at most 10 members.
+      - The joiner's plants move into the new household as personal plants:
+        same document ID and data, with `addedBy` and `userId` set to them,
+        `carerIds: [uid]`, `shared: false`.
+      - The joiner's old household is deleted in the same transaction, but
+        only if they are its only member. Otherwise the join is refused.
+      - A wrong code and an expired code give the same error.
+      - The confirmation step is `joinHousehold({ code, preview: true })`,
+        which runs every check and writes nothing.
+- [x] `Invites` rule: no client read or write.
+- [x] Profile: a Household card with the name, the members, an **Invite
       housemate** button (creates a code and opens the share sheet) and a
       **Join a household** button (code entry, with a confirmation that
       names the household before joining).
-- [ ] Unit tests for both functions (expired code, wrong code, already a
+- [x] Unit tests for both functions (expired code, wrong code, already a
       member, full household) and for the new UI.
-- [ ] Update `docs/household-sharing-plan.md` so "Joining a household"
+- [x] Update `docs/household-sharing-plan.md` so "Joining a household"
       describes the new flow.
 
 **Kian does:** run **Deploy Cloud Functions** and **Deploy Firestore rules**,
@@ -102,7 +118,19 @@ then join from a second phone.
 **Done when:** a second account joins from the app and sees the first
 account's shared plants without signing out.
 
-**Notes:**
+**Notes for session 2:**
+
+- The joiner's solo household is deleted when they join. The app recreates
+  it when `Users/{uid}.householdId` is cleared (`createSoloHousehold`), so
+  `leaveHousehold` only needs to clear `householdId`, as `unlinkWrites` does.
+- Invites are multi-use, so there is nothing to revoke when someone leaves.
+- The **Link housemate** workflow stays until leave exists in the app.
+- `moveWrites` and `linkWrites` are in `functions/householdAdmin.js`; the
+  join logic is in `functions/households.js`, with an in-memory Firestore for
+  tests in `functions/fakeFirestore.js`.
+- Functions tests run with the root Jest (`pnpm exec jest functions`); `functions/`
+  has no test script of its own.
+
 
 ---
 
@@ -403,3 +431,13 @@ Add things here that are outside your session.
   the CI step blocking.
 - (Session 5) The catalog rule lets a client set `isVerified: true` on a new
   plant. Consider forcing it to `false` for client writes.
+- Expired `Invites` are never deleted. Set a Firestore TTL policy on
+  `expiresAt` for the `Invites` collection (a console step).
+- `members[uid].displayName` doesn't update when someone changes their display
+  name on Profile, so housemates keep seeing the old one.
+- `joinHousehold` runs in one Firestore transaction, which allows 500 writes.
+  Someone moving about 240 plants or more would get a generic error.
+- `joinHousehold` would fail with a generic error if a moved plant's ID
+  already exists in the new household (IDs are random, so very unlikely).
+- A moved plant keeps its old `notify_at` and `notify_stage`, which is fine
+  until session 3, which will need to recheck them.

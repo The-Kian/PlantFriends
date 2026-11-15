@@ -17,6 +17,7 @@ const TextInputField = ({
   onFocus,
   onBlur,
   placeholder,
+  accessibilityLabel,
   ...props
 }: TextInputFieldProps) => {
   const styles = useInputStyles();
@@ -27,7 +28,7 @@ const TextInputField = ({
       <ThemedText style={styles.inputLabel}>{label}</ThemedText>
       <TextInput
         {...props}
-        accessibilityLabel={`${label} input field`}
+        accessibilityLabel={accessibilityLabel ?? `${label} input field`}
         style={[styles.textInput, focused && styles.textInputFocused]}
         placeholder={placeholder ?? `Enter ${label}`}
         placeholderTextColor={styles.placeholder.color}

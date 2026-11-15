@@ -17,6 +17,7 @@ const {
   requireString,
   redact,
 } = require("./guards");
+const { createInviteHandler, joinHouseholdHandler } = require("./households");
 
 admin.initializeApp();
 
@@ -254,6 +255,56 @@ exports.deleteAccount = functions
         "Account deletion failed. Please try again."
       );
     }
+  });
+
+/**
+ * Runs an invite/join handler for the signed-in caller. HttpsErrors go to the
+ * app as they are; anything else is logged (ids only, never codes, emails or
+ * names) and the app gets a generic error.
+ */
+async function runHouseholdCall(name, context, limit, run) {
+  requireCaller(context);
+  const { uid, token } = context.auth;
+  // Limits code guessing: previews and joins share one per-user allowance.
+  await rateLimit(uid, name, limit.max, limit.windowMs);
+  try {
+    return await run({
+      db: admin.firestore(),
+      uid,
+      authToken: token,
+      now: Date.now(),
+    });
+  } catch (error) {
+    if (error instanceof functions.https.HttpsError) throw error;
+    functions.logger.error(`${name} failed`, { uid, message: error && error.message });
+    throw new functions.https.HttpsError("internal", "Something went wrong. Please try again.");
+  }
+}
+
+/** createInvite — a member gets a code to share. See ./households.js. */
+exports.createInvite = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) =>
+    runHouseholdCall(
+      "createInvite",
+      context,
+      { max: 20, windowMs: 60 * 60 * 1000 },
+      (args) => createInviteHandler(args),
+    ),
+  );
+
+/** joinHousehold — join with a code, or preview it with { preview: true }. */
+exports.joinHousehold = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) => {
+    requireCaller(context);
+    const code = requireString(data && data.code, "code", 32);
+    return runHouseholdCall(
+      "joinHousehold",
+      context,
+      { max: 20, windowMs: 60 * 60 * 1000 },
+      (args) => joinHouseholdHandler({ ...args, data: { ...data, code } }),
+    );
   });
 
 // Shared-care notifications: see ./notifications.js.
