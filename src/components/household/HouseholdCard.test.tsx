@@ -77,6 +77,18 @@ describe("HouseholdCard", () => {
       message:
         "Join my household on Plant Friends. Open Profile, tap Join a household and enter this code: K7PX-M3QH. It works until 22 November.",
     });
+
+    // The code stays on the card after the share sheet closes, and can be
+    // shared again.
+    expect(screen.getByText("K7PX-M3QH")).toBeVisible();
+    expect(screen.getByText(/Works until 22 November/)).toBeVisible();
+    fireEvent.press(screen.getByLabelText("Share code"));
+    await waitFor(() => expect(Share.share).toHaveBeenCalledTimes(2));
+  });
+
+  it("shows no code before an invite is made", () => {
+    renderCard();
+    expect(screen.queryByTestId("invite-code-box")).toBeNull();
   });
 
   it("hides the invite button when the household is full", () => {
