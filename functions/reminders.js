@@ -22,7 +22,10 @@ const { MAX_INSTANCES } = require("./guards");
 const { basePlantName, householdTimeZone } = require("./lookups");
 const { DAY_MS, notifyAt } = require("./notifyAt");
 const { plantName, reminderMessage } = require("./plantMessages");
-const { sendToUsers } = require("./push");
+const { checkPushReceipts, sendToUsers } = require("./push");
+const { logFor } = require("./log");
+
+const log = logFor("sendWateringReminders");
 
 const CLEAR = Object.freeze({ notify_at: null, notify_stage: null });
 // Plants handled per run. Anything left over is picked up 15 minutes later.
@@ -202,7 +205,7 @@ async function sendDueReminders({
       summary[step.send]++;
     } catch (error) {
       summary.failed++;
-      functions.logger.error("Reminder failed", {
+      log.error("Reminder failed", {
         householdId,
         plantId: doc.id,
         message: error && error.message,
@@ -216,15 +219,24 @@ const sendWateringReminders = functions
   .runWith({ timeoutSeconds: 300, maxInstances: MAX_INSTANCES })
   .pubsub.schedule("every 15 minutes")
   .onRun(async () => {
-    const summary = await sendDueReminders({
-      db: admin.firestore(),
-      now: Date.now(),
-    });
-    functions.logger.info("sendWateringReminders finished", summary);
+    const db = admin.firestore();
+    const now = Date.now();
+    const summary = await sendDueReminders({ db, now });
+    log.info("sendWateringReminders finished", summary);
     if (summary.found === BATCH_LIMIT) {
-      functions.logger.warn(
+      log.warn(
         "sendWateringReminders hit its batch limit; the rest wait for the next run"
       );
+    }
+    // Delivery results for every push sent earlier (reminders and housemate
+    // activity). A failure here must not fail the run that sent reminders.
+    try {
+      const receipts = await checkPushReceipts(db, now);
+      if (receipts.checked > 0) log.info("Push receipts checked", receipts);
+    } catch (error) {
+      log.error("Push receipt check failed", {
+        message: error && error.message,
+      });
     }
   });
 

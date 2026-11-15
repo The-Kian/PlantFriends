@@ -11,6 +11,7 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 const { MAX_INSTANCES } = require("./guards");
+const { logFor } = require("./log");
 const { basePlantName, householdTimeZone } = require("./lookups");
 const { sendToUsers } = require("./push");
 const { planReminder } = require("./reminders");
@@ -61,26 +62,38 @@ const onPlantWritten = functions
     const after = change.after.exists ? change.after.data() : null;
     const now = Date.now();
 
-    const [sent, plan] = await Promise.all([
-      notifyWatering({ db, before, after, householdId, plantId, now }),
-      planReminder({
-        db,
-        ref: change.after.ref,
-        householdId,
-        before,
-        after,
-        now,
-      }),
-    ]);
-    if (sent > 0) {
-      functions.logger.info("Sent watered notifications", {
+    const log = logFor("onPlantWritten");
+    let sent;
+    let plan;
+    try {
+      [sent, plan] = await Promise.all([
+        notifyWatering({ db, before, after, householdId, plantId, now }),
+        planReminder({
+          db,
+          ref: change.after.ref,
+          householdId,
+          before,
+          after,
+          now,
+        }),
+      ]);
+    } catch (error) {
+      log.error("onPlantWritten failed", {
         householdId,
         plantId,
-        sent,
+        message: error && error.message,
+      });
+      throw error;
+    }
+    if (sent > 0) {
+      log.info("Sent watered notifications", {
+        householdId,
+        plantId,
+        devices: sent,
       });
     }
     if (plan) {
-      functions.logger.info("Planned reminder", {
+      log.info("Planned reminder", {
         householdId,
         plantId,
         ...plan,

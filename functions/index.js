@@ -18,6 +18,7 @@ const {
   redact,
 } = require("./guards");
 const { unlinkWrites } = require("./householdAdmin");
+const { logFor } = require("./log");
 const {
   createInviteHandler,
   joinHouseholdHandler,
@@ -106,6 +107,7 @@ function mapTreflePlantToIPlant(plant) {
 exports.searchPlants = functions
   .runWith({ secrets: ["TREFLE_API_KEY"], maxInstances: MAX_INSTANCES })
   .https.onCall(async (data, context) => {
+    const log = logFor("searchPlants");
     const uid = requireCaller(context);
     const q = requireString(data && data.q, "q", 100);
     await rateLimit(uid, "searchPlants", 30, 60 * 1000);
@@ -146,13 +148,17 @@ exports.searchPlants = functions
       const payload = await response.json();
       const dataList =
         payload && Array.isArray(payload.data) ? payload.data : [];
+      // The count only: what someone searched for is their own business.
+      log.info("searchPlants finished", { uid, results: dataList.length });
       return { plants: dataList.map(mapTreflePlantToIPlant) };
     } catch (error) {
       if (error instanceof functions.https.HttpsError) {
+        log.warn("searchPlants refused", { uid, code: error.code });
         throw error;
       }
       // The request URL holds the Trefle token, so never log the raw error.
-      functions.logger.error("searchPlants failed", {
+      log.error("searchPlants failed", {
+        uid,
         message: redact(error && error.message, [TREFLE_API_KEY]),
       });
       throw new functions.https.HttpsError("internal", "Search failed.");
@@ -178,6 +184,7 @@ exports.deleteAccount = functions
   .runWith({ maxInstances: MAX_INSTANCES })
   .https.onCall(async (data, context) => {
     // Takes no input; anything sent is ignored.
+    const log = logFor("deleteAccount");
     const uid = requireCaller(context);
     const db = admin.firestore();
     const userRef = db.collection("Users").doc(uid);
@@ -246,9 +253,15 @@ exports.deleteAccount = functions
         }
       }
 
+      log.info("deleteAccount finished", {
+        uid,
+        householdId: householdRef.id,
+        plantsAnonymised: householdPlants.length + oldPlants.length,
+        housematesLeft: hasHousemates ? memberIds.length - 1 : 0,
+      });
       return { deleted: true };
     } catch (error) {
-      functions.logger.error("deleteAccount failed", {
+      log.error("deleteAccount failed", {
         uid,
         message: error && error.message,
         code: error && error.code,
@@ -261,6 +274,18 @@ exports.deleteAccount = functions
   });
 
 /**
+ * The parts of a household call's result that are safe and useful to log:
+ * IDs and counts. Never the invite code or the household's name.
+ */
+function logFields(result) {
+  const fields = {};
+  for (const key of ["householdId", "memberCount", "plantsMoving"]) {
+    if (result && result[key] !== undefined) fields[key] = result[key];
+  }
+  return fields;
+}
+
+/**
  * Runs an invite/join handler for the signed-in caller. HttpsErrors go to the
  * app as they are; anything else is logged (ids only, never codes, emails or
  * names) and the app gets a generic error.
@@ -270,16 +295,23 @@ async function runHouseholdCall(name, context, limit, run) {
   const { uid, token } = context.auth;
   // Limits code guessing: previews and joins share one per-user allowance.
   await rateLimit(uid, name, limit.max, limit.windowMs);
+  const log = logFor(name);
   try {
-    return await run({
+    const result = await run({
       db: admin.firestore(),
       uid,
       authToken: token,
       now: Date.now(),
     });
+    log.info(`${name} finished`, { uid, ...logFields(result) });
+    return result;
   } catch (error) {
-    if (error instanceof functions.https.HttpsError) throw error;
-    functions.logger.error(`${name} failed`, {
+    if (error instanceof functions.https.HttpsError) {
+      // An expected refusal (wrong code, full household): the code is enough.
+      log.warn(`${name} refused`, { uid, code: error.code });
+      throw error;
+    }
+    log.error(`${name} failed`, {
       uid,
       message: error && error.message,
     });

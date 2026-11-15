@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "28232372332-ou8lg1mi729opmvshedgbnp1aiu49bkc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thekian.plantfriends",
+            "certificate_hash": "df0454957af385ead6c6d1a7d83016e08868758a"
+          }
+        },
+        {
           "client_id": "28232372332-pf71dsd56lvgqbtmr4cgcba6e35m5mts.apps.googleusercontent.com",
           "client_type": 3
         }
