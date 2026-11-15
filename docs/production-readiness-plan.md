@@ -169,9 +169,14 @@ others no longer see you as a carer.
 - `leaveHousehold` and `removeMember` are in `functions/households.js`;
   both go through `removeFromHousehold`. `deleteAccount` uses `unlinkWrites`
   and `createdByUpdate` from `functions/householdAdmin.js`.
-- A leaver's `Users/{uid}.householdId` is cleared, and the app then makes a
-  new solo household. The provider had a bug where this only worked once per
-  app session (`settingUp` was never reset). Fixed in `HouseholdProvider`.
+- A leaver gets a new household made by the server in the same transaction,
+  with a fresh ID, and `Users/{uid}.householdId` points at it. (First version
+  cleared `householdId` and let the app recreate `Households/{uid}`, which
+  failed for someone who made the household and left it: that ID stays with
+  the others and the app can't read it. Found in testing.) A household's ID
+  is therefore no longer always its creator's uid.
+- The provider also had a bug where recreating a solo household only worked
+  once per app session (`settingUp` was never reset). Fixed in `HouseholdProvider`.
 - `deleteAccount` still writes anonymised copies of the plants the person
   added, even though those plants now stay in the household.
 
@@ -441,3 +446,6 @@ Add things here that are outside your session.
   is listed as future work in the sharing plan.
 - `onPlantWritten` reads the household for its time zone on every plant write,
   even when it plans nothing. Cheap now; cache or skip it if writes grow.
+- `createSoloHousehold` still fails for someone with no `householdId` whose uid
+  is the ID of a household they aren't in (for example after the Link housemate
+  workflow's unlink). It should fall back to a server-made household.

@@ -1,7 +1,7 @@
 jest.mock("firebase-admin", () => ({
   firestore: {
     Timestamp: { fromMillis: (ms) => ({ ms, toMillis: () => ms }) },
-    FieldValue: { delete: () => ({ __delete: true }) },
+    FieldValue: { delete: () => ({ __delete: true }), serverTimestamp: () => "now" },
   },
 }), { virtual: true }); // CI doesn't install functions/ dependencies
 
@@ -320,7 +320,31 @@ describe("leaving and removing", () => {
       addedBy: "sam", carerIds: ["kian", "alex"], shared: true,
     });
     expect(fake.store.get("Households/flat/Plants/cactus").carerIds).toEqual(["kian"]);
-    expect(fake.store.get("Users/sam")).toEqual({});
+    // They get a household of their own, with a new ID.
+    const own = fake.store.get("Users/sam").householdId;
+    expect(own).not.toBe("flat");
+    expect(fake.store.get(`Households/${own}`)).toEqual({
+      name: "sam's home",
+      memberIds: ["sam"],
+      members: { sam: { displayName: "sam" } },
+      createdBy: "sam",
+      createdAt: "now",
+      timeZone: "UTC",
+    });
+  });
+
+  it("gives the household's creator a new household when their uid is the old one's ID", async () => {
+    // The household's ID is the creator's uid, and it stays with the others.
+    fake.store.set("Users/kian", { householdId: "kian" });
+    fake.store.set("Users/sam", { householdId: "kian" });
+    fake.store.set("Households/kian", { name: "Kian's home", createdBy: "kian", ...members("kian", "sam") });
+
+    await leave("kian");
+
+    expect(fake.store.get("Households/kian").memberIds).toEqual(["sam"]);
+    const own = fake.store.get("Users/kian").householdId;
+    expect(own).not.toBe("kian");
+    expect(fake.store.get(`Households/${own}`).memberIds).toEqual(["kian"]);
   });
 
   it("passes the household to the longest-standing member when its creator leaves", async () => {
@@ -344,14 +368,14 @@ describe("leaving and removing", () => {
     expect(await remove("kian", "sam")).toEqual({ removed: true });
     expect(fake.store.get("Households/flat").memberIds).toEqual(["kian", "alex"]);
     expect(fake.store.get("Households/flat/Plants/fern").carerIds).toEqual(["kian", "alex"]);
-    expect(fake.store.get("Users/sam")).toEqual({});
+    expect(fake.store.get("Users/sam").householdId).not.toBe("flat");
     expect(fake.store.get("Users/kian")).toEqual({ householdId: "flat" });
   });
 
   it("treats removing yourself as leaving", async () => {
     await remove("kian", "kian");
     expect(fake.store.get("Households/flat").createdBy).toBe("sam");
-    expect(fake.store.get("Users/kian")).toEqual({});
+    expect(fake.store.get("Users/kian").householdId).not.toBe("flat");
   });
 
   it("refuses someone who isn't the creator", async () => {

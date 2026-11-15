@@ -200,8 +200,10 @@ only) also uses. Leaving and removing are in the app now (see below), so that wo
 `leaveHousehold` and `removeMember({ uid })` run in one transaction: they take the
 person out of `memberIds` and `members`, off every plant's `carerIds` (plants
 only they looked after become shared with the rest), pass `createdBy` on if it
-was them, and clear their `Users/{uid}.householdId`. Their app then creates
-their solo household again. The last member can't leave, and only the creator
+was them, and give them a new household of their own (a fresh ID, not their
+uid) which `Users/{uid}.householdId` points at. The ID can't be their uid: if
+they made the household they're leaving, that ID stays with the others. The
+last member can't leave, and only the creator
 can remove someone else. Profile has **Leave household** and, for the creator, **Remove**.
 
 ## Firestore rules

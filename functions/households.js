@@ -145,9 +145,9 @@ async function joinHouseholdHandler({ db, uid, authToken, data, now }) {
 
 /**
  * Takes `target` out of the caller's household, in one transaction. Their own
- * plants stay with whoever is left, their householdId is cleared (the app
- * then sets them up a household of their own), and if they made the household
- * it passes to the longest-standing member.
+ * plants stay with whoever is left, they get a new household of their own
+ * (and their householdId points at it), and if they made the household it
+ * passes to the longest-standing member.
  */
 async function removeFromHousehold({ db, householdId, target, isAllowed }) {
   return db.runTransaction(async (transaction) => {
@@ -173,11 +173,23 @@ async function removeFromHousehold({ db, householdId, target, isAllowed }) {
     writes.plantUpdates.forEach(({ id, update }) =>
       transaction.update(plantsRef.doc(id), update),
     );
-    transaction.set(
-      db.doc(`Users/${target}`),
-      { householdId: admin.firestore.FieldValue.delete() },
-      { merge: true },
-    );
+
+    // They get a household of their own. It can't have their uid as its ID:
+    // if they made this household (its ID is their uid) and others stay, that
+    // ID is taken, and the app couldn't create theirs.
+    const name = displayNameFor({
+      displayName: household.members && household.members[target] && household.members[target].displayName,
+    });
+    const ownRef = db.collection("Households").doc();
+    transaction.create(ownRef, {
+      name: `${name}'s home`,
+      memberIds: [target],
+      members: { [target]: { displayName: name } },
+      createdBy: target,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      timeZone: household.timeZone || "UTC",
+    });
+    transaction.set(db.doc(`Users/${target}`), { householdId: ownRef.id }, { merge: true });
   });
 }
 
