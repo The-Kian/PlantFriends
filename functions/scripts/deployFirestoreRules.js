@@ -11,7 +11,8 @@
  */
 const fs = require("fs");
 
-const admin = require("firebase-admin");
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getSecurityRules } = require("firebase-admin/security-rules");
 
 async function main() {
   const rulesPath = process.argv[2];
@@ -21,13 +22,13 @@ async function main() {
   }
 
   const credentials = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  admin.initializeApp({
-    credential: admin.credential.cert(credentials),
+  const app = initializeApp({
+    credential: cert(credentials),
     projectId: credentials.project_id,
   });
 
   const source = fs.readFileSync(rulesPath, "utf8");
-  const ruleset = await admin.securityRules().releaseFirestoreRulesetFromSource(source);
+  const ruleset = await getSecurityRules(app).releaseFirestoreRulesetFromSource(source);
   console.log(`Published ${rulesPath} to ${credentials.project_id} (ruleset ${ruleset.name}).`);
 }
 
