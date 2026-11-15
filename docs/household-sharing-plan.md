@@ -17,7 +17,7 @@ Decisions made so far:
   when someone else waters it. A plant with one carer is someone's own plant.
   A plant whose carers are the whole household is a shared plant.
 - **Duties:** no assignment or rota. Anyone can log watering, and the app shows who did it.
-- **Joining:** handled in the database for now. There's no invite UI in the app.
+- **Joining:** with an invite code from Profile (`createInvite`, `joinHousehold`). See "Joining a household".
 - **Notifications:** **push**, sent by Cloud Functions. Watering reminders move
   from on-device scheduling to the server. A local reminder can't know that a
   housemate already watered the plant, which is the exact case we're selling.
@@ -28,7 +28,7 @@ Decisions made so far:
 **Status:** phases 1 to 4 are on `main`. Phase 4's function still needs
 deploying (the **Deploy Cloud Functions** workflow) and checking on two
 phones. Test builds come from the **Build Android test app** workflow (see
-`docs/ci-builds.md`), housemates are linked with **Link housemate**, and
+`docs/ci-builds.md`), housemates join with an invite code (or **Link housemate**), and
 **Send test push** checks a phone can receive notifications.
 
 ## Data model
@@ -158,23 +158,38 @@ so the stale "needs watering" banner disappears from the notification centre.
   first plant: "Get a nudge when it's thirsty, and know when your housemate's
   already watered it"), not on first launch.
 
-## Joining a household (done in the database)
+## Joining a household
 
 1. On first sign-in, or the first load after this ships, the user gets a
    household of their own, `{ name: "<displayName>'s home", memberIds: [uid] }`,
    and `Users/{uid}.householdId` is set. Its ID is the user's uid, so two
    devices setting up at once can't create two households.
-2. To add a housemate, in the Firebase console or with a small admin script:
-   - add their uid to `memberIds`, and add them to `members` on the target household
-   - set their `Users/{uid}.householdId` to that household
-   - add their uid to `carerIds` on every plant where `shared == true`
-   - optionally move their old plants across (the migration script below can do this)
-3. Profile shows the household ID (selectable, with a Share button), so it's easy to find in the console.
-4. The app follows `Users/{uid}.householdId` live, so the housemate's app
+2. **Invite.** A member taps **Invite housemate** on Profile. The
+   `createInvite` Cloud Function writes `Invites/{code}` (`householdId`,
+   `createdBy`, `createdAt`, `expiresAt`) and the app opens the share sheet
+   with the code. Codes are 8 characters with no look-alikes (shown as
+   `K7PX-M3QH`), multi-use, and expire after 7 days. Every tap makes a new
+   code. A household holds at most 10 members, so nobody can invite into a full one.
+3. **Join.** The new person taps **Join a household** and enters the code. The
+   app calls `joinHousehold({ code, preview: true })`, which runs every check
+   and returns the household's name and how many of their plants would move,
+   without writing. After they confirm, `joinHousehold({ code })` does, in one
+   transaction:
+   - adds them to `memberIds` and `members` on the target household, and to `carerIds` on every plant where `shared == true`
+   - sets `Users/{uid}.householdId` to that household
+   - moves their existing plants across as personal plants (same ID and data,
+     `addedBy` and `userId` set to them, `carerIds: [uid]`, `shared: false`)
+   - deletes their old household, which is only allowed when they were its
+     only member. If it has other members, the join is refused with "Leave
+     your current household first."
+4. A wrong code and an expired code give the same error, so nobody can learn
+   which codes exist. Joining a household you're already in, or a full one, is refused.
+5. The app follows `Users/{uid}.householdId` live, so the new member's app
    switches to the shared household without signing out.
 
-The UI for this can come later. Swapping it for an invite code would only add a
-`joinHousehold(code)` Cloud Function that does step 2. Nothing else in this plan changes.
+The writes are worked out by `linkWrites` and `moveWrites` in
+`functions/householdAdmin.js`, which the Link housemate workflow (`linkWrites`
+only) also uses. That workflow stays until leaving a household is in the app.
 
 ## Firestore rules
 
@@ -182,7 +197,9 @@ The rules are in `firestore.rules`. In short:
 
 - **Households:** members can read and rename one. Anyone can create a
   household whose ID is their own uid, with only themselves as a member.
-  Nobody can add or remove members from the app, and nobody can delete one.
+  Nobody can add or remove members from the app (the `joinHousehold` Cloud
+  Function adds them), and nobody can delete one.
+- **Invites:** `Invites/{code}` has no client read or write. Only Cloud Functions use it.
 - **Plants:** members can read, add, edit and delete. A new plant must be
   added by you, and every carer must be a member. `addedBy`, `notify_at` and
   `notify_stage` can't be changed from the app.
@@ -220,7 +237,7 @@ and data.
 
 ## Out of scope for the MVP
 
-- Invite codes or links, leaving a household, or removing a member in the app
+- Leaving a household or removing a member in the app (invite codes are done)
 - Assigning plants or rotating turns
 - A full watering history (only the last watering is stored for now)
 - Batching several due plants into one push ("3 plants need water"). Worth
@@ -233,8 +250,8 @@ Each phase can ship on its own, and the app keeps working after every one. Do
 them in order. Every phase lists the code, what you do yourself, how to check
 it, and when it's done.
 
-To link two accounts by hand (needed from phase 2), see **Joining a
-household** above.
+To link two accounts, use an invite code (see **Joining a household**
+above), or the Link housemate workflow.
 
 ### Phase 1: Households underneath
 

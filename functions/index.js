@@ -10,6 +10,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 
 const { anonymiseUserPlant } = require("./anonymise");
+const { createInviteHandler, joinHouseholdHandler } = require("./households");
 
 admin.initializeApp();
 
@@ -247,6 +248,47 @@ exports.deleteAccount = functions.https.onCall(async (data, context) => {
     );
   }
 });
+
+/**
+ * Runs an invite/join handler for the signed-in caller. HttpsErrors go to the
+ * app as they are; anything else is logged (ids only, never codes, emails or
+ * names) and the app gets a generic error.
+ */
+async function runHouseholdCall(name, context, run) {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "You must be signed in.",
+    );
+  }
+  const { uid, token } = context.auth;
+  try {
+    return await run({
+      db: admin.firestore(),
+      uid,
+      authToken: token,
+      now: Date.now(),
+    });
+  } catch (error) {
+    if (error instanceof functions.https.HttpsError) throw error;
+    functions.logger.error(`${name} failed`, { uid, message: error && error.message });
+    throw new functions.https.HttpsError("internal", "Something went wrong. Please try again.");
+  }
+}
+
+/** createInvite — a member gets a code to share. See ./households.js. */
+exports.createInvite = functions.https.onCall((data, context) =>
+  runHouseholdCall("createInvite", context, (args) =>
+    createInviteHandler(args),
+  ),
+);
+
+/** joinHousehold — join with a code, or preview it with { preview: true }. */
+exports.joinHousehold = functions.https.onCall((data, context) =>
+  runHouseholdCall("joinHousehold", context, (args) =>
+    joinHouseholdHandler({ ...args, data }),
+  ),
+);
 
 // Shared-care notifications: see ./notifications.js.
 exports.onPlantWritten = require("./notifications").onPlantWritten;

@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 
 import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 
+import HouseholdCard from "@/components/household/HouseholdCard";
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
 import SwitchField from "@/components/ui/Input/SwitchField";
 import TextInputField from "@/components/ui/Input/TextInputField";
@@ -93,7 +94,11 @@ const ProfileSettingsScreen = () => {
           />
         </View>
 
-        {/* A "Household" section slots in above Account in phase 6. */}
+        <ThemedText type="label" style={styles.sectionLabel}>
+          Household
+        </ThemedText>
+        <HouseholdCard />
+
         <ThemedText type="label" style={styles.sectionLabel}>
           Account
         </ThemedText>

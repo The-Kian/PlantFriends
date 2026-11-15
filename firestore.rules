@@ -32,7 +32,7 @@ service cloud.firestore {
       // A user may check whether their own household exists yet; its ID is their uid.
       allow read: if (request.auth != null && hid == request.auth.uid && resource == null)
         || isMember(hid);
-      // Anyone can create a household of their own. Adding members is admin-only for now.
+      // Anyone can create a household of their own. Members are added by the joinHousehold Cloud Function, never from the app.
       allow create: if request.auth != null
         && hid == request.auth.uid
         && request.resource.data.memberIds == [request.auth.uid]
@@ -76,6 +76,11 @@ service cloud.firestore {
         && (request.resource.data.name is string && request.resource.data.name.size() > 0
           || request.resource.data.scientific_name is list && request.resource.data.scientific_name.size() > 0);
       allow update, delete: if false;
+    }
+
+    // Invite codes. Written and read only by Cloud Functions.
+    match /Invites/{code} {
+      allow read, write: if false;
     }
 
     // Anonymised plants kept after account deletion. Written only by the
