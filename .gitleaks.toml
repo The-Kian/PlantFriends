@@ -1,0 +1,17 @@
+# gitleaks settings, read by the Secret scan workflow.
+# Findings in these paths were checked in session 4 of
+# docs/production-readiness-plan.md and are not secrets.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known non-secrets"
+paths = [
+  # Firebase client config. Its API key ships in every app build and is
+  # protected by API key restrictions and App Check, not by secrecy.
+  '''(^|/)google-services\.json$''',
+  # CocoaPods SPEC CHECKSUMS (pod name: SHA-1), not keys. ios/ is no
+  # longer tracked; this covers old commits.
+  '''(^|/)ios/Podfile\.lock$''',
+]

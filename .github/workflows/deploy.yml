@@ -40,9 +40,11 @@ jobs:
           SHA: ${{ github.event.workflow_run.head_sha }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Compare with the previous successful CI run on main, so a push
-          # whose CI failed still gets deployed by the next green one.
-          base=$(gh run list --workflow CI --branch main --event push --status success \
+          # Compare with the last push this workflow deployed in full. A
+          # deploy that failed or was cancelled doesn't count, so whatever it
+          # missed is deployed again by the next run. (A push whose CI
+          # failed never starts a deploy, so it is picked up the same way.)
+          base=$(gh run list --workflow deploy.yml --branch main --status success \
             --json headSha --jq "[.[] | select(.headSha != \"$SHA\")][0].headSha" --limit 20)
           if [ -z "$base" ] || ! git cat-file -e "$base" 2>/dev/null; then
             base="$SHA^"

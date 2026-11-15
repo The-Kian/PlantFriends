@@ -36,7 +36,7 @@ React Native (Expo, dev-client) + TypeScript + Redux Toolkit + React Navigation,
 - **Households** (shared plant care, invites, join, member removal): client in `src/helpers/household`, server in `functions/households.js`, `householdAdmin.js`, `inviteCode.js`. Design in `docs/household-sharing-plan.md`.
 - **Cloud Functions** (`functions/index.js`): `searchPlants` (Trefle proxy so the API token never ships in the client), `deleteAccount` (anonymises plants into the client-unreadable `AnonymousPlants`, see `anonymise.js`), `createInvite`, `joinHousehold`, and the Firestore trigger `onPlantWritten` (`notifications.js`, push via `push.js`). Tests use `functions/fakeFirestore.js` rather than the emulator.
 - **Security**: `firestore.rules` is the source of truth for access; change it together with `firestore-tests/rules.test.js`. App Check is wired in `src/services/AppCheck.ts`.
-- **Notifications**: local watering reminders in `src/services/NotificationService.ts`; server-side push is being introduced (`PushRegistration.ts`, functions `notifications.js`).
+- **Notifications**: all pushes come from the server (`functions/reminders.js` for watering reminders, `notifications.js` for housemate activity, sent via `push.js`). The app only registers the device (`PushRegistration.ts`), asks permission, and clears stale reminders (`src/services/NotificationService.ts`); it schedules nothing locally.
 - **Tests**: Firebase and native modules are mocked in `__mocks__/`; use `src/test-utils` (`renderWithProviders`, `renderHookWithProviders`, `Mock*` factories). Tests live next to source as `*.test.ts(x)`.
 
 ## Workflow notes

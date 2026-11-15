@@ -32,39 +32,59 @@ Rules for whoever does the session:
 
 | # | Session | Depends on | Status |
 | --- | --- | --- | --- |
-| 1 | Invite and join a household | none | Done, awaiting deploy |
-| 2 | Leave a household, remove a member | 1 | Done, awaiting deploy |
-| 3 | Server-side watering reminders | none | Done, awaiting deploy |
-| 4 | Client switch to server reminders, notification settings | 3 | Not started |
+| 1 | Invite and join a household | none | Done and deployed (phone check left) |
+| 2 | Leave a household, remove a member | 1 | Done and deployed (phone check left) |
+| 3 | Server-side watering reminders | none | Done; goes live with session 4 |
+| 4 | Reminders switch-over: client, deploy fixes, notification settings | 3 | Done (Kian's deploy and phone steps left) |
 | 5 | Security rules tests and tighter rules | none | Done |
 | 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
-| 7 | CI and deploy pipeline | 5 | Done (history scan to run) |
+| 7 | CI and deploy pipeline | 5 | Done |
 | 8 | Monitoring, logging, backups | 3 | Not started |
 | 9 | End-to-end test and manual test script | 1, 2, 4 | Not started |
 | 10 | Privacy policy, store listing, release | all | Not started |
 
-Sessions 1, 3, 5 and 6 don't depend on each other and can run in parallel.
-Sessions 1 to 4 are the MVP features. Sessions 5 to 10 are production
-readiness.
+Order for what's left: the **two-phone checkpoint** (below session 4), then
+8, 9 and 10. Sessions 8 and 9 can run in parallel.
 
 ## Where things stand (November 2026)
 
 - Household sharing phases 1 to 4 are on `main`: plants live under
   `Households/{hid}/Plants`, cards show who watered, phones register for
   push, and `onPlantWritten` tells carers when a housemate waters.
-- Housemates can invite and join with a code from Profile (session 1, once
-  deployed), and leave or remove a member (session 2, once deployed).
-- `sendWateringReminders` and reminder planning in `onPlantWritten` are
-  written (session 3, once deployed). The app still schedules its own
-  reminders too (`src/services/NotificationService.ts`) until session 4.
+Checked against the code and the Actions runs on 15 November 2026.
+
+- Housemates can invite and join with a code from Profile (session 1), and
+  leave or remove a member (session 2). Their functions are deployed. Neither
+  has been tried on a second phone yet.
 - `functions/index.js` exports `searchPlants`, `deleteAccount`,
   `onPlantWritten`, `createInvite`, `joinHousehold`, `leaveHousehold`,
-  `removeMember` and `sendWateringReminders`. None use App Check, and `searchPlants` has no rate limit.
-- There are no security rules tests and no end-to-end tests.
-- CI (`.github/workflows/lint_and_test.yml`) runs type check, lint and the
-  root Jest. Functions and rules are deployed by manual workflows.
-- Android builds come from the **Build Android test app** workflow. iOS is
-  out of scope for this plan.
+  `removeMember` and `sendWateringReminders`. All but the last are deployed.
+  `onPlantWritten` already plans reminders (`notify_at`, `notify_stage`).
+- `sendWateringReminders` is **not** deployed: the deploy service account
+  lacks `cloudscheduler.jobs.update`. The Firestore index it needs is not
+  deployed either: `functions/scripts/deployFirestoreIndexes.js` fails with
+  `Cannot read properties of undefined (reading 'cert')`, which looks like
+  the firebase-admin 14 problem fixed for the rules script in #83. The next
+  **Deploy on merge** run skipped every job, so neither will retry by itself.
+- The app still schedules its own reminders
+  (`src/services/NotificationService.ts`). With the server reminders off,
+  nobody gets a reminder twice; keep it that way until the session 4 build
+  is on the phones.
+- Every callable goes through `functions/guards.js` (App Check, rate limits,
+  input checks). App Check is not enforced yet: `ENFORCE_APP_CHECK=false` in
+  `functions/.env`.
+- Rules tests (`firestore-tests/`), the functions tests, the dependency
+  audits and the secret scan run in CI. Functions, rules and indexes deploy
+  on merge to `main`; the manual workflows stay for rollback.
+- The one-off secret history scan ran and failed. It flagged the Google API
+  key in `google-services.json` (four hits, one under `android/app/`) and
+  eight hits in `ios/Podfile.lock` that look like pod checksums. The API key
+  ships in every build, so it isn't a secret, but it must be restricted
+  (a session 6 step for Kian).
+- There are no end-to-end tests.
+- Android builds come from the **Build Android test app** workflow. The
+  latest test build predates sessions 2 and 3, so it has no leave or remove
+  buttons. iOS is out of scope for this plan.
 
 ---
 
@@ -253,32 +273,114 @@ later, then nothing.
 
 ---
 
-## Session 4: Client switch to server reminders, notification settings
+## Session 4: Reminders switch-over
 
-**Read first:** `src/services/NotificationService.ts`,
+The app stops scheduling reminders, the server starts sending them, and the
+deploy problems that kept session 3 from going live are fixed. One pull
+request, so the server reminders and the new build arrive together.
+
+**Read first:** the last **Deploy on merge** run that failed (Actions),
+`.github/workflows/deploy.yml`, `functions/scripts/deployFirestoreIndexes.js`,
+`functions/scripts/deployFirestoreRules.js` (already fixed in #83),
+`.github/workflows/secret-scan.yml`, `src/services/NotificationService.ts`,
 `src/helpers/firebase/setNotificationPref.ts`, `HouseholdProvider.tsx`, the
 Profile screen, the "Client side" section of the sharing plan.
 
-- [ ] Stop scheduling local reminders for household plants. Cancel all
+Deploy fixes:
+
+- [x] Fix `functions/scripts/deployFirestoreIndexes.js` for firebase-admin 14
+      and confirm the cause from the failed run's log first.
+- [x] Make a failed deploy retry on the next merge. Today **Deploy on
+      merge** compares against the last green CI push, so a deploy that
+      failed is skipped next time.
+- [x] Add a gitleaks allowlist for `ios/Podfile.lock` and both
+      `google-services.json` paths, after checking each finding is what this
+      plan says it is. Don't rewrite history.
+
+Client:
+
+- [x] Stop scheduling local reminders for household plants. Cancel all
       previously scheduled local reminders once on upgrade.
-- [ ] Keep the permission request, the foreground handler and the tap
+- [x] Keep the permission request, the foreground handler and the tap
       handler that opens the plant.
-- [ ] When the live listener sees a plant watered, dismiss any delivered
+- [x] When the live listener sees a plant watered, dismiss any delivered
       reminder for it.
-- [ ] Ask for notification permission after the first plant is added, not
+- [x] Ask for notification permission after the first plant is added, not
       on first launch.
-- [ ] Profile: two switches, **Watering reminders** and **Housemate
+- [x] Profile: two switches, **Watering reminders** and **Housemate
       activity**, wired to `notificationPrefs`. Show a hint with a link to
       system settings when permission is denied.
-- [ ] Tests for the upgrade cancel, the dismiss and the switches.
+- [x] Tests for the upgrade cancel, the dismiss and the switches.
 
-**Kian does:** install a new build on two phones and check no reminder
-arrives twice.
+**Kian does:**
 
-**Done when:** every reminder comes from the server, and both switches stop
-their pushes.
+1. Before merging, give the deploy service account the Cloud Scheduler Admin
+   role in Google Cloud IAM.
+2. Merge, and check **Deploy on merge** deployed `sendWateringReminders`
+   with its schedule.
+3. Run the **Secret scan** workflow by hand and check it passes.
+4. Build and install the new app on the testers' phones.
+5. Only then run **Deploy Firestore rules** by hand once, which also deploys
+   the index (this merge doesn't change `firestore.indexes.json`, so it
+   isn't deployed by itself). Until the index exists, the reminder query
+   fails and nothing is sent, which keeps old builds from getting each
+   reminder twice.
+
+**Done when:** every reminder comes from the server, both switches stop
+their pushes, and a merge deploys functions and indexes without errors.
 
 **Notes:**
+
+- The index script was fixed in #87 (the failed run still used
+  `admin.credential.cert`); this session only checked it.
+- **Deploy on merge** now compares with the last push it deployed in full
+  (its own last successful run), not the last green CI push, so a failed or
+  cancelled deploy is retried by the next one. Runs before this change
+  compared the old way, which is why the index needs the one manual run.
+- The `sendWateringReminders` function itself already exists (created by the
+  #85 deploy; only its Cloud Scheduler job failed, and the #87 deploy skipped
+  it as unchanged). Whether the scheduler job exists wasn't checked. Either
+  way no reminder can go out until the index is built.
+- `.gitleaks.toml` allowlists `google-services.json` (the Firebase API key,
+  public by design; it gets restricted in the two-phone checkpoint) and
+  `ios/Podfile.lock` (CocoaPods `SPEC CHECKSUMS`; `ios/` is no longer
+  tracked).
+- The app schedules nothing now. `App.tsx` cancels every scheduled local
+  notification on each launch, which covers the upgrade at no cost.
+  `dismissStaleReminders` runs on each plants snapshot and clears `due` and
+  `nudge` notifications for plants that are gone or whose next watering is
+  in the future.
+- Permission is asked (`registerForPush` with `prompt: true`) after adding a
+  plant and after logging a watering, so a housemate who never adds a plant
+  is still asked. Nothing asks on launch.
+- The **Watering reminders** switch writes `notificationPrefs.reminders`,
+  which `sendWateringReminders` already reads. The denied hint is checked
+  each time Profile is shown and opens the app's page in system settings.
+
+---
+
+## Two-phone checkpoint (Kian, no code)
+
+Do this once the session 4 build is on two phones. It closes the steps left
+over from sessions 1, 2, 3, 6 and 7.
+
+- [ ] Join from the second phone with an invite code, and see the first
+      phone's shared plants.
+- [ ] Leave and rejoin. Remove a member as the household's creator.
+- [ ] Set a test plant due in a few minutes: one push to each carer, one
+      nudge a day later, nothing twice.
+- [ ] App Check: register the app in the Firebase console and add the debug
+      token.
+- [ ] Restrict the Android API key in Google Cloud to the app's package and
+      signing fingerprints.
+- [ ] Add Firestore TTL policies on `RateLimits.expiresAt` and
+      `Invites.expiresAt`.
+- [ ] Make the CI checks required on `main` in the repository settings.
+- [ ] Once both phones have the new build, set `ENFORCE_APP_CHECK=true` in
+      `functions/.env`, merge, and turn on enforcement for Firestore in the
+      console. Check the app still works.
+
+Write down anything that fails under **Found along the way**.
 
 ---
 
@@ -397,8 +499,10 @@ failing test blocks the merge.
   each ignore when Expo/React Navigation move to the fixed major. When Expo
   is upgraded, check whether the overrides are still needed.
 - Secret scanning: **Secret scan** (gitleaks) runs on pull requests. The
-  one-off history scan wasn't run in the session; run the workflow by hand
-  from Actions (it scans the full history) and check the result.
+  one-off history scan was run by hand on 15 November 2026 and failed: the
+  Google API key in `google-services.json` (four hits) and eight hits in
+  `ios/Podfile.lock`. Session 4 adds the allowlist; restricting the key is
+  in the two-phone checkpoint.
 
 ---
 
@@ -409,8 +513,9 @@ failing test blocks the merge.
 
 - [ ] Structured logs in every function (function name, household ID,
       counts). No emails, display names or push tokens.
-- [ ] Log push receipt failures and a summary line for each
-      `sendWateringReminders` run, so a silent failure is visible.
+- [ ] Log push receipt failures, so a silent failure is visible. (The
+      summary line for each `sendWateringReminders` run exists already, from
+      session 3.)
 - [ ] Set the Crashlytics user ID on sign-in and record non-fatal errors
       from the Firestore helpers.
 - [ ] Friendly error states for the failures users can hit: offline,
@@ -469,7 +574,11 @@ with every failure fixed or written down.
 - [ ] Remove the legacy `Users/{uid}/UserPlants` rule and migration code if
       every tester is on a household build. Otherwise leave it and say why.
 - [ ] Remove dev-only code paths and the crash-alert flag from the production build.
-- [ ] Clear out **Found along the way** below: fix, or move to issues.
+- [ ] Clear out **Found along the way** below: fix, or move to issues. Open
+      now: `isVerified` on client catalog writes, stale
+      `members[uid].displayName`, the 500-write limit and ID clash in
+      `joinHousehold`, duplicate trigger delivery (`notify_for`), and
+      retiring the **Link housemate** workflow.
 
 **Kian does:** deploy hosting, upload a production build to the Play
 internal track, invite the three testers, then move to closed testing and a
@@ -489,7 +598,8 @@ Add things here that are outside your session.
 - (Session 5) The catalog rule lets a client set `isVerified: true` on a new
   plant. Consider forcing it to `false` for client writes.
 - Expired `Invites` are never deleted. Set a Firestore TTL policy on
-  `expiresAt` for the `Invites` collection (a console step).
+  `expiresAt` for the `Invites` collection (a console step, now in the
+  two-phone checkpoint).
 - `members[uid].displayName` doesn't update when someone changes their display
   name on Profile, so housemates keep seeing the old one.
 - `joinHousehold` runs in one Firestore transaction, which allows 500 writes.

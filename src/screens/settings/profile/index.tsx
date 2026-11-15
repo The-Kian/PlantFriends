@@ -1,4 +1,5 @@
-import React, { useContext, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useContext, useState } from "react";
 
 import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 
@@ -14,6 +15,11 @@ import { useHousehold } from "@/context/household/HouseholdProvider";
 import setNotificationPref from "@/helpers/firebase/setNotificationPref";
 import { useTheme } from "@/hooks/utils/useTheme";
 import ErrorService from "@/services/ErrorService";
+import {
+  getNotificationPermission,
+  NotificationPermission,
+  openNotificationSettings,
+} from "@/services/NotificationService";
 import { Spacing } from "@/theme/Spacing";
 
 // Public URL of the hosted privacy policy (docs/PRIVACY_POLICY.md). Both app
@@ -26,11 +32,30 @@ const ProfileSettingsScreen = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { colors, radius, shadow } = useTheme();
   const { notificationPrefs } = useHousehold();
+  const [permission, setPermission] =
+    useState<NotificationPermission>("undetermined");
 
-  const handleHousemateActivityChange = async (value: boolean) => {
+  // Checked each time the screen is shown, so coming back from the phone's
+  // settings updates the hint.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      getNotificationPermission().then((status) => {
+        if (active) setPermission(status);
+      });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
+
+  const handlePrefChange = async (
+    key: "reminders" | "housemateActivity",
+    value: boolean,
+  ) => {
     if (!user) return;
     try {
-      await setNotificationPref(user.uid, "housemateActivity", value);
+      await setNotificationPref(user.uid, key, value);
     } catch (error) {
       ErrorService.handleError(error, "Notification Settings", {
         userMessage: "Couldn't save that setting. Please try again.",
@@ -86,11 +111,31 @@ const ProfileSettingsScreen = () => {
           Notifications
         </ThemedText>
         <View style={cardStyle}>
+          {permission === "denied" ? (
+            <View style={styles.hint}>
+              <ThemedText type="caption">
+                Notifications are turned off for PlantFriends in your phone's
+                settings, so these switches have no effect.
+              </ThemedText>
+              <ThemedButton
+                onPress={openNotificationSettings}
+                title="Open settings"
+                variant="secondary"
+                additionalStyle={styles.saveButton}
+              />
+            </View>
+          ) : null}
+          <SwitchField
+            label="Watering reminders"
+            description="When a plant is due, and a nudge the next day if it's still thirsty."
+            value={notificationPrefs.reminders !== false}
+            onValueChange={(value) => handlePrefChange("reminders", value)}
+          />
           <SwitchField
             label="When a housemate waters my plants"
             description="So you know it's done and don't water it twice."
             value={notificationPrefs.housemateActivity !== false}
-            onValueChange={handleHousemateActivityChange}
+            onValueChange={(value) => handlePrefChange("housemateActivity", value)}
           />
         </View>
 
@@ -162,6 +207,10 @@ const styles = StyleSheet.create({
   card: {
     padding: Spacing.medium,
     borderWidth: StyleSheet.hairlineWidth,
+  },
+  hint: {
+    gap: Spacing.small,
+    marginBottom: Spacing.medium,
   },
   row: {
     gap: 2,

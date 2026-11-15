@@ -43,6 +43,8 @@ jest.mock("expo-notifications", () => ({
   scheduleNotificationAsync: jest.fn(async () => "notification-id"),
   cancelScheduledNotificationAsync: jest.fn(async () => {}),
   cancelAllScheduledNotificationsAsync: jest.fn(async () => {}),
+  getPresentedNotificationsAsync: jest.fn(async () => []),
+  dismissNotificationAsync: jest.fn(async () => {}),
   getExpoPushTokenAsync: jest.fn(async () => ({
     type: "expo",
     data: "ExponentPushToken[test-device]",

@@ -10,11 +10,6 @@ import getUserPlantData from "@/helpers/firebase/getUserPlantData";
 import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import ErrorService from "@/services/ErrorService";
-import {
-  cancelWateringReminder,
-  requestNotificationPermissions,
-  scheduleWateringReminder,
-} from "@/services/NotificationService";
 import { registerForPush } from "@/services/PushRegistration";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 
@@ -74,15 +69,10 @@ export const usePlantManagement = () => {
         dispatch(addPlant(savedPlant));
         setUserPlant(savedPlant);
         setSelectedPlant(null);
-        // Schedule a watering reminder if one was set during customization
-        // (asks for permission if needed).
-        if (savedPlant.next_watering_date) {
-          const granted = await requestNotificationPermissions();
-          if (granted) {
-            await scheduleWateringReminder(savedPlant);
-            if (user) await registerForPush(user.uid, { prompt: false });
-          }
-        }
+        // Adding a plant is when reminders start to matter, so ask for
+        // notification permission here (only the first time) rather than on
+        // launch. The server sends the reminders to this device.
+        if (user) await registerForPush(user.uid, { prompt: true });
         return true;
       }
       return false;
@@ -106,9 +96,6 @@ export const usePlantManagement = () => {
         ErrorService.handleError("Failed to remove plant from firebase", "Delete Plant");
         return false;
       }
-
-      // Cancel any scheduled watering reminder for this plant.
-      await cancelWateringReminder(plant.id);
 
       return true;
     } catch (error) {
