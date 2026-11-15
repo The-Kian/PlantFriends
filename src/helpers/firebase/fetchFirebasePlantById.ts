@@ -1,6 +1,7 @@
 import { getFirestore, doc, getDoc } from '@react-native-firebase/firestore';
 
 import { IPlant } from '@/constants/IPlant';
+import { docExists } from '@/helpers/firebase/householdPaths';
 import ErrorService from '@/services/ErrorService';
 
 async function fetchFirebasePlantById(plantId: string): Promise<IPlant | null> {
@@ -11,7 +12,7 @@ async function fetchFirebasePlantById(plantId: string): Promise<IPlant | null> {
     const plantRef = doc(db, 'Plants', plantId);
     const snap = await getDoc(plantRef);
 
-    if (!snap || !snap.exists) return null;
+    if (!docExists(snap)) return null;
 
     return {
       ...(snap.data() as IPlant),

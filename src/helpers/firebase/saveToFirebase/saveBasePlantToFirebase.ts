@@ -8,6 +8,7 @@ import {
 } from "@react-native-firebase/firestore";
 
 import { IPlant } from "@/constants/IPlant";
+import { docExists } from "@/helpers/firebase/householdPaths";
 import { queuedWrite } from "@/helpers/firebase/queuedWrite";
 import { recordHandledError } from "@/services/CrashReporting";
 
@@ -20,8 +21,10 @@ const saveBasePlantToFirebase = async (
   const plantRef = doc(collection(db, "Plants"), plantId);
   const plantDoc = await getDoc(plantRef);
 
-  // Save the base plant data if it doesn't exist
-  if (!plantDoc.exists) {
+  // Save the base plant data if it doesn't exist. `exists` is a method on
+  // the modular API, so reading it as a property is always truthy and the
+  // species was never saved; docExists handles both forms.
+  if (!docExists(plantDoc)) {
     try {
       const basePlantData = {
         ...plantData,
