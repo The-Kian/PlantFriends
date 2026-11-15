@@ -134,7 +134,7 @@ service cloud.firestore {
         && optNumber(data, 'watering_frequency')
         && optNumber(data, 'temperature_minimum')
         && optNumber(data, 'temperature_maximum')
-        && optBool(data, 'isVerified')
+        && data.get('isVerified', false) == false
         && optList(data, 'scientific_name', 10)
         && optList(data, 'common_names', 50)
         && optList(data, 'pest_susceptibility', 50)

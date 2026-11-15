@@ -40,18 +40,23 @@ Rules for whoever does the session:
 | 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
 | 7 | CI and deploy pipeline | 5 | Done |
 | 8 | Monitoring, logging, backups | 3 | Done (Kian's console steps left) |
-| 9 | End-to-end test and manual test script | 1, 2, 4 | Code done (Kian: run the flows and the script) |
-| 10 | Privacy policy, store listing, release | all | Not started |
+| 9 | End-to-end test and manual test script | 1, 2, 4 | Done and merged (Kian: run the flows and the script) |
+| 10 | Privacy policy, store listing, release | all | Code and docs done (Kian: screenshots, Play, rollout) |
 
-Order for what's left: the **two-phone checkpoint** (below session 4), then
-8, 9 and 10. Sessions 8 and 9 can run in parallel.
+All ten sessions are written. What's left is Kian's: the **two-phone
+checkpoint** (below session 4), the Maestro flows and the manual test script
+(`docs/TEST_SCRIPT.md`), the session 8 console steps (alerts, backups, a test
+restore), screenshots, then the Play release (session 10 notes). Do the
+checkpoint before turning on App Check enforcement (see its last item).
 
 ## Where things stand (November 2026)
 
 - Household sharing phases 1 to 4 are on `main`: plants live under
   `Households/{hid}/Plants`, cards show who watered, phones register for
   push, and `onPlantWritten` tells carers when a housemate waters.
-Checked against the code and the Actions runs on 15 November 2026.
+Checked against the code and the Actions runs on 15 November 2026. Items
+below that mention deploys were **not re-checked** after that date, except
+where noted.
 
 - Housemates can invite and join with a code from Profile (session 1), and
   leave or remove a member (session 2). Their functions are deployed. Neither
@@ -66,22 +71,27 @@ Checked against the code and the Actions runs on 15 November 2026.
   `Cannot read properties of undefined (reading 'cert')`, which looks like
   the firebase-admin 14 problem fixed for the rules script in #83. The next
   **Deploy on merge** run skipped every job, so neither will retry by itself.
-- The app still schedules its own reminders
-  (`src/services/NotificationService.ts`). With the server reminders off,
-  nobody gets a reminder twice; keep it that way until the session 4 build
-  is on the phones.
+- Session 4 is merged: the app schedules no reminders of its own and cancels
+  old local ones on launch, so every reminder comes from the server once
+  `sendWateringReminders` and its index are live. Until then, no reminders go
+  out. Install the session 4 build on both phones before deploying the index.
 - Every callable goes through `functions/guards.js` (App Check, rate limits,
   input checks). App Check is not enforced yet: `ENFORCE_APP_CHECK=false` in
   `functions/.env`.
 - Rules tests (`firestore-tests/`), the functions tests, the dependency
   audits and the secret scan run in CI. Functions, rules and indexes deploy
   on merge to `main`; the manual workflows stay for rollback.
+- A throwaway keystore (`release.keystore`) was committed and removed in #95;
+  its fingerprint is deleted from Firebase, and the old commits remain in
+  history because the repo rules block force-pushes. It was never used for
+  EAS or Play.
 - The one-off secret history scan ran and failed. It flagged the Google API
   key in `google-services.json` (four hits, one under `android/app/`) and
   eight hits in `ios/Podfile.lock` that look like pod checksums. The API key
   ships in every build, so it isn't a secret, but it must be restricted
   (a session 6 step for Kian).
-- There are no end-to-end tests.
+- Maestro flows exist in `.maestro/` (session 9) but have never been run.
+  They aren't in CI.
 - Android builds come from the **Build Android test app** workflow. The
   latest test build predates sessions 2 and 3, so it has no leave or remove
   buttons. iOS is out of scope for this plan.
@@ -659,16 +669,16 @@ with every failure fixed or written down.
 **Read first:** `docs/PRIVACY_POLICY.md`, `docs/STORE_LISTING.md`,
 `hosting/`, `scripts/build-privacy-page.js`, `eas.json`, `firestore.rules`.
 
-- [ ] Privacy policy: housemates see your display name and watering
+- [x] Privacy policy: housemates see your display name and watering
       activity; push tokens and time zone are stored; what happens to shared
       plants when you delete your account. Rebuild the hosted page.
-- [ ] Store listing: lead with household sharing, and replace "Reminders
-      are scheduled on your phone" with what is now true. Regenerate the screenshots.
-- [ ] Write out the answers for the Play data safety form.
-- [ ] Remove the legacy `Users/{uid}/UserPlants` rule and migration code if
+- [x] Store listing: lead with household sharing, and replace "Reminders
+      are scheduled on your phone" with what is now true. Regenerate the screenshots. (Text done; screenshots are a Kian step.)
+- [x] Write out the answers for the Play data safety form.
+- [x] Remove the legacy `Users/{uid}/UserPlants` rule and migration code if
       every tester is on a household build. Otherwise leave it and say why.
-- [ ] Remove dev-only code paths and the crash-alert flag from the production build.
-- [ ] Clear out **Found along the way** below: fix, or move to issues. Open
+- [x] Remove dev-only code paths and the crash-alert flag from the production build.
+- [x] Clear out **Found along the way** below: fix, or move to issues. Open
       now: `isVerified` on client catalog writes, stale
       `members[uid].displayName`, the 500-write limit and ID clash in
       `joinHousehold`, duplicate trigger delivery (`notify_for`), and
@@ -682,6 +692,29 @@ staged rollout. Watch Crashlytics and function errors for the first day.
 a week without Kian stepping in.
 
 **Notes:**
+
+- Privacy policy, store listing and the Play data safety answers (including
+  the push token, and that housemates see display name and watering activity)
+  are updated. `hosting/privacy.html` is rebuilt; it goes live with
+  `firebase deploy --only hosting`.
+- **Screenshots were not regenerated** (they need a phone with the build). The
+  listing's "Screenshots to take" list still applies; lead with a household
+  screen showing "watered by".
+- **Legacy `UserPlants` left in place.** `firestore.rules` and
+  `migrateUserPlants` stay because nobody has confirmed every tester is on a
+  household build, and an account that never opened a household build would
+  lose its plants. Remove both once the three testers have signed in on the
+  release build.
+- **Dev-only code:** the crash alert flag is set only in the `preview` profile
+  in `eas.json`, never `production`, and the handler is disabled in dev
+  builds. `seedFakePlants.ts` is not imported by the app. Nothing to remove.
+- **Fixed:** the catalog rule now rejects `isVerified: true` from clients
+  (test added; the rules tests need Java 21 and were not run locally, CI runs
+  them). The **Link housemate** workflow and its script are removed.
+- **Accepted for launch, not fixed** (rare, low impact at three users; revisit
+  if the household grows): stale `members[uid].displayName` after a rename,
+  the 500-write limit and ID clash in `joinHousehold`, and duplicate trigger
+  delivery (`notify_for`). They stay listed below.
 
 ---
 
@@ -710,8 +743,8 @@ Add things here that are outside your session.
   for these writes, or an offline banner.
 - (Session 8) `useFirebasePlantSearch` looks unused.
 
-- (Session 5) The catalog rule lets a client set `isVerified: true` on a new
-  plant. Consider forcing it to `false` for client writes.
+- ~~(Session 5) The catalog rule lets a client set `isVerified: true`.~~ Fixed
+  in session 10.
 - Expired `Invites` are never deleted. Set a Firestore TTL policy on
   `expiresAt` for the `Invites` collection (a console step, now in the
   two-phone checkpoint).
@@ -733,10 +766,8 @@ Add things here that are outside your session.
   due date the plan was made for would fix it.
 - ~~`sendWateringReminders` and `onPlantWritten` have no `maxInstances`.~~
   Settled when rebasing onto session 6: both use `MAX_INSTANCES`.
-- The **Link housemate** workflow's `unlink` only clears `householdId`. For
-  the person who set the household up, the app can't then make them a new
-  household (`Households/{uid}` is the one they left). The app's leave and
-  remove don't have this problem; the workflow could be retired.
+- ~~The **Link housemate** workflow's `unlink` only clears `householdId`.~~
+  Retired in session 10: workflow and script removed.
 - ~~The invite and join callables have no `maxInstances`, App Check or
   input length limits yet.~~ Settled in session 6; `leaveHousehold` and
   `removeMember` use the same guards.
