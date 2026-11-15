@@ -62,7 +62,7 @@ jobs:
             --output "$RUNNER_TEMP/plantfriends.apk"
 
       - name: Keep the APK with this run
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: plantfriends-apk
           path: ${{ runner.temp }}/plantfriends.apk
