@@ -92,6 +92,8 @@ export interface IUserPlant {
 
 /** Per-user notification switches, stored on `Users/{uid}.notificationPrefs`. */
 export interface INotificationPrefs {
+  /** "Time to water the Monstera" and the next-day nudge. On unless switched off. */
+  reminders?: boolean;
   /** "Sam watered your Monstera". On unless switched off. */
   housemateActivity?: boolean;
 }

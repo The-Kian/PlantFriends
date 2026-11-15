@@ -29,7 +29,7 @@ import {
   createSoloHousehold,
   migrateUserPlants,
 } from "@/helpers/household/setupHousehold";
-import { syncAllWateringReminders } from "@/services/NotificationService";
+import { dismissStaleReminders } from "@/services/NotificationService";
 import { registerForPush } from "@/services/PushRegistration";
 import { setUserPlants } from "@/store/userPlantsSlice";
 
@@ -179,8 +179,8 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
     );
   }, [householdId]);
 
-  // 3. Keep the household's plants in Redux, and this device's reminders in
-  //    step with them.
+  // 3. Keep the household's plants in Redux, and clear reminders for plants
+  //    someone has since watered.
   useEffect(() => {
     if (!householdId || !user) return;
 
@@ -203,15 +203,9 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         setError(null);
         setLoading(false);
 
-        // Reminders are still scheduled on this device until the server
-        // sends them (phase 5 of the household plan). Only for plants this
-        // person looks after, not a housemate's own plants.
-        const mine = plants.filter(
-          (p) => !p.carerIds || p.carerIds.includes(user.uid),
-        );
-        syncAllWateringReminders(mine).catch((e) =>
-          console.warn("syncAllWateringReminders failed:", e),
-        );
+        // Reminders come from the server. Once a plant is watered, on this
+        // phone or a housemate's, its reminder here is out of date.
+        dismissStaleReminders(plants);
       },
       (e) => {
         console.warn("Plants listener failed:", e);

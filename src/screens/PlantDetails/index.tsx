@@ -23,10 +23,6 @@ import { getWateringFrequencyInDays } from "@/helpers/plants/wateringCalculation
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
 import ErrorService from "@/services/ErrorService";
-import {
-  requestNotificationPermissions,
-  scheduleWateringReminder,
-} from "@/services/NotificationService";
 import { registerForPush } from "@/services/PushRegistration";
 import { RootState } from "@/store/store";
 import { updatePlant } from "@/store/userPlantsSlice";
@@ -114,12 +110,9 @@ const PlantDetailsScreen = () => {
       dispatch(updatePlant(updatedPlant));
       setShowSplash(true);
 
-      // Schedule the next watering reminder (asks for permission if needed).
-      const granted = await requestNotificationPermissions();
-      if (granted) {
-        await scheduleWateringReminder(updatedPlant);
-        await registerForPush(user.uid, { prompt: false });
-      }
+      // The server plans the next reminder from the new watering date. A
+      // housemate who joined and never added a plant is asked here instead.
+      await registerForPush(user.uid, { prompt: true });
     } catch (error) {
       ErrorService.handleError(error, "Log Watering", {
         userMessage: "Failed to log watering. Please try again.",

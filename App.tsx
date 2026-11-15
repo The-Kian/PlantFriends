@@ -18,13 +18,20 @@ import { AuthContext, AuthProvider } from "@/context/auth/AuthProvider";
 import { HouseholdProvider } from "@/context/household/HouseholdProvider";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { initAppCheck } from "@/services/AppCheck";
-import { PlantNotificationData } from "@/services/NotificationService";
+import {
+  cancelAllWateringReminders,
+  PlantNotificationData,
+} from "@/services/NotificationService";
 import { setupStore } from "@/store/store";
 
 import "./gesture-handler";
 
 // Start App Check before anything calls Firebase.
 initAppCheck();
+
+// Reminders come from the server now. Clear any an older build scheduled on
+// this phone, so nobody gets the same reminder twice.
+cancelAllWateringReminders();
 
 // Create the Redux store once at module scope so it's not recreated on every render
 const store = setupStore();

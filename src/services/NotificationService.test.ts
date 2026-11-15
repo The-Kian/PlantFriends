@@ -1,44 +1,58 @@
 import * as Notifications from "expo-notifications";
 
-import { syncAllWateringReminders } from "@/services/NotificationService";
+import {
+  cancelAllWateringReminders,
+  dismissStaleReminders,
+  getNotificationPermission,
+} from "@/services/NotificationService";
 import { mockUserPlant } from "@/test-utils/MockPlant";
 
-describe("syncAllWateringReminders", () => {
+const NOW = 1_000_000;
+
+function presented(identifier: string, data: object) {
+  return { request: { identifier, content: { data } } };
+}
+
+describe("NotificationService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("does nothing, and asks for no permission, when there are no plants", async () => {
-    await syncAllWateringReminders([]);
-
-    expect(Notifications.getPermissionsAsync).not.toHaveBeenCalled();
-    expect(Notifications.cancelAllScheduledNotificationsAsync).not.toHaveBeenCalled();
-  });
-
-  it("clears old reminders and schedules upcoming ones", async () => {
-    const upcoming = {
-      ...mockUserPlant,
-      id: "upcoming",
-      next_watering_date: Date.now() + 86_400_000,
-    };
-    const disabled = { ...upcoming, id: "disabled", reminders_enabled: false };
-
-    await syncAllWateringReminders([upcoming, disabled]);
+  it("cancels reminders an older build scheduled", async () => {
+    await cancelAllWateringReminders();
 
     expect(Notifications.cancelAllScheduledNotificationsAsync).toHaveBeenCalled();
-    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1);
-    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
-      expect.objectContaining({ identifier: "plantfriends-watering-upcoming" }),
-    );
+    expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
   });
 
-  it("leaves reminders alone when permission is denied", async () => {
-    (Notifications.getPermissionsAsync as jest.Mock).mockResolvedValueOnce({ status: "denied" });
-    (Notifications.requestPermissionsAsync as jest.Mock).mockResolvedValueOnce({ status: "denied" });
+  it("dismisses reminders for plants that have been watered or are gone", async () => {
+    jest.mocked(Notifications.getPresentedNotificationsAsync).mockResolvedValueOnce([
+      presented("watered", { plantId: "a", type: "due" }),
+      presented("still-due", { plantId: "b", type: "nudge" }),
+      presented("deleted", { plantId: "gone", type: "due" }),
+      presented("housemate", { plantId: "a", type: "watered" }),
+    ] as unknown as Notifications.Notification[]);
 
-    await syncAllWateringReminders([mockUserPlant]);
+    await dismissStaleReminders(
+      [
+        { ...mockUserPlant, id: "a", next_watering_date: NOW + 1 },
+        { ...mockUserPlant, id: "b", next_watering_date: NOW - 1 },
+      ],
+      NOW,
+    );
 
-    expect(Notifications.cancelAllScheduledNotificationsAsync).not.toHaveBeenCalled();
-    expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
+    const dismissed = jest
+      .mocked(Notifications.dismissNotificationAsync)
+      .mock.calls.map(([id]) => id);
+    expect(dismissed.sort()).toEqual(["deleted", "watered"]);
+  });
+
+  it("reads the permission without asking", async () => {
+    jest
+      .mocked(Notifications.getPermissionsAsync)
+      .mockResolvedValueOnce({ status: "denied" } as never);
+
+    expect(await getNotificationPermission()).toBe("denied");
+    expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
   });
 });

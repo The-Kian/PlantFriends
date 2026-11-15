@@ -12,7 +12,7 @@ import {
   createSoloHousehold,
   migrateUserPlants,
 } from "@/helpers/household/setupHousehold";
-import { syncAllWateringReminders } from "@/services/NotificationService";
+import { dismissStaleReminders } from "@/services/NotificationService";
 import { setupStore } from "@/store/store";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
@@ -30,7 +30,7 @@ jest.mock("@/helpers/household/setupHousehold", () => ({
   migrateUserPlants: jest.fn(async () => 0),
 }));
 jest.mock("@/services/NotificationService", () => ({
-  syncAllWateringReminders: jest.fn(async () => {}),
+  dismissStaleReminders: jest.fn(async () => {}),
 }));
 jest.mock("@/helpers/firebase/fetchFirebasePlantById", () =>
   jest.fn(async () => ({ id: "1", name: "Monstera", watering_frequency: 7 })),
@@ -102,10 +102,10 @@ describe("HouseholdProvider", () => {
       ]);
     });
     expect(fetchFirebasePlantById).toHaveBeenCalledWith("1");
-    // Reminders are still scheduled on the device, only for plants this
-    // person looks after.
-    expect(syncAllWateringReminders).toHaveBeenCalledWith([
+    // Reminders for plants someone has since watered are cleared.
+    expect(dismissStaleReminders).toHaveBeenCalledWith([
       expect.objectContaining({ id: "1" }),
+      expect.objectContaining({ id: "2" }),
     ]);
     expect(createSoloHousehold).not.toHaveBeenCalled();
     expect(migrateUserPlants).not.toHaveBeenCalled();

@@ -1,18 +1,19 @@
 import * as Notifications from "expo-notifications";
 
+import { Linking } from "react-native";
+
 import { IUserPlant } from "@/constants/IPlant";
 
 /**
- * NotificationService — schedules local watering reminders for plants.
+ * NotificationService — what the app itself does with notifications.
  *
- * Local notifications are used for v1 (no server needed). Each plant gets a
- * scheduled notification at its `next_watering_date`. Notifications are
- * re-scheduled when a plant is watered/updated and cancelled when deleted.
+ * Watering reminders come from the server (`sendWateringReminders`), as push
+ * notifications. The app asks for permission, shows pushes that arrive while
+ * it's open, opens the plant a notification was tapped on (App.tsx), and
+ * clears a reminder once someone has watered the plant.
  */
 
-const NOTIFICATION_PREFIX = "plantfriends-watering-";
-
-// Configure the default handler so foreground notifications also show.
+// Show notifications that arrive while the app is open, too.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -30,9 +31,7 @@ export interface PlantNotificationData {
   type?: "watered" | "due" | "nudge";
 }
 
-function notificationIdFor(plantId: string): string {
-  return `${NOTIFICATION_PREFIX}${plantId}`;
-}
+export type NotificationPermission = "granted" | "denied" | "undetermined";
 
 /**
  * Whether notification permission is granted. Only asks when `prompt` is
@@ -58,61 +57,29 @@ export async function requestNotificationPermissions(
   }
 }
 
-/**
- * Schedule (or replace) a watering reminder for a plant.
- * Does nothing if the plant has no next_watering_date.
- */
-export async function scheduleWateringReminder(
-  plant: IUserPlant,
-): Promise<void> {
-  if (!plant.next_watering_date) {
-    return;
-  }
-
-  // Don't schedule in the past.
-  if (plant.next_watering_date <= Date.now()) {
-    return;
-  }
-
+/** The current permission, without asking. */
+export async function getNotificationPermission(): Promise<NotificationPermission> {
   try {
-    const identifier = notificationIdFor(plant.id);
-    const displayName = plant.custom_name || "Your plant";
-
-    // Cancel any existing reminder for this plant before scheduling a new one.
-    await Notifications.cancelScheduledNotificationAsync(identifier);
-
-    await Notifications.scheduleNotificationAsync({
-      identifier,
-      content: {
-        title: "Time to water! 💧",
-        body: `${displayName} is ready for watering.`,
-        data: { plantId: plant.id, type: "due" } satisfies PlantNotificationData,
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: new Date(plant.next_watering_date),
-      },
-    });
+    const { status } = await Notifications.getPermissionsAsync();
+    return status === "granted" || status === "denied" ? status : "undetermined";
   } catch (error) {
-    console.warn("scheduleWateringReminder failed:", error);
+    console.warn("getNotificationPermission failed:", error);
+    return "undetermined";
   }
 }
 
-/**
- * Cancel a plant's watering reminder (e.g. on delete).
- */
-export async function cancelWateringReminder(plantId: string): Promise<void> {
-  try {
-    await Notifications.cancelScheduledNotificationAsync(
-      notificationIdFor(plantId),
-    );
-  } catch (error) {
-    console.warn("cancelWateringReminder failed:", error);
-  }
+/** Opens this app's page in the phone's settings, to allow notifications. */
+export function openNotificationSettings(): void {
+  Linking.openSettings().catch((error) =>
+    console.warn("openNotificationSettings failed:", error),
+  );
 }
 
 /**
- * Cancel every scheduled reminder, e.g. on sign-out or account deletion.
+ * Cancels every reminder scheduled on this phone. Older builds scheduled
+ * their own; the server sends them now, so this runs once on each launch
+ * (it's cheap, and nothing schedules local notifications any more), and on
+ * sign-out.
  */
 export async function cancelAllWateringReminders(): Promise<void> {
   try {
@@ -123,28 +90,39 @@ export async function cancelAllWateringReminders(): Promise<void> {
 }
 
 /**
- * Rebuild reminders from the user's plants after they are loaded, so a
- * reinstall, a new device or a plant deleted elsewhere leaves no missing or
- * stale reminders. Only asks for permission once the user has plants.
+ * Clears reminders in the notification tray that no longer apply: the plant
+ * has been watered (its next watering is in the future) or is gone. Called
+ * whenever the household's plants change, so a housemate watering a plant
+ * clears the reminder on everyone's phone.
  */
-export async function syncAllWateringReminders(
+export async function dismissStaleReminders(
   plants: IUserPlant[],
+  now: number = Date.now(),
 ): Promise<void> {
-  if (plants.length === 0) {
-    return;
-  }
+  try {
+    const presented = await Notifications.getPresentedNotificationsAsync();
+    const byId = new Map(plants.map((p) => [p.id, p]));
 
-  const granted = await requestNotificationPermissions();
-  if (!granted) {
-    return;
+    await Promise.all(
+      presented
+        .filter((notification) => {
+          const data = notification.request.content.data as
+            | PlantNotificationData
+            | undefined;
+          if (!data?.plantId || (data.type !== "due" && data.type !== "nudge")) {
+            return false;
+          }
+          const plant = byId.get(data.plantId);
+          return (
+            !plant ||
+            (plant.next_watering_date != null && plant.next_watering_date > now)
+          );
+        })
+        .map((notification) =>
+          Notifications.dismissNotificationAsync(notification.request.identifier),
+        ),
+    );
+  } catch (error) {
+    console.warn("dismissStaleReminders failed:", error);
   }
-
-  await cancelAllWateringReminders();
-  await Promise.all(
-    plants.map((plant) =>
-      plant.reminders_enabled === false
-        ? cancelWateringReminder(plant.id)
-        : scheduleWateringReminder(plant),
-    ),
-  );
 }

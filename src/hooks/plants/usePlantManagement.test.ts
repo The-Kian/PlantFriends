@@ -12,6 +12,7 @@ import removeUserPlantFromFirebase from "@/helpers/firebase/removeUserPlantFromF
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
 import ErrorService from "@/services/ErrorService";
+import { registerForPush } from "@/services/PushRegistration";
 import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
@@ -125,6 +126,8 @@ describe("usePlantManagement", () => {
         expect(await result.current.handleSavePlant(mockUserPlant, mockPlant)).toBe(true);
       });
       expect(savePlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant, mockUser, mockHousehold);
+      // Adding a plant is when the app asks for notification permission.
+      expect(registerForPush).toHaveBeenCalledWith(mockUser.uid, { prompt: true });
       expect(mockDispatch).toHaveBeenCalledWith(addPlant(savedPlant));
       expect(result.current.selectedPlant).toBeNull();
       expect(result.current.userPlant).toEqual(savedPlant);
