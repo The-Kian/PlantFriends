@@ -53,26 +53,11 @@ the log lines mean is in `docs/OPERATIONS.md`.
 (`pnpm exec jest functions`, also part of `pnpm test`), with the Firebase
 packages mocked.
 
-## Linking housemates (the app does this now)
+## Linking housemates
 
-The **Link housemate** workflow (GitHub → Actions) adds someone to another
-person's household, or takes them out. The app can invite, join, leave and
-remove, so this is only a fallback. Don't use it to unlink whoever set the
-household up: use **Leave household** in the app. It runs `scripts/householdAdmin.js`
-with a service account key stored as the `FIREBASE_SERVICE_ACCOUNT`
-repository secret.
-
-To set the secret up once:
-
-1. Firebase console → Project settings → Service accounts → **Generate new
-   private key**. This downloads a JSON file.
-2. GitHub → the repo → Settings → Secrets and variables → Actions → **New
-   repository secret**. Name it `FIREBASE_SERVICE_ACCOUNT` and paste the whole
-   JSON file as the value.
-3. Delete the downloaded file.
-
-Both people must have opened the app at least once, so their accounts and
-households exist.
+The app does this now (invite, join, leave, remove). The old **Link housemate**
+workflow was removed in session 10. The `FIREBASE_SERVICE_ACCOUNT` secret is
+still used by the deploy workflows.
 
 ## Deploying Firestore rules and indexes
 

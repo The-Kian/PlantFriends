@@ -41,7 +41,7 @@ Rules for whoever does the session:
 | 7 | CI and deploy pipeline | 5 | Done |
 | 8 | Monitoring, logging, backups | 3 | Done (Kian's console steps left) |
 | 9 | End-to-end test and manual test script | 1, 2, 4 | Not started |
-| 10 | Privacy policy, store listing, release | all | Not started |
+| 10 | Privacy policy, store listing, release | all | Code and docs done (Kian: screenshots, Play, rollout) |
 
 Order for what's left: the **two-phone checkpoint** (below session 4), then
 8, 9 and 10. Sessions 8 and 9 can run in parallel.
@@ -645,16 +645,16 @@ with every failure fixed or written down.
 **Read first:** `docs/PRIVACY_POLICY.md`, `docs/STORE_LISTING.md`,
 `hosting/`, `scripts/build-privacy-page.js`, `eas.json`, `firestore.rules`.
 
-- [ ] Privacy policy: housemates see your display name and watering
+- [x] Privacy policy: housemates see your display name and watering
       activity; push tokens and time zone are stored; what happens to shared
       plants when you delete your account. Rebuild the hosted page.
-- [ ] Store listing: lead with household sharing, and replace "Reminders
-      are scheduled on your phone" with what is now true. Regenerate the screenshots.
-- [ ] Write out the answers for the Play data safety form.
-- [ ] Remove the legacy `Users/{uid}/UserPlants` rule and migration code if
+- [x] Store listing: lead with household sharing, and replace "Reminders
+      are scheduled on your phone" with what is now true. Regenerate the screenshots. (Text done; screenshots are a Kian step.)
+- [x] Write out the answers for the Play data safety form.
+- [x] Remove the legacy `Users/{uid}/UserPlants` rule and migration code if
       every tester is on a household build. Otherwise leave it and say why.
-- [ ] Remove dev-only code paths and the crash-alert flag from the production build.
-- [ ] Clear out **Found along the way** below: fix, or move to issues. Open
+- [x] Remove dev-only code paths and the crash-alert flag from the production build.
+- [x] Clear out **Found along the way** below: fix, or move to issues. Open
       now: `isVerified` on client catalog writes, stale
       `members[uid].displayName`, the 500-write limit and ID clash in
       `joinHousehold`, duplicate trigger delivery (`notify_for`), and
@@ -668,6 +668,29 @@ staged rollout. Watch Crashlytics and function errors for the first day.
 a week without Kian stepping in.
 
 **Notes:**
+
+- Privacy policy, store listing and the Play data safety answers (including
+  the push token, and that housemates see display name and watering activity)
+  are updated. `hosting/privacy.html` is rebuilt; it goes live with
+  `firebase deploy --only hosting`.
+- **Screenshots were not regenerated** (they need a phone with the build). The
+  listing's "Screenshots to take" list still applies; lead with a household
+  screen showing "watered by".
+- **Legacy `UserPlants` left in place.** `firestore.rules` and
+  `migrateUserPlants` stay because nobody has confirmed every tester is on a
+  household build, and an account that never opened a household build would
+  lose its plants. Remove both once the three testers have signed in on the
+  release build.
+- **Dev-only code:** the crash alert flag is set only in the `preview` profile
+  in `eas.json`, never `production`, and the handler is disabled in dev
+  builds. `seedFakePlants.ts` is not imported by the app. Nothing to remove.
+- **Fixed:** the catalog rule now rejects `isVerified: true` from clients
+  (test added; the rules tests need Java 21 and were not run locally, CI runs
+  them). The **Link housemate** workflow and its script are removed.
+- **Accepted for launch, not fixed** (rare, low impact at three users; revisit
+  if the household grows): stale `members[uid].displayName` after a rename,
+  the 500-write limit and ID clash in `joinHousehold`, and duplicate trigger
+  delivery (`notify_for`). They stay listed below.
 
 ---
 
@@ -688,8 +711,8 @@ Add things here that are outside your session.
   for these writes, or an offline banner.
 - (Session 8) `useFirebasePlantSearch` looks unused.
 
-- (Session 5) The catalog rule lets a client set `isVerified: true` on a new
-  plant. Consider forcing it to `false` for client writes.
+- ~~(Session 5) The catalog rule lets a client set `isVerified: true`.~~ Fixed
+  in session 10.
 - Expired `Invites` are never deleted. Set a Firestore TTL policy on
   `expiresAt` for the `Invites` collection (a console step, now in the
   two-phone checkpoint).
@@ -711,10 +734,8 @@ Add things here that are outside your session.
   due date the plan was made for would fix it.
 - ~~`sendWateringReminders` and `onPlantWritten` have no `maxInstances`.~~
   Settled when rebasing onto session 6: both use `MAX_INSTANCES`.
-- The **Link housemate** workflow's `unlink` only clears `householdId`. For
-  the person who set the household up, the app can't then make them a new
-  household (`Households/{uid}` is the one they left). The app's leave and
-  remove don't have this problem; the workflow could be retired.
+- ~~The **Link housemate** workflow's `unlink` only clears `householdId`.~~
+  Retired in session 10: workflow and script removed.
 - ~~The invite and join callables have no `maxInstances`, App Check or
   input length limits yet.~~ Settled in session 6; `leaveHousehold` and
   `removeMember` use the same guards.

@@ -212,6 +212,8 @@ describe("Catalog plants", () => {
     await assertFails(setDoc(c(EVE), { name: "Fern", images: Array(21).fill("x") }));
     await assertFails(setDoc(c(EVE), { name: "Fern", watering_frequency: "often" }));
     await assertFails(setDoc(c(EVE), { name: "Fern", id: "other" }));
+    // Clients can't mark their own contribution as verified.
+    await assertFails(setDoc(c(EVE), { name: "Fern", isVerified: true }));
   });
 
   test("can't be edited or deleted", async () => {

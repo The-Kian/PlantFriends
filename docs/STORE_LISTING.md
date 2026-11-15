@@ -8,7 +8,7 @@ Graphics are in `assets/store/` (regenerate with `node assets/icon-source/store.
 | Field | Value |
 | --- | --- |
 | App name | Plant Friends |
-| Apple subtitle (30) | Watering reminders for plants |
+| Apple subtitle (30) | Plant care for the household |
 | Category | Lifestyle (Apple: secondary category Utilities) |
 | Price | Free, no in-app purchases, no ads |
 | Support URL | https://plantfriends-31bcc.web.app |
@@ -18,11 +18,11 @@ Graphics are in `assets/store/` (regenerate with `node assets/icon-source/store.
 
 ## Short description (Play, 80 characters max)
 
-Track your houseplants and get a reminder when each one needs watering.
+Share plant care with your household and get a reminder when plants need water.
 
 ## Apple promotional text (170 max)
 
-Never wonder "did I water that?" again. Add your plants, set how often each needs water, and Plant Friends reminds you when it's time.
+Never wonder "did I water that?" again. Share your plants with housemates, see who watered what, and get a reminder when it's time.
 
 ## Apple keywords (100 max, comma-separated, no spaces)
 
@@ -30,7 +30,10 @@ plants,watering,reminder,houseplant,plant care,garden,succulent,water tracker,in
 
 ## Full description (Play 4000 max / Apple description)
 
-Plant Friends keeps your houseplants happy by remembering when each one needs water, so you don't have to.
+Plant Friends keeps your houseplants happy by remembering when each one needs water, so you don't have to. Look after them together: invite the people you live with and share the job.
+
+SHARE WITH YOUR HOUSEHOLD
+Invite housemates with a short code. Plants can be shared with everyone or kept as your own. Each plant shows who watered it last, and you can get a nudge when a housemate waters one of yours. Anyone can leave a household at any time.
 
 ADD YOUR PLANTS
 Search for a plant by name to pull in its care details, such as light, watering and toxicity, then give it a nickname and note where it lives in your home.
@@ -39,7 +42,7 @@ WATERING THAT FITS EACH PLANT
 Every plant gets its own watering schedule. Use the suggested one or set your own. When you water a plant, tap once and Plant Friends works out when it's next due.
 
 REMINDERS THAT ARRIVE ON TIME
-Get a notification on the day a plant needs watering. Reminders are scheduled on your phone, so they arrive even when you're offline.
+Get a notification on the day a plant needs watering, and a gentle nudge a day later if it's still thirsty. Reminders come from our server and are never sent between 21:00 and 08:00. You can turn watering reminders and housemate activity off separately in Profile.
 
 SEE WHAT NEEDS ATTENTION
 The home screen shows which plants are overdue, which are due soon and which are fine, so you can water the right ones first.
@@ -58,9 +61,9 @@ The account already has six plants, some due for watering today.
 Review notes:
 
 > Sign in with the email and password above. The account has plants already
-> added. Watering reminders are local notifications scheduled on the device,
-> so allow notifications when asked. Account deletion is under Profile →
-> Delete account.
+> added. Watering reminders are push notifications sent by our server, so
+> allow notifications when asked. Household invites and leaving are under
+> Profile → Household. Account deletion is under Profile → Delete account.
 
 ## Screenshots to take
 
@@ -79,12 +82,14 @@ Sizes:
 
 ## Google Play: Data safety answers
 
-- Does the app collect or share user data? **Yes, collects; does not share.**
+- Does the app collect or share user data? **Yes, collects.** It is **not shared** with third parties for their own use; other household members you invite see your display name and watering activity, which is in-app functionality you control. Expo's push service and Google Firebase process data on our behalf.
 - Is all data encrypted in transit? **Yes.**
 - Can users request deletion? **Yes**, in the app (Profile → Delete account) and by email.
 - Data collected:
   - **Personal info → Email address, Name:** collected, required, for App functionality and Account management.
-  - **App activity → Other user-generated content** (plants, notes, watering history): collected, required, for App functionality.
+  - **App activity → Other user-generated content** (plants, notes, watering history, who watered what): collected, required, for App functionality. Visible to the other members of a household you join.
+  - **Device or other IDs → Push notification token:** collected, required, for App functionality (reminders and housemate notifications). Sent to Expo's push service to deliver messages; this is service-provider processing, not sharing.
+  - **Location → Approximate:** not collected. Only the phone's **time zone setting** is stored, to avoid night-time reminders.
   - **App info and performance → Crash logs, Diagnostics:** collected, required, for Analytics (crash reporting).
   - **Device or other IDs:** collected (Crashlytics installation ID), for Analytics.
 - None of it is used for advertising or shared with third parties.
@@ -93,11 +98,11 @@ Other App content answers: no ads; content rating questionnaire, answer **No** t
 
 ## Apple: App Privacy answers
 
-Data types, all **linked to the user**, **not used for tracking**:
+Data types (add Device ID for the push token), all **linked to the user**, **not used for tracking**:
 
 - **Contact Info → Email Address, Name:** App Functionality.
 - **User Content → Other User Content:** App Functionality.
-- **Identifiers → User ID:** App Functionality.
+- **Identifiers → User ID, Device ID (push token):** App Functionality.
 - **Diagnostics → Crash Data:** App Functionality.
 
 Age rating: answer **None** to everything, which gives 4+.

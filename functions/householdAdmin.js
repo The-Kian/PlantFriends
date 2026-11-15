@@ -1,7 +1,6 @@
 /**
- * Linking housemates by hand, until the app has invites. Pure functions that
- * work out the writes; functions/scripts/householdAdmin.js applies them.
- * Run from GitHub: Actions → "Link housemate".
+ * Pure functions that work out household writes (joining, leaving, removing,
+ * account deletion). The callable functions in households.js apply them.
  */
 
 /** A short display name, matching the app's displayNameFor(). */
@@ -58,7 +57,7 @@ function moveWrites({ plants, uid }) {
  *
  * Used by leaving, removing a member and deleting an account. Leaving and
  * removing then give them a household of their own (functions/households.js);
- * the Link housemate workflow clears their householdId and the app does it.
+ * leaving clears their householdId through the callable functions.
  */
 function unlinkWrites({ household, plants, uid }) {
   const memberIds = household.memberIds || [];
