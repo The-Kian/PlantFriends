@@ -36,9 +36,9 @@ Rules for whoever does the session:
 | 2 | Leave a household, remove a member | 1 | Not started |
 | 3 | Server-side watering reminders | none | Not started |
 | 4 | Client switch to server reminders, notification settings | 3 | Not started |
-| 5 | Security rules tests and tighter rules | none | Not started |
-| 6 | App Check and rate limiting | none | Not started |
-| 7 | CI and deploy pipeline | 5 | Not started |
+| 5 | Security rules tests and tighter rules | none | Done |
+| 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
+| 7 | CI and deploy pipeline | 5 | Done (app audit report-only, history scan to run) |
 | 8 | Monitoring, logging, backups | 3 | Not started |
 | 9 | End-to-end test and manual test script | 1, 2, 4 | Not started |
 | 10 | Privacy policy, store listing, release | all | Not started |
@@ -201,22 +201,30 @@ their pushes.
 **Read first:** `firestore.rules`, the "Firestore rules" section of the
 sharing plan, `.github/workflows/lint_and_test.yml`.
 
-- [ ] Add `@firebase/rules-unit-testing` and the Firestore emulator, with a
+- [x] Add `@firebase/rules-unit-testing` and the Firestore emulator, with a
       script to run the rules tests locally.
-- [ ] Tests for every rule. At minimum: a non-member can't read or write a
+- [x] Tests for every rule. At minimum: a non-member can't read or write a
       household or its plants; a member can't change `memberIds`; a client
       can't write `notify_at`, `notify_stage` or `addedBy`; `carerIds` can't
       include a non-member; users can't read each other's profile or
       devices; `AnonymousPlants` and `Invites` are closed.
-- [ ] Tighten the catalog rule (`/Plants/{plantId}` create): limit the
+- [x] Tighten the catalog rule (`/Plants/{plantId}` create): limit the
       allowed keys and string lengths so it can't be filled with junk.
-- [ ] Add type and length checks to household plant writes (nickname,
+- [x] Add type and length checks to household plant writes (nickname,
       notes, dates).
-- [ ] Run the rules tests in CI.
+- [x] Run the rules tests in CI.
 
 **Done when:** the rules tests run in CI and fail if a rule is loosened.
 
 **Notes:**
+
+- Tests are in `firestore-tests/` (own `package.json`, run with node:test on
+  the emulator; needs Java). `npm test` there. CI job: **Firestore rules tests**.
+- Household plant checks cover the fields the app writes; unknown keys are
+  still allowed there because the migration copies old `UserPlants` docs as
+  they are. The catalog rule allows only `IPlant` keys plus `contributed_by`.
+- `Invites` has no rule, so it's closed. Session 1 must add rules (and tests)
+  for it.
 
 ---
 
@@ -224,15 +232,15 @@ sharing plan, `.github/workflows/lint_and_test.yml`.
 
 **Read first:** `functions/index.js`, `app.config.js`, `functions/README.md`.
 
-- [ ] Add `@react-native-firebase/app-check` with Play Integrity, and a
+- [x] Add `@react-native-firebase/app-check` with Play Integrity, and a
       debug provider for development builds.
-- [ ] Enforce App Check on every callable function. Put it behind a config
+- [x] Enforce App Check on every callable function. Put it behind a config
       switch so it can be turned on after the new build is installed.
-- [ ] Per-user rate limit on `searchPlants` (for example 30 a minute, kept
+- [x] Per-user rate limit on `searchPlants` (for example 30 a minute, kept
       in Firestore) and on `joinHousehold` (to stop code guessing).
-- [ ] Set `maxInstances` on every function.
-- [ ] Validate the type and length of every callable function's input.
-- [ ] Check no secret or token is written to the logs.
+- [x] Set `maxInstances` on every function.
+- [x] Validate the type and length of every callable function's input.
+- [x] Check no secret or token is written to the logs.
 
 **Kian does:** register the app for App Check in the Firebase console, add
 the debug token, deploy, then turn on enforcement for functions and
@@ -244,6 +252,17 @@ still works on a real phone.
 
 **Notes:**
 
+- Client: `src/services/AppCheck.ts`, started at the top of `App.tsx`. Debug
+  provider in dev builds, with an optional `EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN`.
+  Needs a new native build (config plugin added).
+- Server: `functions/guards.js` (`requireCaller`, `rateLimit`,
+  `requireString`, `redact`, `MAX_INSTANCES`). The switch is
+  `ENFORCE_APP_CHECK` in `functions/.env` (committed; no secrets).
+- `joinHousehold` doesn't exist yet. Session 1: call `requireCaller`,
+  `requireString` and `rateLimit(uid, "joinHousehold", 5, 60 * 60 * 1000)`
+  (or similar) and set `maxInstances: MAX_INSTANCES`.
+- Kian also: add a TTL policy on `RateLimits.expiresAt`.
+
 ---
 
 ## Session 7: CI and deploy pipeline
@@ -251,17 +270,17 @@ still works on a real phone.
 **Read first:** everything in `.github/workflows`, `docs/ci-builds.md`,
 `functions/package.json`.
 
-- [ ] CI runs the functions tests and the rules tests on every pull request.
+- [x] CI runs the functions tests and the rules tests on every pull request.
 - [ ] Add a dependency audit (`pnpm audit` and `npm audit` in `functions/`)
       that fails on high severity.
-- [ ] Add secret scanning for pull requests, and scan the git history once.
+- [x] Add secret scanning for pull requests, and scan the git history once.
       Report anything found; don't rewrite history.
-- [ ] Deploy functions, rules and indexes automatically on merge to `main`
+- [x] Deploy functions, rules and indexes automatically on merge to `main`
       when their files change, after CI passes. Keep the manual workflows
       for rollback.
-- [ ] Update `firebase-functions` and `firebase-admin` to current major
+- [x] Update `firebase-functions` and `firebase-admin` to current major
       versions and confirm the Node runtime is still supported.
-- [ ] Write `docs/RELEASE.md`: how to release, and how to roll back the
+- [x] Write `docs/RELEASE.md`: how to release, and how to roll back the
       app (halt the Play rollout), functions (redeploy an older ref) and rules.
 
 **Kian does:** make the CI checks required on `main` in the repository settings.
@@ -270,6 +289,24 @@ still works on a real phone.
 failing test blocks the merge.
 
 **Notes:**
+
+- `firebase-functions` is now 7.x and `firebase-admin` 14.x, on Node 22
+  (supported). Code uses the v1 API from `firebase-functions/v1`; moving to
+  v2 functions is optional and would change the function URLs/regions config.
+- **Deploy on merge** (`deploy.yml`) runs after CI succeeds on `main` and
+  deploys functions (all of them) and/or rules if they changed since the last
+  green push. The manual deploy workflows stay for rollback. There's no
+  `firestore.indexes.json` yet; add an indexes step when there is one.
+- Functions unit tests run in the root Jest (as before); the new **Functions**
+  CI job loads `index.js` against the real SDKs. `npm test` in `functions/`
+  now runs them.
+- Audit: `functions/` and `firestore-tests/` fail on high. The app's own
+  `pnpm audit` has ~60 high and 1 critical transitive advisories (Expo CLI
+  tooling, `@grpc/grpc-js` via RN Firebase), so that step is report-only for
+  now. See Found along the way.
+- Secret scanning: **Secret scan** (gitleaks) runs on pull requests. The
+  one-off history scan wasn't run in the session; run the workflow by hand
+  from Actions (it scans the full history) and check the result.
 
 ---
 
@@ -357,4 +394,12 @@ a week without Kian stepping in.
 
 Add things here that are outside your session.
 
--
+- (Session 7) `pnpm audit` on the app: about 60 high and 1 critical
+  advisories, all transitive (mostly `@expo/cli` tooling: shell-quote,
+  node-forge, xmldom, brace-expansion, js-yaml; also `@grpc/grpc-js` via
+  `@react-native-firebase/app`). `pnpm audit --fix` adds unbounded overrides
+  that would jump majors under Expo, so it wasn't applied. Decide: bounded
+  overrides, wait for Expo/RNFB updates, or an explicit ignore list; then make
+  the CI step blocking.
+- (Session 5) The catalog rule lets a client set `isVerified: true` on a new
+  plant. Consider forcing it to `false` for client writes.

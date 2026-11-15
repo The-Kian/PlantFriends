@@ -6,9 +6,10 @@
  *
  * See docs/household-sharing-plan.md.
  */
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
+const { MAX_INSTANCES } = require("./guards");
 const { sendToUsers } = require("./push");
 const { plantName, isWatering, wateredMessages } = require("./plantMessages");
 
@@ -31,7 +32,15 @@ async function basePlantName(db, plant) {
  * Sends the "already watered" pushes for one write to a household plant.
  * Returns how many phones were notified.
  */
-async function notifyWatering({ db, before, after, householdId, plantId, now, send = sendToUsers }) {
+async function notifyWatering({
+  db,
+  before,
+  after,
+  householdId,
+  plantId,
+  now,
+  send = sendToUsers,
+}) {
   if (!isWatering(before, after)) return 0;
 
   const [timeZone, baseName] = await Promise.all([
@@ -54,8 +63,9 @@ async function notifyWatering({ db, before, after, householdId, plantId, now, se
   return sent;
 }
 
-const onPlantWritten = functions.firestore
-  .document("Households/{householdId}/Plants/{plantId}")
+const onPlantWritten = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .firestore.document("Households/{householdId}/Plants/{plantId}")
   .onWrite(async (change, context) => {
     const { householdId, plantId } = context.params;
     const sent = await notifyWatering({
@@ -67,7 +77,11 @@ const onPlantWritten = functions.firestore
       now: Date.now(),
     });
     if (sent > 0) {
-      functions.logger.info("Sent watered notifications", { householdId, plantId, sent });
+      functions.logger.info("Sent watered notifications", {
+        householdId,
+        plantId,
+        sent,
+      });
     }
   });
 

@@ -35,6 +35,7 @@ export default {
     },
     plugins: [
       "@react-native-firebase/app",
+      "@react-native-firebase/app-check",
       "@react-native-firebase/auth",
       "@react-native-firebase/crashlytics",
       "@react-native-google-signin/google-signin",
@@ -48,7 +49,7 @@ export default {
         {
           ios: {
             useFrameworks: "static",
-            forceStaticLinking: ["RNFBApp", "RNFBAuth", "RNFBCrashlytics", "RNFBFirestore", "RNFBFunctions"]
+            forceStaticLinking: ["RNFBApp", "RNFBAppCheck", "RNFBAuth", "RNFBCrashlytics", "RNFBFirestore", "RNFBFunctions"]
           }
         }
       ],

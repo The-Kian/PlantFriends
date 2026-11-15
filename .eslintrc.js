@@ -14,6 +14,7 @@ module.exports = {
     "metro.config.js",
     "**/__mocks__/**",
     "functions/**",
+    "firestore-tests/**",
   ],
   settings: {
     "import/resolver": {

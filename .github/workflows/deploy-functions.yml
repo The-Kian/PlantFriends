@@ -1,7 +1,8 @@
 name: Deploy Cloud Functions
 
-# Deploys the named Cloud Functions to Firebase. Run it from the Actions tab
-# after merging a change under functions/.
+# Deploys the named Cloud Functions to Firebase from a branch, tag or commit.
+# Merges to main are deployed by "Deploy on merge" once CI passes; use this
+# to roll back (deploy an older ref) or to try a branch.
 #
 # The FIREBASE_SERVICE_ACCOUNT service account needs the Firebase Admin and
 # Service Account User roles in Google Cloud IAM for this (see
