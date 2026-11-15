@@ -174,6 +174,25 @@ which already handles a member disappearing), `functions/householdAdmin.js`.
       beside each member for the creator.
 - [x] Tests: last member leaves, creator leaves, removing yourself,
       non-creator tries to remove someone.
+- [ ] Manual test on two phones (Kian), with the session 4 build. Phone A
+      set up the household, phone B joined it. Each needs a plant of its
+      own, and one shared plant both look after.
+  - [ ] **Leave:** on B, Profile → **Leave household** → confirm. B is in a
+        new, empty household. B's plants stay with A; on A, a plant only B
+        looked after is now shared, and B is gone from the members list and
+        from every plant's carers.
+  - [ ] **Rejoin:** A invites again, B joins with the new code. B sees the
+        shared plants. B's old empty household is gone.
+  - [ ] **Remove:** on A, tap remove beside B → confirm. Same result on B as
+        leaving, without B doing anything (B's app switches over live).
+  - [ ] **Not the creator:** on B (after rejoining), there's no remove
+        button beside A.
+  - [ ] **Creator leaves:** with B in the household, A leaves. B becomes the
+        creator (B now has remove buttons). A ends up in a new household.
+  - [ ] **Last member:** alone in a household, there's no **Leave
+        household** button.
+  - [ ] **Housemate watering push still works** after rejoining: B waters
+        the shared plant, A gets "B watered …".
 
 **Kian does:** deploy functions, then leave and rejoin on a test phone.
 
@@ -226,6 +245,37 @@ This is phase 5 of `docs/household-sharing-plan.md` (the section
       from `firebase.json`, and deployed by the rules workflow.
 - [x] Add the new function to the **Deploy Cloud Functions** workflow's options.
 - [x] Tests with fake Firestore and fetch, as in `push.test.js`.
+- [ ] Manual test on two phones (Kian), with the session 4 build on both
+      and notifications allowed. Reminders are never sent between 21:00 and
+      08:00 in the household's time zone, so test during the day. To make a
+      plant due soon, set its `next_watering_date` in the Firebase console
+      (`Households/{hid}/Plants/{id}`, milliseconds since 1970) to about 5
+      minutes from now; the scheduler runs every 15 minutes, so allow up to
+      20.
+  - [ ] **Due, personal plant:** A gets one "Time to water the … 💧". B
+        gets nothing.
+  - [ ] **Due, shared plant:** A and B each get one "The … needs watering
+        💧".
+  - [ ] **Tap opens the plant** the reminder is about, with the app closed
+        and with it open.
+  - [ ] **Watering clears it:** B taps **Watered**. The reminder disappears
+        from A's tray too, and no nudge comes the next day.
+  - [ ] **Nudge:** leave a due plant unwatered. About 24 hours after the
+        reminder, one "The … is still thirsty 🥀" arrives, then nothing more.
+  - [ ] **Quiet hours:** set a plant due at 22:00 tonight. Nothing arrives
+        overnight; the reminder comes at about 08:00.
+  - [ ] **Switches:** A turns off **Watering reminders** in Profile; a due
+        plant reminds B only. Turn it back on. A turns off **When a housemate
+        waters my plants**; B waters, A gets nothing.
+  - [ ] **Per-plant switch:** turn reminders off on one plant; when due,
+        nobody gets a reminder for it.
+  - [ ] **No doubles:** over the whole test, no reminder arrives twice on
+        the same phone.
+  - [ ] **Permission denied:** deny notifications for the app in the phone's
+        settings. Profile shows the hint, and **Open settings** goes to the
+        app's settings page.
+  - [ ] **Logs:** in the Firebase console, `sendWateringReminders` logs a
+        summary line on each run, with no errors.
 
 **Kian does:** deploy functions and indexes. Enable Cloud Scheduler if the
 deploy asks. Set a test plant due in a few minutes and wait for the push.
