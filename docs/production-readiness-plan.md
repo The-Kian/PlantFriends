@@ -40,18 +40,23 @@ Rules for whoever does the session:
 | 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
 | 7 | CI and deploy pipeline | 5 | Done |
 | 8 | Monitoring, logging, backups | 3 | Done (Kian's console steps left) |
+| 9 | End-to-end test and manual test script | 1, 2, 4 | Done and merged (Kian: run the flows and the script) |
 | 10 | Privacy policy, store listing, release | all | Code and docs done (Kian: screenshots, Play, rollout) |
-| 9 | End-to-end test and manual test script | 1, 2, 4 | Code done (Kian: run the flows and the script) |
 
-Order for what's left: the **two-phone checkpoint** (below session 4), then
-8, 9 and 10. Sessions 8 and 9 can run in parallel.
+All ten sessions are written. What's left is Kian's: the **two-phone
+checkpoint** (below session 4), the Maestro flows and the manual test script
+(`docs/TEST_SCRIPT.md`), the session 8 console steps (alerts, backups, a test
+restore), screenshots, then the Play release (session 10 notes). Do the
+checkpoint before turning on App Check enforcement (see its last item).
 
 ## Where things stand (November 2026)
 
 - Household sharing phases 1 to 4 are on `main`: plants live under
   `Households/{hid}/Plants`, cards show who watered, phones register for
   push, and `onPlantWritten` tells carers when a housemate waters.
-Checked against the code and the Actions runs on 15 November 2026.
+Checked against the code and the Actions runs on 15 November 2026. Items
+below that mention deploys were **not re-checked** after that date, except
+where noted.
 
 - Housemates can invite and join with a code from Profile (session 1), and
   leave or remove a member (session 2). Their functions are deployed. Neither
@@ -66,22 +71,27 @@ Checked against the code and the Actions runs on 15 November 2026.
   `Cannot read properties of undefined (reading 'cert')`, which looks like
   the firebase-admin 14 problem fixed for the rules script in #83. The next
   **Deploy on merge** run skipped every job, so neither will retry by itself.
-- The app still schedules its own reminders
-  (`src/services/NotificationService.ts`). With the server reminders off,
-  nobody gets a reminder twice; keep it that way until the session 4 build
-  is on the phones.
+- Session 4 is merged: the app schedules no reminders of its own and cancels
+  old local ones on launch, so every reminder comes from the server once
+  `sendWateringReminders` and its index are live. Until then, no reminders go
+  out. Install the session 4 build on both phones before deploying the index.
 - Every callable goes through `functions/guards.js` (App Check, rate limits,
   input checks). App Check is not enforced yet: `ENFORCE_APP_CHECK=false` in
   `functions/.env`.
 - Rules tests (`firestore-tests/`), the functions tests, the dependency
   audits and the secret scan run in CI. Functions, rules and indexes deploy
   on merge to `main`; the manual workflows stay for rollback.
+- A throwaway keystore (`release.keystore`) was committed and removed in #95;
+  its fingerprint is deleted from Firebase, and the old commits remain in
+  history because the repo rules block force-pushes. It was never used for
+  EAS or Play.
 - The one-off secret history scan ran and failed. It flagged the Google API
   key in `google-services.json` (four hits, one under `android/app/`) and
   eight hits in `ios/Podfile.lock` that look like pod checksums. The API key
   ships in every build, so it isn't a secret, but it must be restricted
   (a session 6 step for Kian).
-- There are no end-to-end tests.
+- Maestro flows exist in `.maestro/` (session 9) but have never been run.
+  They aren't in CI.
 - Android builds come from the **Build Android test app** workflow. The
   latest test build predates sessions 2 and 3, so it has no leave or remove
   buttons. iOS is out of scope for this plan.
