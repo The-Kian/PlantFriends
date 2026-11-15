@@ -34,6 +34,11 @@ const HouseholdCard = () => {
   const { colors, radius, shadow } = useTheme();
 
   const [inviting, setInviting] = useState(false);
+  // The newest invite, shown on the card so the code can be read out or
+  // copied even if the share sheet is dismissed.
+  const [invite, setInvite] = useState<{ code: string; until: string } | null>(
+    null,
+  );
   const [showJoin, setShowJoin] = useState(false);
   const [code, setCode] = useState("");
   const [joining, setJoining] = useState(false);
@@ -102,20 +107,27 @@ const HouseholdCard = () => {
     );
   };
 
+  const shareInvite = (shown: { code: string; until: string }) =>
+    Share.share({
+      message:
+        "Join my household on Plant Friends. Open Profile, tap Join a " +
+        `household and enter this code: ${shown.code}. ` +
+        `It works until ${shown.until}.`,
+    });
+
   const handleInvite = async () => {
     setInviting(true);
     try {
-      const invite = await createInvite();
-      const until = new Date(invite.expiresAt).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "long",
-      });
-      await Share.share({
-        message:
-          "Join my household on Plant Friends. Open Profile, tap Join a " +
-          `household and enter this code: ${formatInviteCode(invite.code)}. ` +
-          `It works until ${until}.`,
-      });
+      const created = await createInvite();
+      const shown = {
+        code: formatInviteCode(created.code),
+        until: new Date(created.expiresAt).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+        }),
+      };
+      setInvite(shown);
+      await shareInvite(shown);
     } catch (error) {
       ErrorService.handleError(error, "Invite housemate", {
         userMessage: joinErrorMessage(
@@ -219,6 +231,40 @@ const HouseholdCard = () => {
         />
       ) : null}
 
+      {invite ? (
+        <View
+          style={[
+            styles.invite,
+            { borderColor: colors.border, borderRadius: radius.medium },
+          ]}
+          testID="invite-code-box"
+        >
+          <ThemedText type="caption">Invite code</ThemedText>
+          <ThemedText
+            selectable
+            style={styles.inviteCode}
+            accessibilityLabel={`Invite code ${invite.code.split("").join(" ")}`}
+          >
+            {invite.code}
+          </ThemedText>
+          <ThemedText type="caption">
+            Works until {invite.until}. Your housemate taps Join a household
+            and enters it. Press and hold the code to copy it.
+          </ThemedText>
+          <ThemedButton
+            title="Share code"
+            icon="share-outline"
+            variant="secondary"
+            onPress={() =>
+              shareInvite(invite).catch((error) =>
+                ErrorService.handleError(error, "Share invite"),
+              )
+            }
+            accessibilityLabel="Share code"
+          />
+        </View>
+      ) : null}
+
       <ThemedButton
         title="Join a household"
         variant="secondary"
@@ -284,6 +330,18 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  invite: {
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: Spacing.medium,
+    gap: Spacing.small,
+    alignItems: "center",
+  },
+  inviteCode: {
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: "700",
+    letterSpacing: 2,
   },
   joinForm: {
     marginTop: Spacing.small,
