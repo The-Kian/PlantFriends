@@ -94,7 +94,7 @@ jest.mock("firebase-admin", () => ({
   auth: () => ({ deleteUser: async (uid) => deletedUsers.push(uid) }),
 }), { virtual: true }); // CI doesn't install functions/ dependencies
 
-jest.mock("firebase-functions", () => {
+jest.mock("firebase-functions/v1", () => {
   class HttpsError extends Error {
     constructor(code, message) {
       super(message);
@@ -104,7 +104,10 @@ jest.mock("firebase-functions", () => {
   const https = { onCall: (handler) => handler, HttpsError };
   return {
     https,
-    runWith: () => ({ https }),
+    runWith: () => ({
+      https,
+      firestore: { document: () => ({ onWrite: (handler) => handler }) },
+    }),
     firestore: { document: () => ({ onWrite: (handler) => handler }) },
     logger: { error: jest.fn(), info: jest.fn() },
   };

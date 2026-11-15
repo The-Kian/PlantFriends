@@ -28,6 +28,39 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid in householdMemberIds(hid);
     }
 
+    function optString(data, key, max) {
+      return !(key in data) || data[key] == null
+        || (data[key] is string && data[key].size() <= max);
+    }
+
+    function optNumber(data, key) {
+      return !(key in data) || data[key] == null || data[key] is number;
+    }
+
+    function optBool(data, key) {
+      return !(key in data) || data[key] is bool;
+    }
+
+    // Type and length checks for the fields people edit on a household plant.
+    function validHouseholdPlant(data) {
+      return optString(data, 'custom_name', 100)
+        && optString(data, 'custom_notes', 2000)
+        && optString(data, 'location', 100)
+        && optString(data, 'houseLocation', 100)
+        && optString(data, 'plantId', 200)
+        && optString(data, 'slug', 200)
+        && optString(data, 'last_watered_by_name', 100)
+        && optNumber(data, 'date_added')
+        && optNumber(data, 'last_watered_date')
+        && optNumber(data, 'next_watering_date')
+        && optNumber(data, 'custom_watering_schedule')
+        && optBool(data, 'reminders_enabled')
+        && optBool(data, 'is_favorite')
+        && optBool(data, 'shared')
+        && (!('carerIds' in data) || data.carerIds is list && data.carerIds.size() <= 20)
+        && (!('custom_attributes' in data) || data.custom_attributes is map);
+    }
+
     match /Households/{hid} {
       // A user may check whether their own household exists yet; its ID is their uid.
       allow read: if (request.auth != null && hid == request.auth.uid && resource == null)
@@ -52,12 +85,14 @@ service cloud.firestore {
         allow create: if isMember(hid)
           && request.resource.data.addedBy == request.auth.uid
           && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
-          && !request.resource.data.keys().hasAny(['notify_at', 'notify_stage']);
+          && !request.resource.data.keys().hasAny(['notify_at', 'notify_stage'])
+          && validHouseholdPlant(request.resource.data);
         // notify_at and notify_stage are set by Cloud Functions; addedBy never changes.
         allow update: if isMember(hid)
           && !request.resource.data.diff(resource.data).affectedKeys()
                .hasAny(['notify_at', 'notify_stage', 'addedBy'])
-          && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []));
+          && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
+          && validHouseholdPlant(request.resource.data);
         allow delete: if isMember(hid);
       }
     }
@@ -66,15 +101,50 @@ service cloud.firestore {
     // contribute a new plant, but existing shared plants cannot be edited
     // or deleted by clients.
     //
-    // `create` requires a non-empty name (or scientific_name) so the catalog
-    // can't be filled with empty/garbage documents. All other writes are
-    // denied to clients (managed by admins/server only).
+    // `create` requires a non-empty name (or scientific_name), only the
+    // fields of IPlant, and sensible sizes, so the catalog can't be filled
+    // with junk. All other writes are denied to clients.
+    function optList(data, key, max) {
+      return !(key in data) || (data[key] is list && data[key].size() <= max);
+    }
+
+    function validCatalogPlant(data, plantId) {
+      return data.keys().hasOnly(['id', 'name', 'slug', 'scientific_name',
+          'common_names', 'description', 'sun_requirements', 'watering_frequency',
+          'fertilizer_needs', 'temperature_minimum', 'temperature_maximum',
+          'humidity_requirements', 'growth_rate', 'pruning_needs',
+          'pest_susceptibility', 'toxicity', 'images', 'growing_season',
+          'mature_size', 'contributedBy', 'contributed_by', 'isVerified'])
+        && (!('id' in data) || data.id == plantId)
+        && (data.get('name', '') is string && data.get('name', '').size() > 0
+          || data.get('scientific_name', []) is list && data.get('scientific_name', []).size() > 0)
+        && optString(data, 'name', 200)
+        && optString(data, 'slug', 200)
+        && optString(data, 'description', 2000)
+        && optString(data, 'sun_requirements', 500)
+        && optString(data, 'fertilizer_needs', 500)
+        && optString(data, 'humidity_requirements', 500)
+        && optString(data, 'growth_rate', 200)
+        && optString(data, 'pruning_needs', 500)
+        && optString(data, 'toxicity', 500)
+        && optString(data, 'growing_season', 200)
+        && optString(data, 'mature_size', 200)
+        && optString(data, 'contributedBy', 200)
+        && optString(data, 'contributed_by', 200)
+        && optNumber(data, 'watering_frequency')
+        && optNumber(data, 'temperature_minimum')
+        && optNumber(data, 'temperature_maximum')
+        && optBool(data, 'isVerified')
+        && optList(data, 'scientific_name', 10)
+        && optList(data, 'common_names', 50)
+        && optList(data, 'pest_susceptibility', 50)
+        && optList(data, 'images', 20);
+    }
+
     match /Plants/{plantId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null
-        && request.resource.data.keys().hasAny(["name", "scientific_name"])
-        && (request.resource.data.name is string && request.resource.data.name.size() > 0
-          || request.resource.data.scientific_name is list && request.resource.data.scientific_name.size() > 0);
+        && validCatalogPlant(request.resource.data, plantId);
       allow update, delete: if false;
     }
 
@@ -82,6 +152,9 @@ service cloud.firestore {
     match /Invites/{code} {
       allow read, write: if false;
     }
+
+    // Other collections not matched here (RateLimits) are closed to clients:
+    // Firestore denies anything no rule allows.
 
     // Anonymised plants kept after account deletion. Written only by the
     // deleteAccount Cloud Function (Admin SDK); no client access.

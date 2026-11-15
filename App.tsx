@@ -17,10 +17,14 @@ import { RootStackParamList } from "@/components/navigation/types";
 import { AuthContext, AuthProvider } from "@/context/auth/AuthProvider";
 import { HouseholdProvider } from "@/context/household/HouseholdProvider";
 import { useTheme } from "@/hooks/utils/useTheme";
+import { initAppCheck } from "@/services/AppCheck";
 import { PlantNotificationData } from "@/services/NotificationService";
 import { setupStore } from "@/store/store";
 
 import "./gesture-handler";
+
+// Start App Check before anything calls Firebase.
+initAppCheck();
 
 // Create the Redux store once at module scope so it's not recreated on every render
 const store = setupStore();

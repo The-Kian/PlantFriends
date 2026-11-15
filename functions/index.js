@@ -6,10 +6,17 @@
  * Expected payload: { q: string }
  * Returns: IPlant[] mapped to the app's shape (mirrors mapTreflePlantToIPlant).
  */
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 const { anonymiseUserPlant } = require("./anonymise");
+const {
+  MAX_INSTANCES,
+  requireCaller,
+  rateLimit,
+  requireString,
+  redact,
+} = require("./guards");
 const { createInviteHandler, joinHouseholdHandler } = require("./households");
 
 admin.initializeApp();
@@ -50,7 +57,8 @@ function mapTreflePlantToIPlant(plant) {
   }
 
   const descriptionParts = [];
-  if (plant.growth_habit) descriptionParts.push(`Growth: ${plant.growth_habit}`);
+  if (plant.growth_habit)
+    descriptionParts.push(`Growth: ${plant.growth_habit}`);
   if (plant.edibility) descriptionParts.push(`Edible: ${plant.edibility}`);
   if (plant.invasive) descriptionParts.push("⚠️ Invasive species");
   const description = descriptionParts.join(" | ");
@@ -90,57 +98,57 @@ function mapTreflePlantToIPlant(plant) {
 // Declaring the secret makes Firebase inject it into process.env at runtime.
 // Set it with `firebase functions:secrets:set TREFLE_API_KEY`.
 exports.searchPlants = functions
-  .runWith({ secrets: ["TREFLE_API_KEY"] })
+  .runWith({ secrets: ["TREFLE_API_KEY"], maxInstances: MAX_INSTANCES })
   .https.onCall(async (data, context) => {
+    const uid = requireCaller(context);
+    const q = requireString(data && data.q, "q", 100);
+    await rateLimit(uid, "searchPlants", 30, 60 * 1000);
+
     const TREFLE_API_KEY = process.env.TREFLE_API_KEY;
     if (!TREFLE_API_KEY) {
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "Trefle API key is not configured.",
-      );
-    }
-
-    const q = (data && data.q ? String(data.q).trim() : "").slice(0, 100);
-    if (!q) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "A non-empty search query is required.",
+        "Trefle API key is not configured."
       );
     }
 
     try {
       const url = `${TREFLE_BASE_URL}/species/search?token=${encodeURIComponent(
-        TREFLE_API_KEY,
+        TREFLE_API_KEY
       )}&q=${encodeURIComponent(q)}&limit=20`;
       const response = await fetch(url);
 
       if (response.status === 401) {
         throw new functions.https.HttpsError(
           "internal",
-          "Invalid Trefle API token.",
+          "Invalid Trefle API token."
         );
       }
       if (response.status === 429) {
         throw new functions.https.HttpsError(
           "resource-exhausted",
-          "Trefle API rate limit reached.",
+          "Trefle API rate limit reached."
         );
       }
       if (!response.ok) {
         throw new functions.https.HttpsError(
           "internal",
-          `Trefle API request failed with status ${response.status}.`,
+          `Trefle API request failed with status ${response.status}.`
         );
       }
 
       const payload = await response.json();
-      const dataList = payload && Array.isArray(payload.data) ? payload.data : [];
+      const dataList =
+        payload && Array.isArray(payload.data) ? payload.data : [];
       return { plants: dataList.map(mapTreflePlantToIPlant) };
     } catch (error) {
       if (error instanceof functions.https.HttpsError) {
         throw error;
       }
-      functions.logger.error("searchPlants failed", error);
+      // The request URL holds the Trefle token, so never log the raw error.
+      functions.logger.error("searchPlants failed", {
+        message: redact(error && error.message, [TREFLE_API_KEY]),
+      });
       throw new functions.https.HttpsError("internal", "Search failed.");
     }
   });
@@ -159,109 +167,106 @@ exports.searchPlants = functions
  * Runs with the Admin SDK, so it does not need a recent login. Safe to call
  * again if a previous attempt failed part way.
  */
-exports.deleteAccount = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be signed in to delete your account.",
-    );
-  }
-
-  const uid = context.auth.uid;
-  const db = admin.firestore();
-  const userRef = db.collection("Users").doc(uid);
-
-  try {
-    const userSnap = await userRef.get();
-    const userData = userSnap.exists ? userSnap.data() : {};
-    const householdRef = db
-      .collection("Households")
-      .doc(userData.householdId || uid);
-    const householdSnap = await householdRef.get();
-    const memberIds = householdSnap.exists
-      ? householdSnap.data().memberIds || []
-      : [];
-    const isMember = memberIds.includes(uid);
-    const hasHousemates = memberIds.some((id) => id !== uid);
-
-    // Their plants: the ones they added to the household, plus any left in
-    // the old UserPlants collection if they never ran the migration (once
-    // migrated, those are copies of household plants and would count twice).
-    const householdPlants = isMember
-      ? (await householdRef.collection("Plants").get()).docs.filter(
-          (plantDoc) => plantDoc.data().addedBy === uid,
-        )
-      : [];
-    const oldPlants = userData.plantsMigratedAt
-      ? []
-      : (await userRef.collection("UserPlants").get()).docs;
-
-    const writer = db.bulkWriter();
-    [...householdPlants, ...oldPlants].forEach((plantDoc) => {
-      writer.create(db.collection("AnonymousPlants").doc(), {
-        ...anonymiseUserPlant(plantDoc.data()),
-        anonymisedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    });
-    await writer.close();
-
-    if (isMember && hasHousemates) {
-      const { FieldValue } = admin.firestore;
-      const cleanup = db.bulkWriter();
-      householdPlants.forEach((plantDoc) => cleanup.delete(plantDoc.ref));
-      cleanup.update(householdRef, {
-        memberIds: FieldValue.arrayRemove(uid),
-        [`members.${uid}`]: FieldValue.delete(),
-      });
-      const remaining = await householdRef
-        .collection("Plants")
-        .where("carerIds", "array-contains", uid)
-        .get();
-      remaining.docs
-        .filter((plantDoc) => plantDoc.data().addedBy !== uid)
-        .forEach((plantDoc) =>
-          cleanup.update(plantDoc.ref, {
-            carerIds: FieldValue.arrayRemove(uid),
-          }),
-        );
-      await cleanup.close();
-    } else if (isMember) {
-      await db.recursiveDelete(householdRef);
-    }
-
-    await db.recursiveDelete(userRef);
+exports.deleteAccount = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall(async (data, context) => {
+    // Takes no input; anything sent is ignored.
+    const uid = requireCaller(context);
+    const db = admin.firestore();
+    const userRef = db.collection("Users").doc(uid);
 
     try {
-      await admin.auth().deleteUser(uid);
-    } catch (error) {
-      if (error.code !== "auth/user-not-found") {
-        throw error;
-      }
-    }
+      const userSnap = await userRef.get();
+      const userData = userSnap.exists ? userSnap.data() : {};
+      const householdRef = db
+        .collection("Households")
+        .doc(userData.householdId || uid);
+      const householdSnap = await householdRef.get();
+      const memberIds = householdSnap.exists
+        ? householdSnap.data().memberIds || []
+        : [];
+      const isMember = memberIds.includes(uid);
+      const hasHousemates = memberIds.some((id) => id !== uid);
 
-    return { deleted: true };
-  } catch (error) {
-    functions.logger.error("deleteAccount failed", { uid, error });
-    throw new functions.https.HttpsError(
-      "internal",
-      "Account deletion failed. Please try again.",
-    );
-  }
-});
+      // Their plants: the ones they added to the household, plus any left in
+      // the old UserPlants collection if they never ran the migration (once
+      // migrated, those are copies of household plants and would count twice).
+      const householdPlants = isMember
+        ? (await householdRef.collection("Plants").get()).docs.filter(
+            (plantDoc) => plantDoc.data().addedBy === uid
+          )
+        : [];
+      const oldPlants = userData.plantsMigratedAt
+        ? []
+        : (await userRef.collection("UserPlants").get()).docs;
+
+      const writer = db.bulkWriter();
+      [...householdPlants, ...oldPlants].forEach((plantDoc) => {
+        writer.create(db.collection("AnonymousPlants").doc(), {
+          ...anonymiseUserPlant(plantDoc.data()),
+          anonymisedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+      await writer.close();
+
+      if (isMember && hasHousemates) {
+        const { FieldValue } = admin.firestore;
+        const cleanup = db.bulkWriter();
+        householdPlants.forEach((plantDoc) => cleanup.delete(plantDoc.ref));
+        cleanup.update(householdRef, {
+          memberIds: FieldValue.arrayRemove(uid),
+          [`members.${uid}`]: FieldValue.delete(),
+        });
+        const remaining = await householdRef
+          .collection("Plants")
+          .where("carerIds", "array-contains", uid)
+          .get();
+        remaining.docs
+          .filter((plantDoc) => plantDoc.data().addedBy !== uid)
+          .forEach((plantDoc) =>
+            cleanup.update(plantDoc.ref, {
+              carerIds: FieldValue.arrayRemove(uid),
+            })
+          );
+        await cleanup.close();
+      } else if (isMember) {
+        await db.recursiveDelete(householdRef);
+      }
+
+      await db.recursiveDelete(userRef);
+
+      try {
+        await admin.auth().deleteUser(uid);
+      } catch (error) {
+        if (error.code !== "auth/user-not-found") {
+          throw error;
+        }
+      }
+
+      return { deleted: true };
+    } catch (error) {
+      functions.logger.error("deleteAccount failed", {
+        uid,
+        message: error && error.message,
+        code: error && error.code,
+      });
+      throw new functions.https.HttpsError(
+        "internal",
+        "Account deletion failed. Please try again."
+      );
+    }
+  });
 
 /**
  * Runs an invite/join handler for the signed-in caller. HttpsErrors go to the
  * app as they are; anything else is logged (ids only, never codes, emails or
  * names) and the app gets a generic error.
  */
-async function runHouseholdCall(name, context, run) {
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be signed in.",
-    );
-  }
+async function runHouseholdCall(name, context, limit, run) {
+  requireCaller(context);
   const { uid, token } = context.auth;
+  // Limits code guessing: previews and joins share one per-user allowance.
+  await rateLimit(uid, name, limit.max, limit.windowMs);
   try {
     return await run({
       db: admin.firestore(),
@@ -277,18 +282,30 @@ async function runHouseholdCall(name, context, run) {
 }
 
 /** createInvite — a member gets a code to share. See ./households.js. */
-exports.createInvite = functions.https.onCall((data, context) =>
-  runHouseholdCall("createInvite", context, (args) =>
-    createInviteHandler(args),
-  ),
-);
+exports.createInvite = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) =>
+    runHouseholdCall(
+      "createInvite",
+      context,
+      { max: 20, windowMs: 60 * 60 * 1000 },
+      (args) => createInviteHandler(args),
+    ),
+  );
 
 /** joinHousehold — join with a code, or preview it with { preview: true }. */
-exports.joinHousehold = functions.https.onCall((data, context) =>
-  runHouseholdCall("joinHousehold", context, (args) =>
-    joinHouseholdHandler({ ...args, data }),
-  ),
-);
+exports.joinHousehold = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) => {
+    requireCaller(context);
+    const code = requireString(data && data.code, "code", 32);
+    return runHouseholdCall(
+      "joinHousehold",
+      context,
+      { max: 20, windowMs: 60 * 60 * 1000 },
+      (args) => joinHouseholdHandler({ ...args, data: { ...data, code } }),
+    );
+  });
 
 // Shared-care notifications: see ./notifications.js.
 exports.onPlantWritten = require("./notifications").onPlantWritten;

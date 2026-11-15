@@ -5,7 +5,7 @@
  *
  * Invites/{code} is written and read only here (see firestore.rules).
  */
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 const { generateCode, normaliseCode } = require("./inviteCode");

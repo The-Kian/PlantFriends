@@ -1,0 +1,111 @@
+name: Deploy on merge
+
+# After CI passes on main, deploys whatever changed in that push: Cloud
+# Functions (anything under functions/) and Firestore rules.
+# To roll back, run "Deploy Cloud Functions" or "Deploy Firestore rules" by
+# hand with an older ref. See docs/RELEASE.md.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read # to find the last green CI run
+
+concurrency:
+  group: deploy-on-merge
+  cancel-in-progress: false
+
+jobs:
+  changes:
+    name: What changed
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      functions: ${{ steps.diff.outputs.functions }}
+      rules: ${{ steps.diff.outputs.rules }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Compare with the last deployed push
+        id: diff
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Compare with the previous successful CI run on main, so a push
+          # whose CI failed still gets deployed by the next green one.
+          base=$(gh run list --workflow CI --branch main --event push --status success \
+            --json headSha --jq "[.[] | select(.headSha != \"$SHA\")][0].headSha" --limit 20)
+          if [ -z "$base" ] || ! git cat-file -e "$base" 2>/dev/null; then
+            base="$SHA^"
+          fi
+          changed=$(git diff --name-only "$base" "$SHA")
+          echo "Changed since $base:"; echo "$changed"
+          echo "functions=$(echo "$changed" | grep -q '^functions/' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "rules=$(echo "$changed" | grep -qx 'firestore.rules' && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  rules:
+    name: Deploy Firestore rules
+    needs: changes
+    if: needs.changes.outputs.rules == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        working-directory: functions
+        run: npm ci --omit=dev
+
+      - name: Deploy
+        working-directory: functions
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node scripts/deployFirestoreRules.js ../firestore.rules
+
+  functions:
+    name: Deploy Cloud Functions
+    needs: changes
+    if: needs.changes.outputs.functions == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        working-directory: functions
+        run: npm ci
+
+      - name: Deploy all functions
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::The FIREBASE_SERVICE_ACCOUNT secret isn't set. See functions/README.md."
+            exit 1
+          fi
+          key="$RUNNER_TEMP/service-account.json"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$key"
+          project=$(node -e 'console.log(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).project_id)' "$key")
+          status=0
+          GOOGLE_APPLICATION_CREDENTIALS="$key" npx --yes firebase-tools@latest deploy \
+            --only functions --project "$project" --non-interactive --force || status=$?
+          rm -f "$key"
+          exit $status
