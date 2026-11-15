@@ -28,6 +28,7 @@ type ThemedButtonProps = {
   disabled?: boolean;
   additionalStyle?: StyleProp<ViewStyle>;
   testID?: string;
+  accessibilityLabel?: string;
 };
 
 function ThemedButton({
@@ -37,6 +38,7 @@ function ThemedButton({
   icon,
   disabled = false,
   testID = "themed-button",
+  accessibilityLabel,
   variant = "default",
 }: ThemedButtonProps) {
   const buttonStyles = useThemedButtonStyles();
@@ -64,6 +66,7 @@ function ThemedButton({
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         buttonStyles.button,

@@ -103,8 +103,9 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
   const migrating = useRef(false);
   const basePlantCache = useRef<BasePlantCache>(new Map());
 
-  // 1. Follow the user's profile to find their household. Linking housemates
-  //    in the console updates householdId here, and the app switches over live.
+  // 1. Follow the user's profile to find their household. Joining a household
+  //    (the joinHousehold function) updates householdId here, and the app
+  //    switches over live.
   useEffect(() => {
     if (!user) {
       setHouseholdId(null);
