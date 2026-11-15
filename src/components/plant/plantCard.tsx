@@ -46,6 +46,7 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
     return (
         <Pressable
             onPress={onPress}
+            accessibilityLabel={[displayName, badge, status.message, lastWateredText].filter(Boolean).join(". ")}
             accessibilityRole="button"
             style={({ pressed }) => [
                 styles.card,
@@ -85,7 +86,7 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
                 </View>
             </View>
             <Pressable
-                accessibilityLabel="Delete"
+                accessibilityLabel={`Delete ${displayName}`}
                 accessibilityRole="button"
                 hitSlop={10}
                 onPress={() => onDelete(plant)}
