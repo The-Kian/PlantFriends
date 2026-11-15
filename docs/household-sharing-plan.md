@@ -25,10 +25,11 @@ Decisions made so far:
 - **Leaving:** when a member deletes their account, the household keeps its
   plants. Plants only they looked after become shared with whoever is left.
 
-**Status:** phases 1 and 2 are on `main`. Phase 3 is in review. Test builds
-come from the **Build Android test app** workflow (see `docs/ci-builds.md`),
-and housemates are linked with the **Link housemate** workflow. A first pass at
-all six phases is in closed PR #59, and each phase's code can be taken from there.
+**Status:** phases 1 to 4 are on `main`. Phase 4's function still needs
+deploying (the **Deploy Cloud Functions** workflow) and checking on two
+phones. Test builds come from the **Build Android test app** workflow (see
+`docs/ci-builds.md`), housemates are linked with **Link housemate**, and
+**Send test push** checks a phone can receive notifications.
 
 ## Data model
 
@@ -297,7 +298,8 @@ Phones can receive pushes. Nothing sends real ones yet.
 - **Code:** the watering half of `onPlantWritten`, `wateredMessages` in
   `plantMessages.js`, and the "When a housemate waters my plants" switch on
   Profile.
-- **You do:** `firebase deploy --only functions:onPlantWritten`
+- **You do:** run the **Deploy Cloud Functions** workflow for `onPlantWritten`
+  (or `firebase deploy --only functions:onPlantWritten`).
 - **Check:**
   - A waters B's plant: B gets "A watered your Monstera 💧 No need to water
     it. Next due …". A gets nothing.

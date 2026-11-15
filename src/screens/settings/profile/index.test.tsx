@@ -13,10 +13,18 @@ import {
 } from "@testing-library/react-native";
 
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { HouseholdContext } from "@/context/household/HouseholdProvider";
+import setNotificationPref from "@/helpers/firebase/setNotificationPref";
 import SignupScreen from "@/screens/auth/signup";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
+import mockUser from "@/test-utils/MockFirebaseUser";
+import { mockHouseholdContext } from "@/test-utils/MockHousehold";
 
 import ProfileSettingsScreen from "./index";
+
+jest.mock("@/helpers/firebase/setNotificationPref", () =>
+  jest.fn(async () => {}),
+);
 
 describe("ProfileSettingsScreen", () => {
   const Stack = createStackNavigator();
@@ -46,6 +54,33 @@ describe("ProfileSettingsScreen", () => {
       </NavigationContainer>,
     );
   };
+
+  it("turns housemate watering notifications off and shows the saved setting", () => {
+    const renderProfile = (housemateActivity?: boolean) =>
+      render(
+        <NavigationContainer>
+          <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+            <HouseholdContext.Provider
+              value={mockHouseholdContext({ notificationPrefs: { housemateActivity } })}
+            >
+              <ProfileSettingsScreen />
+            </HouseholdContext.Provider>
+          </AuthContext.Provider>
+        </NavigationContainer>,
+      );
+
+    // On unless it has been switched off.
+    const { unmount } = renderProfile();
+    const toggle = screen.getByLabelText("When a housemate waters my plants");
+    expect(toggle).toHaveProp("value", true);
+
+    fireEvent(toggle, "valueChange", false);
+    expect(setNotificationPref).toHaveBeenCalledWith(mockUser.uid, "housemateActivity", false);
+    unmount();
+
+    renderProfile(false);
+    expect(screen.getByLabelText("When a housemate waters my plants")).toHaveProp("value", false);
+  });
 
   it("renders correctly", () => {
     renderWithFullContext();

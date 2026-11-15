@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { ProviderProps } from "@/constants/genericTypes";
 import {
   IHousehold,
+  INotificationPrefs,
   IPlant,
   IUserPlant,
   IUserPlantMerged,
@@ -37,6 +38,8 @@ export interface HouseholdContextType {
   /** True until the household's plants have loaded for the first time. */
   loading: boolean;
   error: string | null;
+  /** The signed-in user's notification switches. */
+  notificationPrefs: INotificationPrefs;
   /** A member's display name, or null if they aren't in the household. */
   memberName: (uid?: string | null) => string | null;
 }
@@ -45,6 +48,7 @@ export const HouseholdContext = createContext<HouseholdContextType>({
   household: null,
   loading: true,
   error: null,
+  notificationPrefs: {},
   memberName: () => null,
 });
 
@@ -92,6 +96,8 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
   const [household, setHousehold] = useState<IHousehold | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notificationPrefs, setNotificationPrefs] =
+    useState<INotificationPrefs>({});
 
   const settingUp = useRef(false);
   const migrating = useRef(false);
@@ -105,6 +111,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       setHousehold(null);
       setLoading(true);
       setError(null);
+      setNotificationPrefs({});
       settingUp.current = false;
       migrating.current = false;
       dispatch(setUserPlants([]));
@@ -121,7 +128,9 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         const profile = (snap?.data() ?? {}) as {
           householdId?: string;
           plantsMigratedAt?: unknown;
+          notificationPrefs?: INotificationPrefs;
         };
+        setNotificationPrefs(profile.notificationPrefs ?? {});
 
         if (!profile.householdId) {
           setUpHousehold(user);
@@ -216,10 +225,11 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       household,
       loading,
       error,
+      notificationPrefs,
       memberName: (uid) =>
         (uid && household?.members?.[uid]?.displayName) || null,
     }),
-    [household, loading, error],
+    [household, loading, error, notificationPrefs],
   );
 
   return (

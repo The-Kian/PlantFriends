@@ -90,6 +90,12 @@ export interface IUserPlant {
   last_watered_by_name?: string | null;
 }
 
+/** Per-user notification switches, stored on `Users/{uid}.notificationPrefs`. */
+export interface INotificationPrefs {
+  /** "Sam watered your Monstera". On unless switched off. */
+  housemateActivity?: boolean;
+}
+
 /**
  * A household: housemates who share one set of plants.
  * Stored at `Households/{id}`; plants live in its `Plants` subcollection.

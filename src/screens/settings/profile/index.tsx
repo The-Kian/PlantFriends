@@ -3,12 +3,16 @@ import React, { useContext, useState } from "react";
 import { Alert, Linking, ScrollView, StyleSheet, View } from "react-native";
 
 import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import SwitchField from "@/components/ui/Input/SwitchField";
 import TextInputField from "@/components/ui/Input/TextInputField";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import ScreenHeader from "@/components/ui/Views/ScreenHeader";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { useHousehold } from "@/context/household/HouseholdProvider";
+import setNotificationPref from "@/helpers/firebase/setNotificationPref";
 import { useTheme } from "@/hooks/utils/useTheme";
+import ErrorService from "@/services/ErrorService";
 import { Spacing } from "@/theme/Spacing";
 
 // Public URL of the hosted privacy policy (docs/PRIVACY_POLICY.md). Both app
@@ -20,6 +24,18 @@ const ProfileSettingsScreen = () => {
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const { colors, radius, shadow } = useTheme();
+  const { notificationPrefs } = useHousehold();
+
+  const handleHousemateActivityChange = async (value: boolean) => {
+    if (!user) return;
+    try {
+      await setNotificationPref(user.uid, "housemateActivity", value);
+    } catch (error) {
+      ErrorService.handleError(error, "Notification Settings", {
+        userMessage: "Couldn't save that setting. Please try again.",
+      });
+    }
+  };
 
   const handleSaveName = async () => {
     if (!displayName.trim()) {
@@ -65,7 +81,19 @@ const ProfileSettingsScreen = () => {
       >
         <ThemedText type="title">Profile</ThemedText>
 
-        {/* A "Household" section slots in above Account once sharing lands. */}
+        <ThemedText type="label" style={styles.sectionLabel}>
+          Notifications
+        </ThemedText>
+        <View style={cardStyle}>
+          <SwitchField
+            label="When a housemate waters my plants"
+            description="So you know it's done and don't water it twice."
+            value={notificationPrefs.housemateActivity !== false}
+            onValueChange={handleHousemateActivityChange}
+          />
+        </View>
+
+        {/* A "Household" section slots in above Account in phase 6. */}
         <ThemedText type="label" style={styles.sectionLabel}>
           Account
         </ThemedText>

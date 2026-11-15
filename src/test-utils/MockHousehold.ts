@@ -22,6 +22,7 @@ export function mockHouseholdContext(
     household,
     loading: false,
     error: null,
+    notificationPrefs: {},
     memberName: (uid) =>
       (uid && household?.members[uid]?.displayName) || null,
     ...overrides,
