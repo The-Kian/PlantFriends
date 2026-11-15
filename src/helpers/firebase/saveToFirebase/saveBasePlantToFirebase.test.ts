@@ -52,6 +52,23 @@ describe("saveBasePlantToFirebase", () => {
     expect(result).toBe(true);
   });
 
+  // The real SDK's modular snapshot has exists() as a method. Read as a
+  // property it's always truthy, so new species were never saved.
+  it("saves a new species when exists() is a method returning false", async () => {
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: () => false });
+    (setDoc as jest.Mock).mockResolvedValueOnce(undefined);
+
+    expect(await saveBasePlantToFirebase(mockPlant, mockUser)).toBe(true);
+    expect(setDoc).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips an existing species when exists() is a method returning true", async () => {
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: () => true });
+
+    expect(await saveBasePlantToFirebase(mockPlant, mockUser)).toBe(true);
+    expect(setDoc).not.toHaveBeenCalled();
+  });
+
   it("Should throw an error if the save fails", async () => {
     console.error = jest.fn();
     const plantData = mockPlant;
