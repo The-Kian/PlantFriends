@@ -86,22 +86,21 @@ const db = {
   },
 };
 
-const firestore = () => db;
-firestore.FieldValue = {
-  serverTimestamp: () => "now",
-  arrayRemove: (value) => ({ [ARRAY_REMOVE]: value }),
-  delete: () => DELETE,
+// Named mock* so jest.mock's factory may use it; it's read lazily, once
+// index.js loads.
+const mockAdmin = {
+  initializeApp: () => {},
+  db: () => db,
+  auth: () => ({ deleteUser: async (uid) => deletedUsers.push(uid) }),
+  FieldValue: {
+    serverTimestamp: () => "now",
+    arrayRemove: (value) => ({ [ARRAY_REMOVE]: value }),
+    delete: () => DELETE,
+  },
+  Timestamp: { fromMillis: (ms) => ({ ms, toMillis: () => ms }) },
 };
 
-jest.mock(
-  "firebase-admin",
-  () => ({
-    initializeApp: jest.fn(),
-    firestore,
-    auth: () => ({ deleteUser: async (uid) => deletedUsers.push(uid) }),
-  }),
-  { virtual: true }
-); // CI doesn't install functions/ dependencies
+jest.mock("./admin", () => mockAdmin);
 
 jest.mock(
   "firebase-functions/v1",

@@ -6,7 +6,7 @@
  * Invites/{code} is written and read only here (see firestore.rules).
  */
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
+const admin = require("./admin");
 
 const { generateCode, normaliseCode } = require("./inviteCode");
 const { displayNameFor, linkWrites, moveWrites, unlinkWrites } = require("./householdAdmin");
@@ -35,7 +35,7 @@ async function createInviteHandler({ db, uid, now }) {
     throw new HttpsError("resource-exhausted", "This household is full.");
   }
 
-  const expiresAt = admin.firestore.Timestamp.fromMillis(now + INVITE_LIFETIME_MS);
+  const expiresAt = admin.Timestamp.fromMillis(now + INVITE_LIFETIME_MS);
   for (let attempt = 0; attempt < CODE_ATTEMPTS; attempt++) {
     const code = generateCode();
     try {
@@ -43,7 +43,7 @@ async function createInviteHandler({ db, uid, now }) {
       await db.doc(`Invites/${code}`).create({
         householdId,
         createdBy: uid,
-        createdAt: admin.firestore.Timestamp.fromMillis(now),
+        createdAt: admin.Timestamp.fromMillis(now),
         expiresAt,
       });
       return { code, expiresAt: expiresAt.toMillis(), householdName: household.name };
@@ -204,7 +204,7 @@ async function removeFromHousehold({ db, callerUid, targetUid, now }) {
       memberIds: [targetUid],
       members: { [targetUid]: { displayName: name } },
       createdBy: targetUid,
-      createdAt: admin.firestore.Timestamp.fromMillis(now),
+      createdAt: admin.Timestamp.fromMillis(now),
       timeZone: profile.timeZone || household.timeZone || "UTC",
     });
     transaction.set(targetRef, { householdId: newRef.id }, { merge: true });

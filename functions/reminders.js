@@ -16,7 +16,7 @@
  * stops the app changing them).
  */
 const functions = require("firebase-functions/v1");
-const admin = require("firebase-admin");
+const admin = require("./admin");
 
 const { MAX_INSTANCES } = require("./guards");
 const { basePlantName, householdTimeZone } = require("./lookups");
@@ -219,7 +219,7 @@ const sendWateringReminders = functions
   .runWith({ timeoutSeconds: 300, maxInstances: MAX_INSTANCES })
   .pubsub.schedule("every 15 minutes")
   .onRun(async () => {
-    const db = admin.firestore();
+    const db = admin.db();
     const now = Date.now();
     const summary = await sendDueReminders({ db, now });
     log.info("sendWateringReminders finished", summary);

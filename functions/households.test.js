@@ -1,6 +1,6 @@
-jest.mock("firebase-admin", () => ({
-  firestore: { Timestamp: { fromMillis: (ms) => ({ ms, toMillis: () => ms }) } },
-}), { virtual: true }); // CI doesn't install functions/ dependencies
+jest.mock("./admin", () => ({
+  Timestamp: { fromMillis: (ms) => ({ ms, toMillis: () => ms }) },
+}));
 
 jest.mock("firebase-functions/v1", () => {
   class HttpsError extends Error {

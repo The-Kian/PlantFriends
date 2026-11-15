@@ -5,7 +5,8 @@
  * Env: FIREBASE_SERVICE_ACCOUNT (the service account key JSON), ACTION
  * ("link" or "unlink"), OWNER_EMAIL (whose household), HOUSEMATE_EMAIL.
  */
-const admin = require("firebase-admin");
+const { cert } = require("firebase-admin/app");
+const admin = require("../admin");
 
 const { displayNameFor, linkWrites, unlinkWrites } = require("../householdAdmin");
 
@@ -26,10 +27,10 @@ async function main() {
 
   const credentials = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
   admin.initializeApp({
-    credential: admin.credential.cert(credentials),
+    credential: cert(credentials),
     projectId: credentials.project_id,
   });
-  const db = admin.firestore();
+  const db = admin.db();
 
   const lookUp = (email) =>
     admin.auth().getUserByEmail(email).catch(() => fail(`No PlantFriends account uses ${email}.`));
@@ -58,7 +59,7 @@ async function main() {
     writes.plantUpdates.forEach(({ id, update }) =>
       batch.update(householdRef.collection("Plants").doc(id), update),
     );
-    batch.set(userRef, { householdId: admin.firestore.FieldValue.delete() }, { merge: true });
+    batch.set(userRef, { householdId: admin.FieldValue.delete() }, { merge: true });
     await batch.commit();
     return console.log(
       `Removed ${housemateEmail} from "${household.name}" (${writes.plantUpdates.length} plants updated). ` +

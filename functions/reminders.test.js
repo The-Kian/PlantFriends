@@ -1,4 +1,4 @@
-jest.mock("firebase-admin", () => ({ firestore: jest.fn() }), { virtual: true });
+jest.mock("./admin", () => ({ db: jest.fn() }));
 jest.mock(
   "firebase-functions/v1",
   () => ({
