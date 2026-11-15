@@ -1,0 +1,42 @@
+name: Send test push
+
+# Sends a test notification to every phone an account has registered, and
+# reports whether Expo and Firebase/Apple accepted it. Useful for checking
+# push notifications work on a new build.
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: "Email of the account to notify"
+        required: true
+        type: string
+      plant_id:
+        description: "Plant the notification opens (optional)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    name: Send to ${{ inputs.email }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install
+        working-directory: functions
+        run: npm ci --omit=dev
+
+      - name: Send
+        working-directory: functions
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          EMAIL: ${{ inputs.email }}
+          PLANT_ID: ${{ inputs.plant_id }}
+        run: node scripts/sendTestPush.js
