@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 📦 Setup corepack
         run: corepack enable
@@ -48,7 +48,7 @@ jobs:
     needs: validate
     steps:
       - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         
       - name: 📦 Setup corepack
         run: corepack enable
@@ -71,7 +71,7 @@ jobs:
     needs: validate
     steps:
       - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         
       - name: 📦 Setup corepack
         run: corepack enable
@@ -94,7 +94,7 @@ jobs:
     needs: validate
     steps:
       - name: 🏗 Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: 📦 Setup corepack
         run: corepack enable
