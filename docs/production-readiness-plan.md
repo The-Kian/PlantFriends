@@ -38,7 +38,7 @@ Rules for whoever does the session:
 | 4 | Client switch to server reminders, notification settings | 3 | Not started |
 | 5 | Security rules tests and tighter rules | none | Done |
 | 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
-| 7 | CI and deploy pipeline | 5 | Done (app audit report-only, history scan to run) |
+| 7 | CI and deploy pipeline | 5 | Done (history scan to run) |
 | 8 | Monitoring, logging, backups | 3 | Not started |
 | 9 | End-to-end test and manual test script | 1, 2, 4 | Not started |
 | 10 | Privacy policy, store listing, release | all | Not started |
@@ -357,7 +357,7 @@ still works on a real phone.
 `functions/package.json`.
 
 - [x] CI runs the functions tests and the rules tests on every pull request.
-- [ ] Add a dependency audit (`pnpm audit` and `npm audit` in `functions/`)
+- [x] Add a dependency audit (`pnpm audit` and `npm audit` in `functions/`)
       that fails on high severity.
 - [x] Add secret scanning for pull requests, and scan the git history once.
       Report anything found; don't rewrite history.
@@ -388,10 +388,14 @@ failing test blocks the merge.
 - Functions unit tests run in the root Jest (as before); the new **Functions**
   CI job loads `index.js` against the real SDKs. `npm test` in `functions/`
   now runs them.
-- Audit: `functions/` and `firestore-tests/` fail on high. The app's own
-  `pnpm audit` has ~60 high and 1 critical transitive advisories (Expo CLI
-  tooling, `@grpc/grpc-js` via RN Firebase), so that step is report-only for
-  now. See Found along the way.
+- Audit: `functions/`, `firestore-tests/` and the app all fail on high. The
+  app's transitive fixes are `pnpm.overrides` in `package.json`, each held to
+  its current major (`^`). Four advisories need a major jump under Expo and
+  are in `pnpm.auditConfig.ignoreGhsas`: `image-size` x2 and `zod` (Expo
+  CLI/Metro, build time only) and `decode-uri-component` (React Navigation
+  deep-link parsing; worst case a slow parse on the user's own phone). Drop
+  each ignore when Expo/React Navigation move to the fixed major. When Expo
+  is upgraded, check whether the overrides are still needed.
 - Secret scanning: **Secret scan** (gitleaks) runs on pull requests. The
   one-off history scan wasn't run in the session; run the workflow by hand
   from Actions (it scans the full history) and check the result.
@@ -482,13 +486,6 @@ a week without Kian stepping in.
 
 Add things here that are outside your session.
 
-- (Session 7) `pnpm audit` on the app: about 60 high and 1 critical
-  advisories, all transitive (mostly `@expo/cli` tooling: shell-quote,
-  node-forge, xmldom, brace-expansion, js-yaml; also `@grpc/grpc-js` via
-  `@react-native-firebase/app`). `pnpm audit --fix` adds unbounded overrides
-  that would jump majors under Expo, so it wasn't applied. Decide: bounded
-  overrides, wait for Expo/RNFB updates, or an explicit ignore list; then make
-  the CI step blocking.
 - (Session 5) The catalog rule lets a client set `isVerified: true` on a new
   plant. Consider forcing it to `false` for client writes.
 - Expired `Invites` are never deleted. Set a Firestore TTL policy on

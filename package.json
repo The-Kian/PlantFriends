@@ -76,5 +76,34 @@
     "typescript": "^5.9.3"
   },
   "private": true,
-  "packageManager": "pnpm@9.15.4"
+  "packageManager": "pnpm@9.15.4",
+  "pnpm": {
+    "overrides": {
+      "brace-expansion@<2": "^1.1.21",
+      "brace-expansion@>=2 <3": "^2.1.7",
+      "brace-expansion@>=4 <6": "^5.0.12",
+      "js-yaml@<4": "^3.15.2",
+      "js-yaml@>=4 <5": "^4.3.2",
+      "protobufjs@>=7 <8": "^7.6.5",
+      "postcss@<9": "^8.5.23",
+      "nanoid@<4": "^3.3.18",
+      "browserslist@<5": "^4.28.7",
+      "baseline-browser-mapping@>=2 <3": "^2.11.0",
+      "@xmldom/xmldom@>=0.7 <0.9": "^0.8.15",
+      "@xmldom/xmldom@>=0.9.0-0 <0.10": "^0.9.12",
+      "@grpc/grpc-js@<2": "^1.13.6",
+      "source-map-js@<2": "^1.2.2",
+      "compression@<2": "^1.8.2",
+      "shell-quote@<2": "^1.11.0",
+      "node-forge@<2": "^1.4.3"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-5p2g-fcmc-qvqq",
+        "GHSA-w3rx-r6r6-pgpr",
+        "GHSA-mrhx-c7xc-m3w5",
+        "GHSA-qr28-fpjm-wq7f"
+      ]
+    }
+  }
 }
