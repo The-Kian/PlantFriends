@@ -54,9 +54,10 @@ async function main() {
   if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
     throw new Error("The FIREBASE_SERVICE_ACCOUNT secret isn't set. See functions/README.md.");
   }
-  const admin = require("firebase-admin");
+  // firebase-admin 14 dropped admin.credential; use the modular export.
+  const { cert } = require("firebase-admin/app");
   const credentials = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-  const { access_token: token } = await admin.credential.cert(credentials).getAccessToken();
+  const { access_token: token } = await cert(credentials).getAccessToken();
 
   const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
   for (const request of indexRequests(config, credentials.project_id)) {
