@@ -675,12 +675,13 @@ a week without Kian stepping in.
 
 Add things here that are outside your session.
 
-- (Session 8) **`release.keystore` and `tmp.txt` are on `main`**, committed
-  in #90, and the repository is public. `tmp.txt` looks like the same
-  keystore in base64. Treat the upload key as exposed: remove both files,
-  and reset the upload key in Play Console (or make a new keystore if the
-  app hasn't been uploaded yet). `.gitignore` covers `*.jks` but not
-  `*.keystore`.
+- ~~(Session 8) `release.keystore` and `tmp.txt` were committed in #90 to a
+  public repo.~~ Settled 15 November 2026: the keystore was a throwaway made
+  that day (SHA-1 `4B:87:E5:...`), never used for EAS or Play. The files are
+  removed, `*.keystore` is ignored, its fingerprint is deleted from Firebase,
+  and the new EAS keystore (SHA-1 `B5:A1:32:...`) is added. The old commits
+  still exist in history (the repo rules block force-pushes to `main`), so
+  treat that key as burned; never use it.
 - (Session 8) Writes are awaited (`savePlantToFirebase`, `logWatering`).
   With no connection Firestore queues the write and the promise doesn't
   settle until it syncs, so adding a plant offline may leave the modal open.
