@@ -29,6 +29,7 @@ import {
   createSoloHousehold,
   migrateUserPlants,
 } from "@/helpers/household/setupHousehold";
+import { recordHandledError } from "@/services/CrashReporting";
 import { dismissStaleReminders } from "@/services/NotificationService";
 import { registerForPush } from "@/services/PushRegistration";
 import { setUserPlants } from "@/store/userPlantsSlice";
@@ -144,11 +145,13 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
           migrateUserPlants(user, profile.householdId).catch((e) => {
             migrating.current = false;
             console.warn("migrateUserPlants failed:", e);
+            recordHandledError(e, "Migrate plants");
           });
         }
       },
       (e) => {
         console.warn("Profile listener failed:", e);
+        recordHandledError(e, "Profile listener");
         setError("Couldn't load your household. Please try again.");
         setLoading(false);
       },
@@ -160,6 +163,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       createSoloHousehold(signedIn).catch((e) => {
         settingUp.current = false;
         console.warn("createSoloHousehold failed:", e);
+        recordHandledError(e, "Create household");
         setError("Couldn't set up your household. Please try again.");
         setLoading(false);
       });
@@ -175,7 +179,10 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         const data = snap?.data();
         setHousehold(data ? ({ ...data, id: householdId } as IHousehold) : null);
       },
-      (e) => console.warn("Household listener failed:", e),
+      (e) => {
+        console.warn("Household listener failed:", e);
+        recordHandledError(e, "Household listener");
+      },
     );
   }, [householdId]);
 
@@ -209,6 +216,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       },
       (e) => {
         console.warn("Plants listener failed:", e);
+        recordHandledError(e, "Plants listener");
         setError("Failed to load your plants. Please try again.");
         setLoading(false);
       },

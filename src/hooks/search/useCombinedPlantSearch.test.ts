@@ -83,15 +83,14 @@ describe("useCombinedPlantSearch", () => {
     expect(ErrorService.handleError).not.toHaveBeenCalled();
   });
 
-  it("reports a Firebase failure through ErrorService", async () => {
+  it("returns a Firebase failure for the screen to show, without an alert", async () => {
     const error = new Error("Firebase unavailable");
     jest.mocked(fetchFirebasePlants).mockRejectedValue(error);
     const { result } = renderSearch("test");
     await flushSearch();
     expect(result.current).toEqual({ plants: [], loading: false, error });
     expect(fetchTreflePlants).not.toHaveBeenCalled();
-    expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
-    expect(ErrorService.handleError).toHaveBeenCalledWith(error, "Search Plants");
+    expect(ErrorService.handleError).not.toHaveBeenCalled();
   });
 
   it("deduplicates by either id or name, preferring Firebase results", async () => {

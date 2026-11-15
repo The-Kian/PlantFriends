@@ -1,5 +1,7 @@
 import { Alert } from "react-native";
 
+import { OFFLINE_MESSAGE, isOfflineError } from "@/helpers/errors/friendlyErrors";
+
 import { recordHandledError } from "./CrashReporting";
 
 export type ErrorSeverity = "error" | "warning" | "info";
@@ -77,7 +79,7 @@ class ErrorService {
     customConfig?: Partial<ErrorConfig>,
   ): void {
     const errorCode = this.extractErrorCode(error);
-    const config = this.errorMap[errorCode] || this.getDefaultConfig();
+    const config = this.configFor(error, errorCode);
     const finalConfig = { ...config, ...customConfig };
 
     // Log technical details for debugging
@@ -95,7 +97,7 @@ class ErrorService {
     context?: string,
   ): Promise<{ success: false; error: ErrorConfig }> {
     const errorCode = this.extractErrorCode(error);
-    const config = this.errorMap[errorCode] || this.getDefaultConfig();
+    const config = this.configFor(error, errorCode);
 
     this.logError(error, errorCode, context);
     this.showAlert(config, context);
@@ -116,7 +118,7 @@ class ErrorService {
       return { success: true, data };
     } catch (error) {
       const errorCode = this.extractErrorCode(error);
-      const config = this.errorMap[errorCode] || this.getDefaultConfig();
+      const config = this.configFor(error, errorCode);
 
       this.logError(error, errorCode, context);
       this.showAlert(config, context);
@@ -130,7 +132,19 @@ class ErrorService {
   }
 
   /**
-   * Log to the console and send to crash reporting
+   * The message for an error. Being offline gets one plain message whichever
+   * Firebase product reported it.
+   */
+  private static configFor(error: unknown, errorCode: string): ErrorConfig {
+    if (isOfflineError(error)) {
+      return { severity: "warning", userMessage: OFFLINE_MESSAGE };
+    }
+    return this.errorMap[errorCode] || this.getDefaultConfig();
+  }
+
+  /**
+   * Log to the console and send to crash reporting. Being offline isn't a
+   * fault, so it isn't reported.
    */
   private static logError(
     error: unknown,
@@ -138,7 +152,9 @@ class ErrorService {
     context?: string,
   ): void {
     console.error(`[${context || "Error"}] ${errorCode}:`, error);
-    recordHandledError(error, context);
+    if (!isOfflineError(error)) {
+      recordHandledError(error, context);
+    }
   }
 
   /**

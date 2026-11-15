@@ -125,6 +125,35 @@ describe("PlantSearchScreen", () => {
     });
   });
 
+  it("says so when the phone is offline, and still offers to add by hand", async () => {
+    (useCombinedPlantSearch as jest.Mock).mockReturnValue({
+      plants: [],
+      loading: false,
+      error: { code: "functions/unavailable" },
+    });
+    renderComponent();
+
+    expect(
+      await screen.findByText("You're offline. Searching needs a connection."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Add a new plant (not in search results)"),
+    ).toBeTruthy();
+  });
+
+  it("explains partial results when the plant library can't be reached", async () => {
+    (useCombinedPlantSearch as jest.Mock).mockReturnValue({
+      plants: [mockPlant],
+      loading: false,
+      error: new Error("internal"),
+    });
+    renderComponent();
+
+    expect(
+      await screen.findByText(/plants other people have added/),
+    ).toBeTruthy();
+  });
+
   it("opens modal with user data when a plant is selected", async () => {
     (useCombinedPlantSearch as jest.Mock).mockReturnValue({
       plants: [mockPlant],
