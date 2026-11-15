@@ -2,6 +2,7 @@ import { getFirestore, updateDoc } from "@react-native-firebase/firestore";
 
 import { IUserPlant } from "@/constants/IPlant";
 import { plantDoc } from "@/helpers/firebase/householdPaths";
+import { queuedWrite } from "@/helpers/firebase/queuedWrite";
 import { calculateNextWateringDate } from "@/helpers/plants/wateringCalculations";
 
 /**
@@ -21,7 +22,10 @@ async function logWatering(
     last_watered_by: waterer.uid,
     last_watered_by_name: waterer.displayName,
   };
-  await updateDoc(plantDoc(getFirestore(), householdId, plant.id), watering);
+  await queuedWrite(
+    updateDoc(plantDoc(getFirestore(), householdId, plant.id), watering),
+    "Log watering",
+  );
   return { ...plant, ...watering };
 }
 

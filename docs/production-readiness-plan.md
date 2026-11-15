@@ -40,8 +40,8 @@ Rules for whoever does the session:
 | 6 | App Check and rate limiting | none | Done (Kian's console steps left) |
 | 7 | CI and deploy pipeline | 5 | Done |
 | 8 | Monitoring, logging, backups | 3 | Done (Kian's console steps left) |
-| 9 | End-to-end test and manual test script | 1, 2, 4 | Not started |
 | 10 | Privacy policy, store listing, release | all | Code and docs done (Kian: screenshots, Play, rollout) |
+| 9 | End-to-end test and manual test script | 1, 2, 4 | Code done (Kian: run the flows and the script) |
 
 Order for what's left: the **two-phone checkpoint** (below session 4), then
 8, 9 and 10. Sessions 8 and 9 can run in parallel.
@@ -619,16 +619,16 @@ restore has been done once.
 
 **Read first:** `.agents/skills`, `docs/ci-builds.md`, `src/dev/seedFakePlants.ts`.
 
-- [ ] One Maestro flow against a test build: sign in, add a plant, water
+- [x] One Maestro flow against a test build: sign in, add a plant, water
       it, see the "watered by" line, sign out.
-- [ ] A second flow for invite and join if it can be done with two test accounts.
-- [ ] Run the flow in CI on an Android emulator, or document why not and
+- [x] A second flow for invite and join if it can be done with two test accounts.
+- [x] Run the flow in CI on an Android emulator, or document why not and
       how to run it locally.
-- [ ] Write `docs/TEST_SCRIPT.md` for the two-phone manual pass: join,
+- [x] Write `docs/TEST_SCRIPT.md` for the two-phone manual pass: join,
       shared watering push, due reminder and nudge, quiet hours, leave,
       account deletion with a housemate remaining, offline, notification
       permission denied, a fresh install on an old account.
-- [ ] Check screen reader labels and text scaling on the main screens and
+- [x] Check screen reader labels and text scaling on the main screens and
       fix what's missing.
 
 **Kian does:** run the manual script on two phones and file what fails.
@@ -637,6 +637,20 @@ restore has been done once.
 with every failure fixed or written down.
 
 **Notes:**
+
+- Flows are in `.maestro/` (see its README). **Written but not run**: there was
+  no emulator in this session, so selectors such as the "Save" button and the
+  first search result are best guesses. Run `add-and-water-plant.yaml` once
+  and fix what fails. The join flow stops at the join prompt, because the
+  invite code only appears in the share sheet.
+- **Not in CI**, on purpose: reasons in `.maestro/README.md`.
+- **Offline writes:** `queuedWrite` (`src/helpers/firebase/queuedWrite.ts`)
+  stops waiting after 3 seconds. A write the server rejects later is recorded
+  in Crashlytics. `saveUserPlantToFirebase` still reads the plant first, so a
+  brand new plant added with no connection and no cached copy may still fail;
+  check this in script section 6.
+- Accessibility: plant cards read as one item, and the delete button names its
+  plant. Text scaling was not checked on a device; it is in the script (section 9).
 
 ---
 
@@ -704,6 +718,14 @@ Add things here that are outside your session.
   and reset the upload key in Play Console (or make a new keystore if the
   app hasn't been uploaded yet). `.gitignore` covers `*.jks` but not
   `*.keystore`.
+- ~~(Session 8) Writes are awaited~~ Fixed in session 9 (`queuedWrite`); old note: writes are awaited (`savePlantToFirebase`, `logWatering`).
+- ~~(Session 8) `release.keystore` and `tmp.txt` were committed in #90 to a
+  public repo.~~ Settled 15 November 2026: the keystore was a throwaway made
+  that day (SHA-1 `4B:87:E5:...`), never used for EAS or Play. The files are
+  removed, `*.keystore` is ignored, its fingerprint is deleted from Firebase,
+  and the new EAS keystore (SHA-1 `B5:A1:32:...`) is added. The old commits
+  still exist in history (the repo rules block force-pushes to `main`), so
+  treat that key as burned; never use it.
 - (Session 8) Writes are awaited (`savePlantToFirebase`, `logWatering`).
   With no connection Firestore queues the write and the promise doesn't
   settle until it syncs, so adding a plant offline may leave the modal open.

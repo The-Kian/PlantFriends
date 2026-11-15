@@ -1,0 +1,41 @@
+appId: ${APP_ID}
+name: Add a plant, water it, sign out
+---
+- launchApp:
+    clearState: true
+- tapOn: "Email Address"
+- inputText: ${E2E_EMAIL}
+- tapOn: "Password"
+- inputText: ${E2E_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login"
+- extendedWaitUntil:
+    visible: "Add a plant"
+    timeout: 30000
+- tapOn: "Add a plant"
+- tapOn: "Search for a plant"
+- inputText: "monstera"
+- extendedWaitUntil:
+    visible:
+      text: "Monstera.*"
+    timeout: 20000
+- tapOn:
+    text: "Monstera.*"
+    index: 0
+- tapOn: "Save"
+# A first watering, then the card on the plant list shows it.
+- extendedWaitUntil:
+    visible: "Log First Watering"
+    timeout: 20000
+- tapOn: "Log First Watering"
+- extendedWaitUntil:
+    visible: "Last watered"
+    timeout: 10000
+- tapOn:
+    id: "profile-button"
+- scrollUntilVisible:
+    element: "Logout"
+- tapOn: "Logout"
+- assertVisible:
+    id: "login"
