@@ -14,11 +14,7 @@ import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { useThemedButtonStyles } from "./ThemedButton.styles";
 
 export type ThemedButtonVariant =
-  | "default"
-  | "accept"
-  | "decline"
-  | "secondary"
-  | "ghost";
+  "default" | "accept" | "decline" | "secondary" | "ghost";
 
 type ThemedButtonProps = {
   title?: string;

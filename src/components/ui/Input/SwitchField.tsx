@@ -45,6 +45,7 @@ const SwitchField = ({
         value={value}
         onValueChange={onValueChange}
         disabled={disabled}
+        accessibilityState={{ disabled: !!disabled }}
         trackColor={{ true: colors.primary, false: colors.border }}
         thumbColor={value ? colors.onPrimary : colors.textMuted}
         ios_backgroundColor={colors.border}

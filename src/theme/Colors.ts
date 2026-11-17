@@ -17,7 +17,7 @@ export const Colors = {
     water: "#3F86B5",
     waterMuted: "#DCEBF4",
     border: "#E2E4DA",
-    success: "#4E8A57",
+    success: "#3A7544",
     warning: "#8F5A00",
     error: "#C0473C",
     errorMuted: "#F7E1DE",

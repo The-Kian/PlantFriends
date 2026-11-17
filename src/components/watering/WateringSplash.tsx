@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { runOnJS } from "react-native-reanimated";
 
-import { Colors } from "@/theme/Colors";
+import { useTheme } from "@/hooks/utils/useTheme";
 
 interface WateringSplashProps {
   visible: boolean;
@@ -21,15 +21,16 @@ export const WateringSplash = ({
   onComplete,
 }: WateringSplashProps) => {
   const overlayOpacity = useSharedValue(0);
+  const { colors } = useTheme();
 
   useEffect(() => {
     if (visible) {
       overlayOpacity.value = withTiming(1, { duration: 300 });
 
       const timer = setTimeout(() => {
-          overlayOpacity.value = withTiming(0, { duration: 300 }, () => {
-            runOnJS(onComplete)();
-          });
+        overlayOpacity.value = withTiming(0, { duration: 300 }, () => {
+          runOnJS(onComplete)();
+        });
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -45,15 +46,28 @@ export const WateringSplash = ({
   if (!visible) return null;
 
   return (
-    <Animated.View style={[styles.overlay, overlayStyle]}>
+    <Animated.View
+      style={[
+        styles.overlay,
+        { backgroundColor: colors.surface },
+        overlayStyle,
+      ]}
+      accessibilityLiveRegion="polite"
+    >
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="water" size={80} color={Colors.light.water} />
+        <View
+          style={[styles.iconContainer, { backgroundColor: colors.waterMuted }]}
+        >
+          <Ionicons name="water" size={80} color={colors.water} />
         </View>
 
         <View>
-          <Text style={styles.title}>Watering Logged!</Text>
-          <Text style={styles.message}>Your plant is happy</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Watering Logged!
+          </Text>
+          <Text style={[styles.message, { color: colors.textMuted }]}>
+            Your plant is happy
+          </Text>
         </View>
       </View>
     </Animated.View>
@@ -63,7 +77,6 @@ export const WateringSplash = ({
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 9999,
@@ -76,24 +89,16 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#FFFFFF",
     textAlign: "center",
   },
   message: {
     fontSize: 18,
-    color: "#FFFFFF",
     textAlign: "center",
     marginTop: 8,
   },
