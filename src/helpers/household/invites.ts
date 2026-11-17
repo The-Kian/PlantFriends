@@ -6,6 +6,7 @@ import {
   isOfflineError,
   isRateLimited,
 } from "@/helpers/errors/friendlyErrors";
+import { withMembershipChange } from "@/helpers/household/membershipChange";
 
 export interface CreatedInvite {
   code: string;
@@ -48,7 +49,7 @@ export async function joinHousehold(
     { code: string },
     { householdId: string; householdName: string }
   >(getFunctions(), "joinHousehold");
-  const result = await callable({ code });
+  const result = await withMembershipChange(() => callable({ code }));
   return result.data;
 }
 
@@ -58,7 +59,7 @@ export async function leaveHousehold(): Promise<{ householdId: string }> {
     getFunctions(),
     "leaveHousehold"
   );
-  const result = await callable();
+  const result = await withMembershipChange(() => callable());
   return result.data;
 }
 
