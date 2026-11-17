@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 
 import { IPlant } from "@/constants/IPlant";
 import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
@@ -18,7 +18,9 @@ describe("useFirebasePlantSearch", () => {
 
     const { result } = renderHook(() => useFirebasePlantSearch("test"));
 
-    result.current.searchPlants();
+    await act(async () => {
+      await result.current.searchPlants();
+    });
 
     await waitFor(() => {
       expect(result.current.plants).toEqual(mockPlants);
@@ -29,11 +31,14 @@ describe("useFirebasePlantSearch", () => {
   });
 
   it("should handle errors", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
     mockedFetchFirebasePlants.mockRejectedValue(new Error("Failed to fetch"));
 
     const { result } = renderHook(() => useFirebasePlantSearch("test"));
 
-    result.current.searchPlants();
+    await act(async () => {
+      await result.current.searchPlants();
+    });
 
     await waitFor(() => {
       expect(result.current.error).toBe("Failed to fetch plants");
