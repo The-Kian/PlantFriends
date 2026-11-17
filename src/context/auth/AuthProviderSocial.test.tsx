@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import auth from "@react-native-firebase/auth";
+import {
+  AppleAuthProvider,
+  GoogleAuthProvider,
+  getAuth,
+  signInWithCredential,
+  signOut,
+} from "@react-native-firebase/auth";
 import { setDoc } from "@react-native-firebase/firestore";
-import functions from "@react-native-firebase/functions";
+import * as functionsModule from "@react-native-firebase/functions";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Notifications from "expo-notifications";
@@ -18,6 +24,10 @@ import {
 
 import { AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
+
+const _mockHttpsCallable = (
+  functionsModule as unknown as { _mockHttpsCallable: jest.Mock }
+)._mockHttpsCallable;
 
 const renderProvider = () =>
   render(
@@ -38,11 +48,12 @@ describe("AuthProvider social sign-in", () => {
     fireEvent.press(screen.getByTestId("signInWithGoogle"));
 
     await waitFor(() => {
-      expect(auth().signInWithCredential).toHaveBeenCalledWith(
+      expect(signInWithCredential).toHaveBeenCalledWith(
+        expect.anything(),
         expect.objectContaining({ providerId: "google.com" }),
       );
     });
-    expect(auth.GoogleAuthProvider.credential).toHaveBeenCalledWith(
+    expect(GoogleAuthProvider.credential).toHaveBeenCalledWith(
       "google-id-token",
     );
     await waitFor(() => {
@@ -55,7 +66,7 @@ describe("AuthProvider social sign-in", () => {
   });
 
   it("does not overwrite the profile of a returning user", async () => {
-    (auth().signInWithCredential as jest.Mock).mockResolvedValueOnce({
+    (signInWithCredential as jest.Mock).mockResolvedValueOnce({
       user: { uid: "user1" },
       additionalUserInfo: { isNewUser: false },
     });
@@ -63,7 +74,7 @@ describe("AuthProvider social sign-in", () => {
     fireEvent.press(screen.getByTestId("signInWithGoogle"));
 
     await waitFor(() => {
-      expect(auth().signInWithCredential).toHaveBeenCalled();
+      expect(signInWithCredential).toHaveBeenCalled();
     });
     expect(setDoc).not.toHaveBeenCalled();
   });
@@ -79,7 +90,7 @@ describe("AuthProvider social sign-in", () => {
     await waitFor(() => {
       expect(GoogleSignin.signIn).toHaveBeenCalled();
     });
-    expect(auth().signInWithCredential).not.toHaveBeenCalled();
+    expect(signInWithCredential).not.toHaveBeenCalled();
   });
 
   it("signs in with Apple using the nonce and saves the name", async () => {
@@ -87,12 +98,12 @@ describe("AuthProvider social sign-in", () => {
     fireEvent.press(screen.getByTestId("signInWithApple"));
 
     await waitFor(() => {
-      expect(auth().signInWithCredential).toHaveBeenCalled();
+      expect(signInWithCredential).toHaveBeenCalled();
     });
     expect(AppleAuthentication.signInAsync).toHaveBeenCalledWith(
       expect.objectContaining({ nonce: "hashed-nonce" }),
     );
-    expect(auth.AppleAuthProvider.credential).toHaveBeenCalledWith(
+    expect(AppleAuthProvider.credential).toHaveBeenCalledWith(
       "apple-identity-token",
       "raw-nonce",
     );
@@ -115,12 +126,12 @@ describe("AuthProvider social sign-in", () => {
     await waitFor(() => {
       expect(AppleAuthentication.signInAsync).toHaveBeenCalled();
     });
-    expect(auth().signInWithCredential).not.toHaveBeenCalled();
+    expect(signInWithCredential).not.toHaveBeenCalled();
     expect(console.error).not.toHaveBeenCalled();
   });
 
   it("explains when the email is already used by another sign-in method", async () => {
-    (auth().signInWithCredential as jest.Mock).mockRejectedValueOnce({
+    (signInWithCredential as jest.Mock).mockRejectedValueOnce({
       code: "auth/account-exists-with-different-credential",
     });
     renderProvider();
@@ -128,8 +139,9 @@ describe("AuthProvider social sign-in", () => {
 
     await waitFor(() => {
       expect(Alert.alert).toHaveBeenCalledWith(
-        "Account already exists",
-        expect.any(String),
+        "Couldn't sign in with Google",
+        expect.stringContaining("already exists"),
+        expect.anything(),
       );
     });
   });
@@ -137,7 +149,7 @@ describe("AuthProvider social sign-in", () => {
 
 describe("AuthProvider deleteAccount", () => {
   const originalPlatform = Platform.OS;
-  const currentUser = auth().currentUser as any;
+  const currentUser = getAuth().currentUser as any;
   const originalProviderData = currentUser.providerData;
 
   beforeEach(() => {
@@ -153,20 +165,20 @@ describe("AuthProvider deleteAccount", () => {
 
   it("calls the deleteAccount function, cancels reminders and signs out", async () => {
     const callable = jest.fn(async () => ({ data: { deleted: true } }));
-    (functions as any)._mockHttpsCallable.mockReturnValueOnce(callable);
+    _mockHttpsCallable.mockReturnValueOnce(callable);
 
     renderProvider();
     fireEvent.press(screen.getByTestId("deleteAccount"));
 
     await waitFor(() => {
-      expect(auth().signOut).toHaveBeenCalled();
+      expect(signOut).toHaveBeenCalled();
     });
-    expect((functions as any)._mockHttpsCallable).toHaveBeenCalledWith(
+    expect(_mockHttpsCallable).toHaveBeenCalledWith(
       "deleteAccount",
     );
     expect(callable).toHaveBeenCalled();
     expect(Notifications.cancelAllScheduledNotificationsAsync).toHaveBeenCalled();
-    expect(auth().revokeToken).not.toHaveBeenCalled();
+    expect(getAuth().revokeToken).not.toHaveBeenCalled();
     expect(Alert.alert).toHaveBeenCalledWith(
       "Account deleted",
       expect.any(String),
@@ -181,10 +193,10 @@ describe("AuthProvider deleteAccount", () => {
     fireEvent.press(screen.getByTestId("deleteAccount"));
 
     await waitFor(() => {
-      expect(auth().revokeToken).toHaveBeenCalledWith("apple-auth-code");
+      expect(getAuth().revokeToken).toHaveBeenCalledWith("apple-auth-code");
     });
     await waitFor(() => {
-      expect((functions as any)._mockHttpsCallable).toHaveBeenCalledWith(
+      expect(_mockHttpsCallable).toHaveBeenCalledWith(
         "deleteAccount",
       );
     });
@@ -203,12 +215,12 @@ describe("AuthProvider deleteAccount", () => {
     await waitFor(() => {
       expect(AppleAuthentication.signInAsync).toHaveBeenCalled();
     });
-    expect((functions as any)._mockHttpsCallable).not.toHaveBeenCalled();
-    expect(auth().signOut).not.toHaveBeenCalled();
+    expect(_mockHttpsCallable).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
   });
 
   it("keeps the user signed in if the function fails", async () => {
-    (functions as any)._mockHttpsCallable.mockReturnValueOnce(
+    _mockHttpsCallable.mockReturnValueOnce(
       jest.fn(async () => {
         throw { code: "functions/internal", message: "boom" };
       }),
@@ -220,6 +232,6 @@ describe("AuthProvider deleteAccount", () => {
     await waitFor(() => {
       expect(console.error).toHaveBeenCalled();
     });
-    expect(auth().signOut).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
   });
 });

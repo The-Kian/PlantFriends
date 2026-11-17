@@ -22,7 +22,34 @@ const EXPECTED_USER_ERRORS = new Set([
   "auth/email-already-in-use",
   "auth/weak-password",
   "auth/too-many-requests",
+  "auth/account-exists-with-different-credential",
 ]);
+
+// What the alert says, by the context the caller gave. Anything not listed
+// gets "Something went wrong".
+const ALERT_TITLES: Record<string, string> = {
+  Login: "Couldn't log in",
+  Registration: "Couldn't sign up",
+  "Reset Password": "Couldn't send the reset email",
+  "Delete Account": "Couldn't delete your account",
+  Logout: "Couldn't log out",
+  "Update Profile": "Couldn't save your name",
+  "Google Sign-In": "Couldn't sign in with Google",
+  "Apple Sign-In": "Couldn't sign in with Apple",
+  "Save Plant": "Couldn't save the plant",
+  "Update Plant": "Couldn't update the plant",
+  "Delete Plant": "Couldn't delete the plant",
+  "Remove Plant": "Couldn't remove the plant",
+  "Search Plants": "Couldn't search for plants",
+  "Fetch Plant By ID": "Couldn't load the plant",
+  "Share invite": "Couldn't share the invite",
+};
+
+export const DEFAULT_ALERT_TITLE = "Something went wrong";
+
+export function alertTitleFor(context?: string): string {
+  return (context && ALERT_TITLES[context]) || DEFAULT_ALERT_TITLE;
+}
 
 class ErrorService {
   private static errorMap: Record<string, ErrorConfig> = {
@@ -57,6 +84,11 @@ class ErrorService {
     "auth/weak-password": {
       severity: "error",
       userMessage: "Password must be at least 6 characters.",
+    },
+    "auth/account-exists-with-different-credential": {
+      severity: "error",
+      userMessage:
+        "An account with this email already exists. Sign in with the method you used before.",
     },
     "auth/network-request-failed": {
       severity: "error",
@@ -225,7 +257,7 @@ class ErrorService {
    * Show alert to user
    */
   private static showAlert(config: ErrorConfig, context?: string): void {
-    const title = context ? `${context}` : "Error";
+    const title = alertTitleFor(context);
 
     Alert.alert(title, config.userMessage, config.actions || [{ text: "OK", onPress: () => {} }]);
   }

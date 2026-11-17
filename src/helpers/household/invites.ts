@@ -1,4 +1,4 @@
-import functions from "@react-native-firebase/functions";
+import { getFunctions, httpsCallable } from "@react-native-firebase/functions";
 
 import {
   OFFLINE_MESSAGE,
@@ -22,8 +22,9 @@ export interface InvitePreview {
 
 /** Makes a new invite code for the signed-in user's household. */
 export async function createInvite(): Promise<CreatedInvite> {
-  const callable = functions().httpsCallable<undefined, CreatedInvite>(
-    "createInvite",
+  const callable = httpsCallable<undefined, CreatedInvite>(
+    getFunctions(),
+    "createInvite"
   );
   const result = await callable();
   return result.data;
@@ -31,30 +32,31 @@ export async function createInvite(): Promise<CreatedInvite> {
 
 /** Checks a code and says which household it's for, without joining. */
 export async function previewInvite(code: string): Promise<InvitePreview> {
-  const callable = functions().httpsCallable<
+  const callable = httpsCallable<
     { code: string; preview: boolean },
     InvitePreview
-  >("joinHousehold");
+  >(getFunctions(), "joinHousehold");
   const result = await callable({ code, preview: true });
   return result.data;
 }
 
 /** Joins the household the code is for. */
 export async function joinHousehold(
-  code: string,
+  code: string
 ): Promise<{ householdId: string; householdName: string }> {
-  const callable = functions().httpsCallable<
+  const callable = httpsCallable<
     { code: string },
     { householdId: string; householdName: string }
-  >("joinHousehold");
+  >(getFunctions(), "joinHousehold");
   const result = await callable({ code });
   return result.data;
 }
 
 /** Leaves the household for an empty one of your own. */
 export async function leaveHousehold(): Promise<{ householdId: string }> {
-  const callable = functions().httpsCallable<undefined, { householdId: string }>(
-    "leaveHousehold",
+  const callable = httpsCallable<undefined, { householdId: string }>(
+    getFunctions(),
+    "leaveHousehold"
   );
   const result = await callable();
   return result.data;
@@ -62,12 +64,12 @@ export async function leaveHousehold(): Promise<{ householdId: string }> {
 
 /** Takes a member out of the household. Only its creator may. */
 export async function removeMember(
-  uid: string,
+  uid: string
 ): Promise<{ householdId: string }> {
-  const callable = functions().httpsCallable<
-    { uid: string },
-    { householdId: string }
-  >("removeMember");
+  const callable = httpsCallable<{ uid: string }, { householdId: string }>(
+    getFunctions(),
+    "removeMember"
+  );
   const result = await callable({ uid });
   return result.data;
 }
@@ -105,7 +107,7 @@ function commonMessage(error: unknown): string | undefined {
 /** A friendly message for a failed invite or join call. */
 export function joinErrorMessage(
   error: unknown,
-  fallback = "Couldn't join. Check your connection and try again.",
+  fallback = "Couldn't join. Check your connection and try again."
 ): string {
   return commonMessage(error) ?? JOIN_MESSAGES[errorCode(error)] ?? fallback;
 }

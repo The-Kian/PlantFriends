@@ -29,7 +29,11 @@ export interface AuthContextType {
   user: null | FirebaseAuthTypes.User;
   setUser: React.Dispatch<React.SetStateAction<FirebaseAuthTypes.User | null>>;
   login: (props: { email: string; password: string }) => Promise<void>;
-  register: (props: { email: string; password: string }) => Promise<void>;
+  register: (props: {
+    email: string;
+    password: string;
+    displayName?: string;
+  }) => Promise<void>;
   logout: () => Promise<void>;
   update: (props: { displayName: string }) => Promise<void>;
   resetPassword: (props: { email: string }) => Promise<void>;
