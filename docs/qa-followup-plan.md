@@ -19,14 +19,14 @@ Line numbers are from `eb8721f` and will drift; search for the names given.
 
 | # | Session | Depends on | Size | Status |
 |---|---------|-----------|------|--------|
-| A | Leftover small fixes | none | S | UI items done; login alerts, alert titles and release config left |
-| B | Names that stay right | none | M | Not started |
+| A | Leftover small fixes | none | S | Done (no Copy button: expo-clipboard is not a dependency) |
+| B | Names that stay right | none | M | Done (Kian: deploy functions, two-phone rename check) |
 | C | Edit a plant, notes, per-plant settings | none | M–L | Not started |
 | D | Watering history and undo | C (shares the details screen) | M | Not started |
-| E | Household plant rules and invite lifecycle | none | M | Not started |
-| F | Reliable reminders | none | M | Not started |
-| G | Start-up, offline and listener robustness | none | M | Not started |
-| H | Housekeeping: line endings, modular Firebase, test noise, deps | none | M (spread out) | Not started |
+| E | Household plant rules and invite lifecycle | none | M | Done; what a leaving member keeps unchanged (Kian: run rules tests on JDK 21, deploy, TTL) |
+| F | Reliable reminders | none | M | Done (Kian: deploy functions, delete old index) |
+| G | Start-up, offline and listener robustness | none | M | Done except the offline notes in the UI (see Found along the way) |
+| H | Housekeeping: line endings, modular Firebase, test noise, deps | none | M (spread out) | Done except the dependency upgrades and audit overrides |
 | I | Features: snooze, photos, rooms, search and sort | C, D | L | Not started |
 
 A, B, E, F, G and H don't touch the same files much and can run in parallel.
@@ -511,22 +511,17 @@ short design note before coding.
 
 ## Found along the way
 
-- Invite join error: `helpers/household/invites.ts` still says "Codes are 8
-  letters and numbers." for the server's `invalid-argument`. The card now
-  checks the format itself (message "Check the code: it's 8 characters, like
-  K7QM-3PXD."), so this only shows if the server rejects a well-formed code;
-  change the text there too.
-- Profile "Saved" appears when `update()` resolves, but `AuthProvider.update`
-  swallows its own errors (alerts instead of throwing), so a failed rename can
-  still say "Saved". Have `update` rethrow.
+- ~~Invite join error message~~ Fixed: `invites.ts` uses the same text.
+- ~~Profile "Saved" after a failed rename~~ Fixed: `update` returns whether it worked.
 - `PlantCacheService.test.ts` prints a `console.warn` on a passing test; mock it
   there.
 - After adding a plant the app opens its details straight away. If the
   household listener hasn't delivered the plant yet the screen briefly shows
   "Plant not found".
-- `firestore-tests/rules.test.js` is picked up by `npx jest` in a worktree on
-  Windows (the `<rootDir>` ignore doesn't match); `pnpm test` has the same
-  problem there. Not seen on CI.
+- ~~Rules tests picked up by Jest in a worktree~~ Fixed in `jest.config.js`.
+- The "Details unavailable offline" and "Will sync when you're online" notes (session G) aren't built; `useMergedPlant` returns `unavailable` for the first.
+- Rules tests for session E were written but not run: the emulator needs JDK 21 and this machine has 17.
+- Session H dependency work (audit overrides, Expo 58 / RN 0.88 / RN Firebase 27) is left for its own session.
 
 - Test data on the `test` account changed during QA on 17 November 2026:
   - "Watermelon" was deleted by a mis-tap and re-added, so its history is
