@@ -26,14 +26,23 @@ export default function HomeScreen() {
   const { household } = useHousehold();
   const { handleDeletePlant } = usePlantManagement();
 
-  // Plants that need attention (overdue, urgent, or soon) sorted soonest-first
+  // Plants due today or tomorrow, overdue ones, and ones never watered (they
+  // have no schedule yet, so they need a first watering), soonest first.
+  // "Soon" (2-3 days away) is not counted: a plant watered a minute ago on
+  // a 3-day schedule doesn't need water.
   const needsWatering = userPlants
     .map((plant) => ({ plant, progress: getWateringProgress(plant) }))
     .filter(
       ({ progress }) =>
-        progress.daysUntil != null && progress.status.urgency !== "ok",
+        progress.daysUntil == null ||
+        progress.status.urgency === "overdue" ||
+        progress.status.urgency === "urgent",
     )
-    .sort((a, b) => (a.progress.daysUntil ?? 0) - (b.progress.daysUntil ?? 0));
+    .sort(
+      (a, b) =>
+        (a.progress.daysUntil ?? -Infinity) - (b.progress.daysUntil ?? -Infinity),
+    );
+  const hasPlants = userPlants.length > 0;
 
   return (
     <ScreenScrollView
@@ -80,7 +89,11 @@ export default function HomeScreen() {
 
       <View>
         <ThemedText type="subtitle" style={styles.sectionTitle}>
-          {needsWatering.length > 0 ? "Needs watering" : "All caught up"}
+          {needsWatering.length > 0
+            ? "Needs watering"
+            : hasPlants
+              ? "All caught up"
+              : "No plants yet"}
         </ThemedText>
 
         {needsWatering.length > 0 ? (
@@ -101,9 +114,15 @@ export default function HomeScreen() {
               { backgroundColor: colors.primaryMuted, borderRadius: radius.large },
             ]}
           >
-            <Ionicons name="checkmark-circle" size={28} color={colors.primary} />
+            <Ionicons
+              name={hasPlants ? "checkmark-circle" : "leaf-outline"}
+              size={28}
+              color={colors.primary}
+            />
             <ThemedText style={[styles.emptyText, { color: colors.primary }]}>
-              No plants need watering right now.
+              {hasPlants
+                ? "No plants need watering right now."
+                : "Add your first plant and we'll remind you when it needs water."}
             </ThemedText>
           </View>
         )}

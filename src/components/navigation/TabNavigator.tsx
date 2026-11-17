@@ -29,6 +29,8 @@ export default function TabNavigator() {
         component={HomeScreen}
         options={{
           tabBarLabel: "Home",
+          // Set explicitly, or the icon glyph is read out as ", Home".
+          tabBarAccessibilityLabel: "Home",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
@@ -43,6 +45,7 @@ export default function TabNavigator() {
         component={MyPlantsScreen}
         options={{
           tabBarLabel: "My Plants",
+          tabBarAccessibilityLabel: "My Plants",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "leaf" : "leaf-outline"}

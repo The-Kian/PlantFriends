@@ -34,7 +34,10 @@ function AuthContent({ authScreenType, onSubmit, children }: AuthProps) {
     const validationResult = validateCredentials(credentials, authScreenType);
 
     if (!validationResult.isValid) {
-      Alert.alert("Invalid input", "Please check your entered credentials.");
+      Alert.alert(
+        "Check your details",
+        validationResult.message ?? "Please check your entered credentials.",
+      );
       return;
     }
     onSubmit(credentials);
