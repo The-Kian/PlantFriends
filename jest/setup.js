@@ -75,3 +75,25 @@ jest.mock(
   "react-native-safe-area-context",
   () => require("react-native-safe-area-context/jest/mock").default,
 );
+
+// Whether Sign in with Apple is available is answered asynchronously, and the
+// button's state update would land after most tests have finished, outside
+// act(). Leave the question unanswered by default; tests that need the button
+// resolve it themselves.
+beforeEach(() => {
+  const Apple = require("expo-apple-authentication");
+  Apple.isAvailableAsync.mockImplementation(() => new Promise(() => {}));
+});
+
+// React Navigation's stack card still uses InteractionManager, which React
+// Native now warns about on every test run. Nothing in this app calls it.
+const originalWarn = console.warn;
+console.warn = (...args) => {
+  if (
+    typeof args[0] === "string" &&
+    args[0].includes("InteractionManager has been deprecated")
+  ) {
+    return;
+  }
+  originalWarn(...args);
+};

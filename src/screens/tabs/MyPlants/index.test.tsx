@@ -53,6 +53,8 @@ describe("MyPlantsScreen", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // The delete test fails a removal on purpose; ErrorService logs it.
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   it("Should render correctly", async () => {

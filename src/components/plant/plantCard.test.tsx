@@ -1,6 +1,8 @@
 import React from "react";
 
-import { screen } from "@testing-library/react-native";
+import { Image } from "react-native";
+
+import { fireEvent, screen } from "@testing-library/react-native";
 
 import { IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
@@ -80,5 +82,28 @@ describe("PlantCard", () => {
     );
 
     expect(screen.queryByText("Shared")).toBeNull();
+  });
+});
+
+describe("PlantCard image", () => {
+  it("falls back to the leaf when the picture can't load", () => {
+    jest.mocked(useMergedPlant).mockReturnValue({
+      mergedPlant: { id: "1", name: "Watermelon", images: ["https://x/y.jpg"] },
+      loading: false,
+    });
+    renderWithProviders(
+      <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+        <PlantCard
+          plant={mockUserPlant}
+          onPress={jest.fn()}
+          onDelete={jest.fn()}
+        />
+      </AuthContext.Provider>,
+      { household: mockHouseholdContext() },
+    );
+
+    fireEvent(screen.UNSAFE_getByType(Image), "error");
+
+    expect(screen.UNSAFE_queryByType(Image)).toBeNull();
   });
 });

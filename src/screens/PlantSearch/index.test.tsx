@@ -7,7 +7,7 @@ import React from "react";
 
 import { Text, Button } from "react-native";
 
-import { screen, waitFor, fireEvent } from "@testing-library/react-native";
+import { act, screen, waitFor, fireEvent } from "@testing-library/react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
 import { AuthContext } from "@/context/auth/AuthProvider";
@@ -108,7 +108,10 @@ describe("PlantSearchScreen", () => {
     return renderWithProviders(
       <AuthContext.Provider value={mockAuthContextValue}>
         <NavigationContainer>
-          <Stack.Navigator initialRouteName={initialRoute}>
+          <Stack.Navigator
+            initialRouteName={initialRoute}
+            screenOptions={{ animation: "none" }}
+          >
             <Stack.Screen name="Initial" component={InitialTestScreen} />
             <Stack.Screen name="PlantSearch" component={PlantSearchScreen} />
             <Stack.Screen name="Tab" component={MockTabScreen} />
@@ -121,6 +124,13 @@ describe("PlantSearchScreen", () => {
       </AuthContext.Provider>,
     );
   };
+
+  // Lets the stack finish its open and close transitions inside act().
+  afterEach(async () => {
+    await act(async () => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    });
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();

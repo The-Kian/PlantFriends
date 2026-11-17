@@ -36,7 +36,11 @@ jest.mock("@/helpers/household/invites", () => ({
   joinErrorMessage: () => "error",
 }));
 
-const settle = () => act(async () => {});
+// Lets the notification permission check finish inside act().
+const settle = () =>
+  act(async () => {
+    await Promise.resolve();
+  });
 
 describe("ProfileSettingsScreen", () => {
   beforeEach(() => {
@@ -198,8 +202,9 @@ describe("ProfileSettingsScreen", () => {
     expect(screen.getByText("Invite housemate")).toBeVisible();
   });
 
-  it("renders correctly", () => {
+  it("renders correctly", async () => {
     renderWithFullContext();
+    await settle();
     expect(screen.getByText("Profile")).toBeVisible();
   });
 
