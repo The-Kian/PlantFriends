@@ -43,6 +43,41 @@ describe("createSoloHousehold", () => {
     expect(mockSet).toHaveBeenNthCalledWith(2, { householdId: "user1" });
   });
 
+  it("names the household after the Users document name when the account has none yet", async () => {
+    mockGet
+      .mockResolvedValueOnce({ exists: false })
+      .mockResolvedValueOnce({
+        exists: true,
+        data: () => ({ displayName: "Sam" }),
+      });
+
+    await createSoloHousehold({ ...mockUser, email: "pf.e2e.b.85390@example.com" });
+
+    expect(mockSet).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        name: "Sam's home",
+        members: { user1: { displayName: "Sam" } },
+      }),
+    );
+  });
+
+  it("ignores a Users document name that is just the email", async () => {
+    mockGet
+      .mockResolvedValueOnce({ exists: false })
+      .mockResolvedValueOnce({
+        exists: true,
+        data: () => ({ displayName: "sam@example.com" }),
+      });
+
+    await createSoloHousehold({ ...mockUser, email: "sam@example.com" });
+
+    expect(mockSet).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ name: "sam's home" }),
+    );
+  });
+
   it("doesn't recreate a household that already exists", async () => {
     mockGet.mockResolvedValueOnce({ exists: true });
 
