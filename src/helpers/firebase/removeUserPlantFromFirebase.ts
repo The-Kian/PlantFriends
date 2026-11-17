@@ -2,6 +2,7 @@ import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { deleteDoc, getFirestore } from "@react-native-firebase/firestore";
 
 import { plantDoc } from "@/helpers/firebase/householdPaths";
+import { queuedWrite } from "@/helpers/firebase/queuedWrite";
 import ErrorService from "@/services/ErrorService";
 
 const removeUserPlantFromFirebase = async (
@@ -15,7 +16,12 @@ const removeUserPlantFromFirebase = async (
   }
 
   try {
-    await deleteDoc(plantDoc(getFirestore(), householdId, userPlantId));
+    // Offline, the delete waits in Firestore's queue; don't leave the screen
+    // waiting on it.
+    await queuedWrite(
+      deleteDoc(plantDoc(getFirestore(), householdId, userPlantId)),
+      "Delete plant",
+    );
     return true;
   } catch (error) {
     ErrorService.handleError(error, "Remove Plant");

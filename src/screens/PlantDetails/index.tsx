@@ -100,7 +100,7 @@ const PlantDetailsScreen = () => {
 
       // Only the watering fields are written, so a housemate's edit made at
       // the same time isn't overwritten.
-      const updatedPlant = await logWatering(
+      const updatedPlant = logWatering(
         household.id,
         userPlant,
         { uid: user.uid, displayName: displayNameFor(user) },
