@@ -1,9 +1,9 @@
-import { getFirestore, doc, getDoc } from '@react-native-firebase/firestore';
+import { getFirestore, doc, getDoc } from "@react-native-firebase/firestore";
 
-import { IPlant } from '@/constants/IPlant';
-import { isOfflineError } from '@/helpers/errors/friendlyErrors';
-import { docExists } from '@/helpers/firebase/householdPaths';
-import { recordHandledError } from '@/services/CrashReporting';
+import { IPlant } from "@/constants/IPlant";
+import { isOfflineError } from "@/helpers/errors/friendlyErrors";
+import { docExists } from "@/helpers/firebase/householdPaths";
+import { recordHandledError } from "@/services/CrashReporting";
 
 /**
  * Loads a species by ID. Resolves to null when there is no such species, and
@@ -17,7 +17,7 @@ async function fetchFirebasePlantById(plantId: string): Promise<IPlant | null> {
 
   try {
     const db = getFirestore();
-    const plantRef = doc(db, 'Plants', plantId);
+    const plantRef = doc(db, "Plants", plantId);
     const snap = await getDoc(plantRef);
 
     if (!docExists(snap)) return null;
@@ -29,7 +29,7 @@ async function fetchFirebasePlantById(plantId: string): Promise<IPlant | null> {
   } catch (error) {
     // Being offline isn't a fault worth reporting.
     if (!isOfflineError(error)) {
-      recordHandledError(error, 'Fetch Plant By ID');
+      recordHandledError(error, "Fetch Plant By ID");
     }
     throw error;
   }

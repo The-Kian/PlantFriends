@@ -21,7 +21,10 @@ const userPlantsSlice = createSlice({
      * takes an array of IUserPlant objects and replaces the entire state with it.
      * This is used when initially loading plants from Firebase.
      */
-    setUserPlants: (state, action: PayloadAction<(IUserPlant | IUserPlantMerged)[]>) => {
+    setUserPlants: (
+      state,
+      action: PayloadAction<(IUserPlant | IUserPlantMerged)[]>
+    ) => {
       return action.payload;
     },
     /**
@@ -38,7 +41,10 @@ const userPlantsSlice = createSlice({
      * adds it if there isn't one. Used to put a plant back after a failed
      * delete, when the plants listener may already have restored it.
      */
-    upsertPlant: (state, action: PayloadAction<IUserPlant | IUserPlantMerged>) => {
+    upsertPlant: (
+      state,
+      action: PayloadAction<IUserPlant | IUserPlantMerged>
+    ) => {
       const index = state.findIndex((plant) => plant.id === action.payload.id);
       if (index === -1) {
         state.push(action.payload);
@@ -52,7 +58,10 @@ const userPlantsSlice = createSlice({
      * This is used when a plant is updated.
      */
 
-    updatePlant: (state, action: PayloadAction<IUserPlant | IUserPlantMerged>) => {
+    updatePlant: (
+      state,
+      action: PayloadAction<IUserPlant | IUserPlantMerged>
+    ) => {
       const index = state.findIndex((plant) => plant.id === action.payload.id);
       if (index !== -1) {
         state[index] = action.payload;

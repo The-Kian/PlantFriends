@@ -7,12 +7,12 @@ import { userDoc } from "@/helpers/firebase/householdPaths";
 async function setNotificationPref(
   uid: string,
   key: keyof INotificationPrefs,
-  value: boolean,
+  value: boolean
 ): Promise<void> {
   await setDoc(
     userDoc(getFirestore(), uid),
     { notificationPrefs: { [key]: value } },
-    { merge: true },
+    { merge: true }
   );
 }
 

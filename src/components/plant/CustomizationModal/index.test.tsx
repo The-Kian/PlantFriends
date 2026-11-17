@@ -27,7 +27,7 @@ const renderComponent = (plant = mockPlant, userPlant?: IUserPlant) => {
         displayUserPlantData={false}
         isAddingNewPlant={false}
       />
-    </AuthContext.Provider>,
+    </AuthContext.Provider>
   );
 };
 
@@ -59,7 +59,7 @@ describe("PlantCustomizationModal", () => {
           plantId: "1",
           custom_attributes: expect.objectContaining({}),
         }),
-        mockPlant,
+        mockPlant
       );
     });
     expect(mockOnClose).toHaveBeenCalled();

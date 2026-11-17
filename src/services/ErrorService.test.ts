@@ -26,7 +26,7 @@ describe("ErrorService alert titles", () => {
     expect(Alert.alert).toHaveBeenCalledWith(
       "Couldn't log in",
       expect.any(String),
-      expect.anything(),
+      expect.anything()
     );
   });
 });

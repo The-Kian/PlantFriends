@@ -31,7 +31,7 @@ describe("userPlantsSlice", () => {
     const renamed = { ...mockUserPlant, custom_name: "Back again" };
     const replaced = userPlantsReducer(
       [mockUserPlant, mockUserPlant2],
-      upsertPlant(renamed),
+      upsertPlant(renamed)
     );
     expect(replaced).toEqual([renamed, mockUserPlant2]);
   });

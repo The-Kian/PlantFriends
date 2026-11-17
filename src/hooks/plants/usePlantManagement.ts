@@ -39,7 +39,7 @@ export const usePlantManagement = () => {
       const userPlantData = await getUserPlantData(
         household.id,
         user.uid,
-        plant.id,
+        plant.id
       );
       setUserPlant(userPlantData || null);
     }
@@ -47,7 +47,7 @@ export const usePlantManagement = () => {
 
   const handleUserDataChange = <K extends keyof IUserPlant>(
     field: K,
-    value: IUserPlant[K],
+    value: IUserPlant[K]
   ) => {
     setUserPlant((prevUserData) => {
       const updatedUserData = prevUserData || {
@@ -66,7 +66,7 @@ export const usePlantManagement = () => {
 
   const handleSavePlant = async (
     updatedUserPlant: IUserPlant,
-    plant: IPlant,
+    plant: IPlant
   ) => {
     try {
       const savedPlant = await persistSavePlant(updatedUserPlant, plant);
@@ -94,11 +94,14 @@ export const usePlantManagement = () => {
 
       // Properly await backend removal with error handling and rollback
       const removed = await persistDeletePlant(plant.id);
-      
+
       if (!removed) {
         // Rollback the optimistic update if Firebase delete failed
         dispatch(upsertPlant(plant));
-        ErrorService.handleError("Failed to remove plant from firebase", "Delete Plant");
+        ErrorService.handleError(
+          "Failed to remove plant from firebase",
+          "Delete Plant"
+        );
         return false;
       }
 
@@ -115,7 +118,10 @@ export const usePlantManagement = () => {
     try {
       const updated = await persistUpdatePlant(updatedPlant);
       if (!updated) {
-        ErrorService.handleError("Failed to update plant in firebase", "Update Plant");
+        ErrorService.handleError(
+          "Failed to update plant in firebase",
+          "Update Plant"
+        );
         return false;
       }
 

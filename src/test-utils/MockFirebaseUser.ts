@@ -22,27 +22,27 @@ const mockUser: FirebaseAuthTypes.User = {
     throw new Error("Function not implemented.");
   },
   getIdTokenResult: function (
-    forceRefresh?: boolean,
+    forceRefresh?: boolean
   ): Promise<FirebaseAuthTypes.IdTokenResult> {
     throw new Error("Function not implemented.");
   },
   linkWithCredential: function (
-    credential: FirebaseAuthTypes.AuthCredential,
+    credential: FirebaseAuthTypes.AuthCredential
   ): Promise<FirebaseAuthTypes.UserCredential> {
     throw new Error("Function not implemented.");
   },
   linkWithPopup: function (
-    provider: FirebaseAuthTypes.AuthProvider,
+    provider: FirebaseAuthTypes.AuthProvider
   ): Promise<FirebaseAuthTypes.UserCredential> {
     throw new Error("Function not implemented.");
   },
   linkWithRedirect: function (
-    provider: FirebaseAuthTypes.AuthProvider,
+    provider: FirebaseAuthTypes.AuthProvider
   ): Promise<FirebaseAuthTypes.UserCredential> {
     throw new Error("Function not implemented.");
   },
   reauthenticateWithCredential: function (
-    credential: FirebaseAuthTypes.AuthCredential,
+    credential: FirebaseAuthTypes.AuthCredential
   ): Promise<FirebaseAuthTypes.UserCredential> {
     throw new Error("Function not implemented.");
   },
@@ -50,13 +50,13 @@ const mockUser: FirebaseAuthTypes.User = {
     throw new Error("Function not implemented.");
   },
   sendEmailVerification: function (
-    actionCodeSettings?: FirebaseAuthTypes.ActionCodeSettings,
+    actionCodeSettings?: FirebaseAuthTypes.ActionCodeSettings
   ): Promise<void> {
     throw new Error("Function not implemented.");
   },
   verifyBeforeUpdateEmail: function (
     email: string,
-    actionCodeSettings?: FirebaseAuthTypes.ActionCodeSettings,
+    actionCodeSettings?: FirebaseAuthTypes.ActionCodeSettings
   ): Promise<void> {
     throw new Error("Function not implemented.");
   },
@@ -73,22 +73,22 @@ const mockUser: FirebaseAuthTypes.User = {
     throw new Error("Function not implemented.");
   },
   updatePhoneNumber: function (
-    credential: FirebaseAuthTypes.AuthCredential,
+    credential: FirebaseAuthTypes.AuthCredential
   ): Promise<void> {
     throw new Error("Function not implemented.");
   },
   updateProfile: function (
-    updates: FirebaseAuthTypes.UpdateProfile,
+    updates: FirebaseAuthTypes.UpdateProfile
   ): Promise<void> {
     throw new Error("Function not implemented.");
   },
   reauthenticateWithRedirect: function (
-    provider: FirebaseAuthTypes.AuthProvider,
+    provider: FirebaseAuthTypes.AuthProvider
   ): Promise<void> {
     throw new Error("Function not implemented.");
   },
   reauthenticateWithPopup: function (
-    provider: FirebaseAuthTypes.AuthProvider,
+    provider: FirebaseAuthTypes.AuthProvider
   ): Promise<FirebaseAuthTypes.UserCredential> {
     throw new Error("Function not implemented.");
   },

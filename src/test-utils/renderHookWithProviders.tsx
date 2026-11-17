@@ -24,11 +24,9 @@ export function renderHookWithProviders<Result, Props>(
     store = setupStore(preloadedState),
     household = mockHouseholdContext(),
     ...renderOptions
-  }: ExtendedRenderHookOptions<Props> = {},
+  }: ExtendedRenderHookOptions<Props> = {}
 ) {
-  function Wrapper({
-    children,
-  }: PropsWithChildren<Props>): React.ReactElement {
+  function Wrapper({ children }: PropsWithChildren<Props>): React.ReactElement {
     return (
       <Provider store={store}>
         <HouseholdContext.Provider value={household}>

@@ -10,7 +10,6 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import { mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
-
 import MyPlantsScreen from "./";
 
 describe("MyPlantsScreen", () => {
@@ -41,7 +40,7 @@ describe("MyPlantsScreen", () => {
             },
           ],
         },
-      },
+      }
     );
   };
 

@@ -42,7 +42,7 @@ describe("PlantDetailsScreen watering", () => {
   const plant = { ...mockUserPlant, custom_watering_schedule: 3 };
   const renderDetails = (
     user: typeof mockUser | null = mockUser,
-    userPlant: typeof plant = plant,
+    userPlant: typeof plant = plant
   ) => {
     const store = setupStore({ userPlants: [userPlant] });
     jest.spyOn(store, "dispatch");
@@ -50,22 +50,26 @@ describe("PlantDetailsScreen watering", () => {
       <AuthContext.Provider value={{ ...mockAuthContextValue, user }}>
         <PlantDetailsScreen />
       </AuthContext.Provider>,
-      { store },
+      { store }
     );
   };
 
   beforeEach(() => {
     jest.resetAllMocks();
     jest.mocked(useRoute).mockReturnValue({
-      key: "details", name: "PlantDetails", params: { plantId: plant.id },
+      key: "details",
+      name: "PlantDetails",
+      params: { plantId: plant.id },
     });
     jest.mocked(useMergedPlant).mockReturnValue({
       mergedPlant: { ...mockPlant, watering_frequency: 7 },
       loading: false,
     });
-    jest.mocked(WateringSplash).mockImplementation(({ visible }) =>
-      visible ? <View testID="watering-splash" /> : null,
-    );
+    jest
+      .mocked(WateringSplash)
+      .mockImplementation(({ visible }) =>
+        visible ? <View testID="watering-splash" /> : null
+      );
     jest.spyOn(Date, "now").mockReturnValue(now);
     jest.spyOn(Alert, "alert").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -95,7 +99,7 @@ describe("PlantDetailsScreen watering", () => {
       mockHousehold.id,
       plant,
       { uid: mockUser.uid, displayName: "Kian" },
-      3,
+      3
     );
     await waitFor(() => {
       expect(screen.getByTestId("watering-splash")).toBeTruthy();
@@ -136,8 +140,9 @@ describe("PlantDetailsScreen watering", () => {
       expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
     });
     expect(ErrorService.handleError).toHaveBeenCalledWith(
-      error, "Log Watering",
-      { userMessage: "Failed to log watering. Please try again." },
+      error,
+      "Log Watering",
+      { userMessage: "Failed to log watering. Please try again." }
     );
     expect(Alert.alert).toHaveBeenCalledTimes(1);
   });

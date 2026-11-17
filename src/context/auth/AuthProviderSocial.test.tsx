@@ -33,7 +33,7 @@ const renderProvider = () =>
   render(
     <AuthProvider>
       <AuthTestComponent />
-    </AuthProvider>,
+    </AuthProvider>
   );
 
 describe("AuthProvider social sign-in", () => {
@@ -50,17 +50,17 @@ describe("AuthProvider social sign-in", () => {
     await waitFor(() => {
       expect(signInWithCredential).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ providerId: "google.com" }),
+        expect.objectContaining({ providerId: "google.com" })
       );
     });
     expect(GoogleAuthProvider.credential).toHaveBeenCalledWith(
-      "google-id-token",
+      "google-id-token"
     );
     await waitFor(() => {
       expect(setDoc).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ displayName: expect.any(String) }),
-        { merge: true },
+        { merge: true }
       );
     });
   });
@@ -101,17 +101,17 @@ describe("AuthProvider social sign-in", () => {
       expect(signInWithCredential).toHaveBeenCalled();
     });
     expect(AppleAuthentication.signInAsync).toHaveBeenCalledWith(
-      expect.objectContaining({ nonce: "hashed-nonce" }),
+      expect.objectContaining({ nonce: "hashed-nonce" })
     );
     expect(AppleAuthProvider.credential).toHaveBeenCalledWith(
       "apple-identity-token",
-      "raw-nonce",
+      "raw-nonce"
     );
     await waitFor(() => {
       expect(setDoc).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({ displayName: "Test User" }),
-        { merge: true },
+        { merge: true }
       );
     });
   });
@@ -141,7 +141,7 @@ describe("AuthProvider social sign-in", () => {
       expect(Alert.alert).toHaveBeenCalledWith(
         "Couldn't sign in with Google",
         expect.stringContaining("already exists"),
-        expect.anything(),
+        expect.anything()
       );
     });
   });
@@ -173,15 +173,15 @@ describe("AuthProvider deleteAccount", () => {
     await waitFor(() => {
       expect(signOut).toHaveBeenCalled();
     });
-    expect(_mockHttpsCallable).toHaveBeenCalledWith(
-      "deleteAccount",
-    );
+    expect(_mockHttpsCallable).toHaveBeenCalledWith("deleteAccount");
     expect(callable).toHaveBeenCalled();
-    expect(Notifications.cancelAllScheduledNotificationsAsync).toHaveBeenCalled();
+    expect(
+      Notifications.cancelAllScheduledNotificationsAsync
+    ).toHaveBeenCalled();
     expect(getAuth().revokeToken).not.toHaveBeenCalled();
     expect(Alert.alert).toHaveBeenCalledWith(
       "Account deleted",
-      expect.any(String),
+      expect.any(String)
     );
   });
 
@@ -196,9 +196,7 @@ describe("AuthProvider deleteAccount", () => {
       expect(getAuth().revokeToken).toHaveBeenCalledWith("apple-auth-code");
     });
     await waitFor(() => {
-      expect(_mockHttpsCallable).toHaveBeenCalledWith(
-        "deleteAccount",
-      );
+      expect(_mockHttpsCallable).toHaveBeenCalledWith("deleteAccount");
     });
   });
 
@@ -223,7 +221,7 @@ describe("AuthProvider deleteAccount", () => {
     _mockHttpsCallable.mockReturnValueOnce(
       jest.fn(async () => {
         throw { code: "functions/internal", message: "boom" };
-      }),
+      })
     );
 
     renderProvider();

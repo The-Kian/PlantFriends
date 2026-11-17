@@ -37,7 +37,9 @@ describe("fetchFirebasePlantById", () => {
 
   it("throws, without showing an alert, when the lookup fails", async () => {
     const alertSpy = jest.spyOn(Alert, "alert");
-    jest.mocked(getDoc).mockRejectedValueOnce({ code: "firestore/unavailable" });
+    jest
+      .mocked(getDoc)
+      .mockRejectedValueOnce({ code: "firestore/unavailable" });
 
     await expect(fetchFirebasePlantById("123")).rejects.toEqual({
       code: "firestore/unavailable",

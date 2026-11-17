@@ -25,7 +25,7 @@ import { mockHouseholdContext } from "@/test-utils/MockHousehold";
 import ProfileSettingsScreen from "./index";
 
 jest.mock("@/helpers/firebase/setNotificationPref", () =>
-  jest.fn(async () => {}),
+  jest.fn(async () => {})
 );
 
 jest.mock("@/helpers/household/invites", () => ({
@@ -72,7 +72,7 @@ describe("ProfileSettingsScreen", () => {
             <Stack.Screen name="Signup" component={SignupScreen} />
           </Stack.Navigator>
         </AuthContext.Provider>
-      </NavigationContainer>,
+      </NavigationContainer>
     );
   };
 
@@ -80,14 +80,18 @@ describe("ProfileSettingsScreen", () => {
     const renderProfile = async (housemateActivity?: boolean) => {
       const view = render(
         <NavigationContainer>
-          <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+          <AuthContext.Provider
+            value={{ ...mockAuthContextValue, user: mockUser }}
+          >
             <HouseholdContext.Provider
-              value={mockHouseholdContext({ notificationPrefs: { housemateActivity } })}
+              value={mockHouseholdContext({
+                notificationPrefs: { housemateActivity },
+              })}
             >
               <ProfileSettingsScreen />
             </HouseholdContext.Provider>
           </AuthContext.Provider>
-        </NavigationContainer>,
+        </NavigationContainer>
       );
       await settle();
       return view;
@@ -99,22 +103,32 @@ describe("ProfileSettingsScreen", () => {
     expect(toggle).toHaveProp("value", true);
 
     fireEvent(toggle, "valueChange", false);
-    expect(setNotificationPref).toHaveBeenCalledWith(mockUser.uid, "housemateActivity", false);
+    expect(setNotificationPref).toHaveBeenCalledWith(
+      mockUser.uid,
+      "housemateActivity",
+      false
+    );
     unmount();
 
     await renderProfile(false);
-    expect(screen.getByLabelText("When a housemate waters my plants")).toHaveProp("value", false);
+    expect(
+      screen.getByLabelText("When a housemate waters my plants")
+    ).toHaveProp("value", false);
   });
 
   const renderWithPrefs = async (notificationPrefs = {}) => {
     const view = render(
       <NavigationContainer>
-        <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
-          <HouseholdContext.Provider value={mockHouseholdContext({ notificationPrefs })}>
+        <AuthContext.Provider
+          value={{ ...mockAuthContextValue, user: mockUser }}
+        >
+          <HouseholdContext.Provider
+            value={mockHouseholdContext({ notificationPrefs })}
+          >
             <ProfileSettingsScreen />
           </HouseholdContext.Provider>
         </AuthContext.Provider>
-      </NavigationContainer>,
+      </NavigationContainer>
     );
     await settle();
     return view;
@@ -126,11 +140,18 @@ describe("ProfileSettingsScreen", () => {
     expect(toggle).toHaveProp("value", true);
 
     fireEvent(toggle, "valueChange", false);
-    expect(setNotificationPref).toHaveBeenCalledWith(mockUser.uid, "reminders", false);
+    expect(setNotificationPref).toHaveBeenCalledWith(
+      mockUser.uid,
+      "reminders",
+      false
+    );
     unmount();
 
     await renderWithPrefs({ reminders: false });
-    expect(screen.getByLabelText("Watering reminders")).toHaveProp("value", false);
+    expect(screen.getByLabelText("Watering reminders")).toHaveProp(
+      "value",
+      false
+    );
   });
 
   it("points to the phone's settings when notifications are denied", async () => {
@@ -159,7 +180,7 @@ describe("ProfileSettingsScreen", () => {
     expect(screen.getByText(/turned off for PlantFriends/)).toBeVisible();
     expect(screen.getByLabelText("Watering reminders")).toBeDisabled();
     expect(
-      screen.getByLabelText("When a housemate waters my plants"),
+      screen.getByLabelText("When a housemate waters my plants")
     ).toBeDisabled();
     jest
       .mocked(Notifications.getPermissionsAsync)
@@ -181,19 +202,23 @@ describe("ProfileSettingsScreen", () => {
 
   it("shows no settings hint when notifications are allowed", async () => {
     await renderWithPrefs();
-    await waitFor(() => expect(Notifications.getPermissionsAsync).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(Notifications.getPermissionsAsync).toHaveBeenCalled()
+    );
     expect(screen.queryByText("Open settings")).toBeNull();
   });
 
   it("shows the household card", async () => {
     render(
       <NavigationContainer>
-        <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+        <AuthContext.Provider
+          value={{ ...mockAuthContextValue, user: mockUser }}
+        >
           <HouseholdContext.Provider value={mockHouseholdContext()}>
             <ProfileSettingsScreen />
           </HouseholdContext.Provider>
         </AuthContext.Provider>
-      </NavigationContainer>,
+      </NavigationContainer>
     );
 
     await settle();
@@ -254,18 +279,24 @@ describe("ProfileSettingsScreen", () => {
         >
           <ProfileSettingsScreen />
         </AuthContext.Provider>
-      </NavigationContainer>,
+      </NavigationContainer>
     );
     await settle();
 
     expect(screen.queryByText("Saved")).toBeNull();
-    fireEvent.changeText(screen.getByLabelText("Display Name input field"), "Sam");
+    fireEvent.changeText(
+      screen.getByLabelText("Display Name input field"),
+      "Sam"
+    );
     fireEvent.press(screen.getByText("Save name"));
 
     expect(await screen.findByText("Saved")).toBeVisible();
     expect(update).toHaveBeenCalledWith({ displayName: "Sam" });
 
-    fireEvent.changeText(screen.getByLabelText("Display Name input field"), "Sammy");
+    fireEvent.changeText(
+      screen.getByLabelText("Display Name input field"),
+      "Sammy"
+    );
     expect(screen.queryByText("Saved")).toBeNull();
   });
 });

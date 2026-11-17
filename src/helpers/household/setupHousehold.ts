@@ -23,7 +23,7 @@ const BATCH_SIZE = 400;
 // (older sign-ups saved that).
 function usableProfileName(
   user: FirebaseAuthTypes.User,
-  profileName?: string | null,
+  profileName?: string | null
 ): string {
   const name = profileName?.trim();
   if (!name || name === user.email) return "";
@@ -37,7 +37,7 @@ function usableProfileName(
  */
 export function displayNameFor(
   user: FirebaseAuthTypes.User,
-  profileName?: string | null,
+  profileName?: string | null
 ): string {
   return (
     usableProfileName(user, profileName) ||
@@ -62,7 +62,7 @@ export function deviceTimeZone(): string {
  * Housemates are linked by hand for now: see docs/household-sharing-plan.md.
  */
 export async function createSoloHousehold(
-  user: FirebaseAuthTypes.User,
+  user: FirebaseAuthTypes.User
 ): Promise<string> {
   const db = getFirestore();
   const householdId = user.uid;
@@ -74,7 +74,7 @@ export async function createSoloHousehold(
     const profile = await getDoc(userDoc(db, user.uid));
     const name = displayNameFor(
       user,
-      (profile?.data?.() as { displayName?: string } | undefined)?.displayName,
+      (profile?.data?.() as { displayName?: string } | undefined)?.displayName
     );
     await setDoc(ref, {
       name: `${name}'s home`,
@@ -97,11 +97,11 @@ export async function createSoloHousehold(
  */
 export async function migrateUserPlants(
   user: FirebaseAuthTypes.User,
-  householdId: string,
+  householdId: string
 ): Promise<number> {
   const db = getFirestore();
   const oldPlants = await getDocs(
-    collection(userDoc(db, user.uid), "UserPlants"),
+    collection(userDoc(db, user.uid), "UserPlants")
   );
   const docs = oldPlants.docs ?? [];
 
@@ -118,7 +118,7 @@ export async function migrateUserPlants(
           carerIds: [user.uid],
           shared: false,
         },
-        { merge: true },
+        { merge: true }
       );
     }
     await batch.commit();
@@ -127,7 +127,7 @@ export async function migrateUserPlants(
   await setDoc(
     userDoc(db, user.uid),
     { plantsMigratedAt: serverTimestamp() },
-    { merge: true },
+    { merge: true }
   );
   return docs.length;
 }

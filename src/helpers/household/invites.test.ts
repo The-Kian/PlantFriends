@@ -24,7 +24,11 @@ beforeEach(() => {
 
 describe("invites", () => {
   it("creates an invite", async () => {
-    const invite = { code: "K7PXM3QH", expiresAt: 5, householdName: "The Flat" };
+    const invite = {
+      code: "K7PXM3QH",
+      expiresAt: 5,
+      householdName: "The Flat",
+    };
     mockCallable.mockResolvedValue({ data: invite });
 
     expect(await createInvite()).toEqual(invite);
@@ -32,16 +36,25 @@ describe("invites", () => {
   });
 
   it("previews a code without joining", async () => {
-    const preview = { householdName: "The Flat", memberCount: 2, plantsMoving: 3 };
+    const preview = {
+      householdName: "The Flat",
+      memberCount: 2,
+      plantsMoving: 3,
+    };
     mockCallable.mockResolvedValue({ data: preview });
 
     expect(await previewInvite("K7PX-M3QH")).toEqual(preview);
     expect(httpsCallable).toHaveBeenCalledWith("joinHousehold");
-    expect(mockCallable).toHaveBeenCalledWith({ code: "K7PX-M3QH", preview: true });
+    expect(mockCallable).toHaveBeenCalledWith({
+      code: "K7PX-M3QH",
+      preview: true,
+    });
   });
 
   it("joins with a code", async () => {
-    mockCallable.mockResolvedValue({ data: { householdId: "h", householdName: "The Flat" } });
+    mockCallable.mockResolvedValue({
+      data: { householdId: "h", householdName: "The Flat" },
+    });
 
     await joinHousehold("K7PX-M3QH");
     expect(mockCallable).toHaveBeenCalledWith({ code: "K7PX-M3QH" });
@@ -97,7 +110,9 @@ describe("offline and rate limits", () => {
 
   it("says you're offline rather than blaming the code", () => {
     expect(joinErrorMessage({ code: "functions/unavailable" })).toBe(offline);
-    expect(leaveErrorMessage({ code: "unavailable" }, "fallback")).toBe(offline);
+    expect(leaveErrorMessage({ code: "unavailable" }, "fallback")).toBe(
+      offline
+    );
   });
 
   it("doesn't call a rate limit a full household", () => {
@@ -109,13 +124,20 @@ describe("offline and rate limits", () => {
 describe("leaveErrorMessage", () => {
   it.each([
     ["failed-precondition", "You're the only one in this household."],
-    ["permission-denied", "Only the person who set up the household can remove people."],
+    [
+      "permission-denied",
+      "Only the person who set up the household can remove people.",
+    ],
     ["not-found", "They're not in this household any more."],
   ])("explains %s", (code, message) => {
-    expect(leaveErrorMessage({ code: `functions/${code}` }, "fallback")).toBe(message);
+    expect(leaveErrorMessage({ code: `functions/${code}` }, "fallback")).toBe(
+      message
+    );
   });
 
   it("falls back for anything else", () => {
-    expect(leaveErrorMessage({ code: "internal" }, "fallback")).toBe("fallback");
+    expect(leaveErrorMessage({ code: "internal" }, "fallback")).toBe(
+      "fallback"
+    );
   });
 });

@@ -12,7 +12,7 @@ async function setPlantSharing(
   household: Pick<IHousehold, "id" | "memberIds">,
   plant: IUserPlant,
   shared: boolean,
-  fallbackOwner: string,
+  fallbackOwner: string
 ): Promise<IUserPlant> {
   const sharing = {
     shared,

@@ -31,7 +31,7 @@ function devicesDoc(uid: string, token: string) {
  */
 export async function registerForPush(
   uid: string,
-  { prompt }: { prompt: boolean },
+  { prompt }: { prompt: boolean }
 ): Promise<string | null> {
   try {
     const granted = await requestNotificationPermissions(prompt);
@@ -50,7 +50,7 @@ export async function registerForPush(
     await setDoc(
       userDoc(getFirestore(), uid),
       { timeZone: deviceTimeZone() },
-      { merge: true },
+      { merge: true }
     );
 
     registeredToken = token;

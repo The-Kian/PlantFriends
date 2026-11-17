@@ -38,7 +38,7 @@ describe("ThemedButton", () => {
 
   it("renders with decline variant", () => {
     render(
-      <ThemedButton title="Decline" onPress={() => {}} variant="decline" />,
+      <ThemedButton title="Decline" onPress={() => {}} variant="decline" />
     );
     const button = screen.getByTestId("themed-button");
     expect(button.props.style).toContain(mockStyles.cancelButton);
@@ -51,7 +51,7 @@ describe("ThemedButton", () => {
         title="Styled"
         onPress={() => {}}
         additionalStyle={additionalStyle}
-      />,
+      />
     );
     const button = screen.getByTestId("themed-button");
     expect(button.props.style).toContain(additionalStyle);

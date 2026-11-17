@@ -7,12 +7,11 @@ import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserP
 
 const usePlantPersistence = (
   user: FirebaseAuthTypes.User | null,
-  household: IHousehold | null,
+  household: IHousehold | null
 ) => {
-
   const persistSavePlant = async (
     userPlant: IUserPlant,
-    plant: IPlant,
+    plant: IPlant
   ): Promise<IUserPlant | null> => {
     if (!user || !household) return null;
     const result = await savePlantToFirebase(userPlant, plant, user, household);
@@ -24,7 +23,9 @@ const usePlantPersistence = (
     return await removeUserPlantFromFirebase(userPlantId, user, household.id);
   };
 
-  const persistUpdatePlant = async (userPlant: IUserPlant): Promise<boolean> => {
+  const persistUpdatePlant = async (
+    userPlant: IUserPlant
+  ): Promise<boolean> => {
     if (!user || !household) return false;
     return await saveUserPlantToFirebase(userPlant, user, household);
   };

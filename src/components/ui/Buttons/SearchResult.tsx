@@ -45,7 +45,10 @@ const SearchResultComponent = ({
           style={[
             styles.thumb,
             styles.thumbPlaceholder,
-            { backgroundColor: colors.primaryMuted, borderRadius: radius.small },
+            {
+              backgroundColor: colors.primaryMuted,
+              borderRadius: radius.small,
+            },
           ]}
         >
           <Ionicons name="leaf" size={18} color={colors.primary} />

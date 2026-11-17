@@ -91,19 +91,19 @@ describe("validateCredentials messages", () => {
   });
 
   it("says which field is wrong", () => {
-    expect(validateCredentials({ ...base, email: "nope" }, "login").message).toBe(
-      "Enter a valid email address.",
-    );
     expect(
-      validateCredentials({ ...base, password: "short" }, "login").message,
+      validateCredentials({ ...base, email: "nope" }, "login").message
+    ).toBe("Enter a valid email address.");
+    expect(
+      validateCredentials({ ...base, password: "short" }, "login").message
     ).toBe("Passwords are at least 6 characters.");
     expect(
       validateCredentials({ ...base, confirmEmail: "x@example.com" }, "signUp")
-        .message,
+        .message
     ).toBe("The two email addresses don't match.");
     expect(
       validateCredentials({ ...base, confirmPassword: "secret2" }, "signUp")
-        .message,
+        .message
     ).toBe("The two passwords don't match.");
   });
 });

@@ -1,9 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  doc,
-  getDoc,
-  setDoc,
-} from "@react-native-firebase/firestore";
+import { doc, getDoc, setDoc } from "@react-native-firebase/firestore";
 
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockPlant } from "@/test-utils/MockPlant";

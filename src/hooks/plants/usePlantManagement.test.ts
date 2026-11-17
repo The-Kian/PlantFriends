@@ -13,10 +13,18 @@ import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
 import ErrorService from "@/services/ErrorService";
 import { registerForPush } from "@/services/PushRegistration";
-import { addPlant, deletePlant, updatePlant, upsertPlant } from "@/store/userPlantsSlice";
+import {
+  addPlant,
+  deletePlant,
+  updatePlant,
+  upsertPlant,
+} from "@/store/userPlantsSlice";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
-import { mockHousehold, mockHouseholdContext } from "@/test-utils/MockHousehold";
+import {
+  mockHousehold,
+  mockHouseholdContext,
+} from "@/test-utils/MockHousehold";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 
 import { usePlantManagement } from "./usePlantManagement";
@@ -68,7 +76,7 @@ describe("usePlantManagement", () => {
       expect(getUserPlantData).toHaveBeenCalledWith(
         mockHousehold.id,
         mockUser.uid,
-        mockPlant.id,
+        mockPlant.id
       );
       expect(result.current.userPlant).toEqual(mockUserPlant);
       expect(result.current.selectedPlant).toEqual(mockPlant);
@@ -100,7 +108,9 @@ describe("usePlantManagement", () => {
     act(() => {
       result.current.handlePlantAttributeChange("name", "My Custom Monstera");
     });
-    expect(result.current.customizations).toEqual({ name: "My Custom Monstera" });
+    expect(result.current.customizations).toEqual({
+      name: "My Custom Monstera",
+    });
   });
 
   it("handles user data changes", () => {
@@ -123,11 +133,20 @@ describe("usePlantManagement", () => {
         await result.current.handleSelectPlant(mockPlant);
       });
       await act(async () => {
-        expect(await result.current.handleSavePlant(mockUserPlant, mockPlant)).toBe(true);
+        expect(
+          await result.current.handleSavePlant(mockUserPlant, mockPlant)
+        ).toBe(true);
       });
-      expect(savePlantToFirebase).toHaveBeenCalledWith(mockUserPlant, mockPlant, mockUser, mockHousehold);
+      expect(savePlantToFirebase).toHaveBeenCalledWith(
+        mockUserPlant,
+        mockPlant,
+        mockUser,
+        mockHousehold
+      );
       // Adding a plant is when the app asks for notification permission.
-      expect(registerForPush).toHaveBeenCalledWith(mockUser.uid, { prompt: true });
+      expect(registerForPush).toHaveBeenCalledWith(mockUser.uid, {
+        prompt: true,
+      });
       expect(mockDispatch).toHaveBeenCalledWith(addPlant(savedPlant));
       expect(result.current.selectedPlant).toBeNull();
       expect(result.current.userPlant).toEqual(savedPlant);
@@ -140,9 +159,12 @@ describe("usePlantManagement", () => {
         await result.current.handleSelectPlant(mockPlant);
       });
       await act(async () => {
-        expect(await result.current.handleSavePlant(
-          { ...mockUserPlant, custom_name: "Unsaved" }, mockPlant,
-        )).toBe(false);
+        expect(
+          await result.current.handleSavePlant(
+            { ...mockUserPlant, custom_name: "Unsaved" },
+            mockPlant
+          )
+        ).toBe(false);
       });
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(result.current.selectedPlant).toEqual(mockPlant);
@@ -154,7 +176,9 @@ describe("usePlantManagement", () => {
     it("returns false without writing when unauthenticated", async () => {
       const { result } = renderManagement(null);
       await act(async () => {
-        expect(await result.current.handleSavePlant(mockUserPlant, mockPlant)).toBe(false);
+        expect(
+          await result.current.handleSavePlant(mockUserPlant, mockPlant)
+        ).toBe(false);
       });
       expect(savePlantToFirebase).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
@@ -165,11 +189,16 @@ describe("usePlantManagement", () => {
       jest.mocked(savePlantToFirebase).mockRejectedValue(error);
       const { result } = renderManagement();
       await act(async () => {
-        expect(await result.current.handleSavePlant(mockUserPlant, mockPlant)).toBe(false);
+        expect(
+          await result.current.handleSavePlant(mockUserPlant, mockPlant)
+        ).toBe(false);
       });
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
-      expect(ErrorService.handleError).toHaveBeenCalledWith(error, "Save Plant");
+      expect(ErrorService.handleError).toHaveBeenCalledWith(
+        error,
+        "Save Plant"
+      );
     });
   });
 
@@ -177,9 +206,15 @@ describe("usePlantManagement", () => {
     it("persists a deletion and dispatches once on success", async () => {
       const { result } = renderManagement();
       await act(async () => {
-        expect(await result.current.handleDeletePlant(mockUserPlant)).toBe(true);
+        expect(await result.current.handleDeletePlant(mockUserPlant)).toBe(
+          true
+        );
       });
-      expect(removeUserPlantFromFirebase).toHaveBeenCalledWith(mockUserPlant.id, mockUser, mockHousehold.id);
+      expect(removeUserPlantFromFirebase).toHaveBeenCalledWith(
+        mockUserPlant.id,
+        mockUser,
+        mockHousehold.id
+      );
       expect(mockDispatch).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith(deletePlant(mockUserPlant.id));
     });
@@ -187,33 +222,52 @@ describe("usePlantManagement", () => {
     it("does not write without a user and rolls back the optimistic deletion", async () => {
       const { result } = renderManagement(null);
       await act(async () => {
-        expect(await result.current.handleDeletePlant(mockUserPlant)).toBe(false);
+        expect(await result.current.handleDeletePlant(mockUserPlant)).toBe(
+          false
+        );
       });
       expect(removeUserPlantFromFirebase).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenNthCalledWith(1, deletePlant(mockUserPlant.id));
-      expect(mockDispatch).toHaveBeenNthCalledWith(2, upsertPlant(mockUserPlant));
-    });
-
-    it.each([false, "reject"])("rolls back and reports failed deletion (%s)", async (failure) => {
-      const error = new Error("Failed to delete plant");
-      if (failure === false) {
-        jest.mocked(removeUserPlantFromFirebase).mockResolvedValue(false);
-      } else {
-        jest.mocked(removeUserPlantFromFirebase).mockRejectedValue(error);
-      }
-      const { result } = renderManagement();
-      await act(async () => {
-        expect(await result.current.handleDeletePlant(mockUserPlant)).toBe(false);
-      });
-      expect(mockDispatch).toHaveBeenCalledTimes(2);
-      expect(mockDispatch).toHaveBeenNthCalledWith(1, deletePlant(mockUserPlant.id));
-      expect(mockDispatch).toHaveBeenNthCalledWith(2, upsertPlant(mockUserPlant));
-      expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
-      expect(ErrorService.handleError).toHaveBeenCalledWith(
-        failure === false ? "Failed to remove plant from firebase" : error,
-        "Delete Plant",
+      expect(mockDispatch).toHaveBeenNthCalledWith(
+        1,
+        deletePlant(mockUserPlant.id)
+      );
+      expect(mockDispatch).toHaveBeenNthCalledWith(
+        2,
+        upsertPlant(mockUserPlant)
       );
     });
+
+    it.each([false, "reject"])(
+      "rolls back and reports failed deletion (%s)",
+      async (failure) => {
+        const error = new Error("Failed to delete plant");
+        if (failure === false) {
+          jest.mocked(removeUserPlantFromFirebase).mockResolvedValue(false);
+        } else {
+          jest.mocked(removeUserPlantFromFirebase).mockRejectedValue(error);
+        }
+        const { result } = renderManagement();
+        await act(async () => {
+          expect(await result.current.handleDeletePlant(mockUserPlant)).toBe(
+            false
+          );
+        });
+        expect(mockDispatch).toHaveBeenCalledTimes(2);
+        expect(mockDispatch).toHaveBeenNthCalledWith(
+          1,
+          deletePlant(mockUserPlant.id)
+        );
+        expect(mockDispatch).toHaveBeenNthCalledWith(
+          2,
+          upsertPlant(mockUserPlant)
+        );
+        expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
+        expect(ErrorService.handleError).toHaveBeenCalledWith(
+          failure === false ? "Failed to remove plant from firebase" : error,
+          "Delete Plant"
+        );
+      }
+    );
   });
 
   describe("handleUpdatePlant", () => {
@@ -221,15 +275,21 @@ describe("usePlantManagement", () => {
 
     it("waits for persistence before updating Redux and local state", async () => {
       let resolveWrite!: (saved: boolean) => void;
-      jest.mocked(saveUserPlantToFirebase).mockReturnValue(new Promise((resolve) => {
-        resolveWrite = resolve;
-      }));
+      jest.mocked(saveUserPlantToFirebase).mockReturnValue(
+        new Promise((resolve) => {
+          resolveWrite = resolve;
+        })
+      );
       const { result } = renderManagement();
       let pendingUpdate!: Promise<boolean>;
       act(() => {
         pendingUpdate = result.current.handleUpdatePlant(updatedPlant);
       });
-      expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser, mockHousehold);
+      expect(saveUserPlantToFirebase).toHaveBeenCalledWith(
+        updatedPlant,
+        mockUser,
+        mockHousehold
+      );
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(result.current.userPlant).toBeNull();
 
@@ -242,34 +302,45 @@ describe("usePlantManagement", () => {
       expect(result.current.userPlant).toEqual(updatedPlant);
     });
 
-    it.each([false, "reject"])("does not update state after a failed write (%s)", async (failure) => {
-      const error = new Error("Failed to update plant");
-      if (failure === false) {
-        jest.mocked(saveUserPlantToFirebase).mockResolvedValue(false);
-      } else {
-        jest.mocked(saveUserPlantToFirebase).mockRejectedValue(error);
+    it.each([false, "reject"])(
+      "does not update state after a failed write (%s)",
+      async (failure) => {
+        const error = new Error("Failed to update plant");
+        if (failure === false) {
+          jest.mocked(saveUserPlantToFirebase).mockResolvedValue(false);
+        } else {
+          jest.mocked(saveUserPlantToFirebase).mockRejectedValue(error);
+        }
+        const { result } = renderManagement();
+        await act(async () => {
+          await result.current.handleSelectPlant(mockPlant);
+        });
+        await act(async () => {
+          expect(await result.current.handleUpdatePlant(updatedPlant)).toBe(
+            false
+          );
+        });
+        expect(saveUserPlantToFirebase).toHaveBeenCalledWith(
+          updatedPlant,
+          mockUser,
+          mockHousehold
+        );
+        expect(mockDispatch).not.toHaveBeenCalled();
+        expect(result.current.userPlant).toEqual(mockUserPlant);
+        expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
+        expect(ErrorService.handleError).toHaveBeenCalledWith(
+          failure === false ? "Failed to update plant in firebase" : error,
+          "Update Plant"
+        );
       }
-      const { result } = renderManagement();
-      await act(async () => {
-        await result.current.handleSelectPlant(mockPlant);
-      });
-      await act(async () => {
-        expect(await result.current.handleUpdatePlant(updatedPlant)).toBe(false);
-      });
-      expect(saveUserPlantToFirebase).toHaveBeenCalledWith(updatedPlant, mockUser, mockHousehold);
-      expect(mockDispatch).not.toHaveBeenCalled();
-      expect(result.current.userPlant).toEqual(mockUserPlant);
-      expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
-      expect(ErrorService.handleError).toHaveBeenCalledWith(
-        failure === false ? "Failed to update plant in firebase" : error,
-        "Update Plant",
-      );
-    });
+    );
 
     it("returns false without writing or dispatching when unauthenticated", async () => {
       const { result } = renderManagement(null);
       await act(async () => {
-        expect(await result.current.handleUpdatePlant(updatedPlant)).toBe(false);
+        expect(await result.current.handleUpdatePlant(updatedPlant)).toBe(
+          false
+        );
       });
       expect(saveUserPlantToFirebase).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();

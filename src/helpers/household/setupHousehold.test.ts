@@ -3,7 +3,11 @@ import firestore from "@react-native-firebase/firestore";
 
 import mockUser from "@/test-utils/MockFirebaseUser";
 
-import { createSoloHousehold, displayNameFor, migrateUserPlants } from "./setupHousehold";
+import {
+  createSoloHousehold,
+  displayNameFor,
+  migrateUserPlants,
+} from "./setupHousehold";
 
 const mockGet = (firestore as any)._mockGet as jest.Mock;
 const mockSet = (firestore as any)._mockSet as jest.Mock;
@@ -15,7 +19,9 @@ const kian = { ...mockUser, displayName: "Kian" };
 describe("displayNameFor", () => {
   it("prefers the display name, then the start of the email", () => {
     expect(displayNameFor(kian)).toBe("Kian");
-    expect(displayNameFor({ ...mockUser, email: "kian@example.com" })).toBe("kian");
+    expect(displayNameFor({ ...mockUser, email: "kian@example.com" })).toBe(
+      "kian"
+    );
     expect(displayNameFor(mockUser)).toBe("Plant friend");
   });
 });
@@ -38,43 +44,42 @@ describe("createSoloHousehold", () => {
         memberIds: ["user1"],
         members: { user1: { displayName: "Kian" } },
         createdBy: "user1",
-      }),
+      })
     );
     expect(mockSet).toHaveBeenNthCalledWith(2, { householdId: "user1" });
   });
 
   it("names the household after the Users document name when the account has none yet", async () => {
-    mockGet
-      .mockResolvedValueOnce({ exists: false })
-      .mockResolvedValueOnce({
-        exists: true,
-        data: () => ({ displayName: "Sam" }),
-      });
+    mockGet.mockResolvedValueOnce({ exists: false }).mockResolvedValueOnce({
+      exists: true,
+      data: () => ({ displayName: "Sam" }),
+    });
 
-    await createSoloHousehold({ ...mockUser, email: "pf.e2e.b.85390@example.com" });
+    await createSoloHousehold({
+      ...mockUser,
+      email: "pf.e2e.b.85390@example.com",
+    });
 
     expect(mockSet).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
         name: "Sam's home",
         members: { user1: { displayName: "Sam" } },
-      }),
+      })
     );
   });
 
   it("ignores a Users document name that is just the email", async () => {
-    mockGet
-      .mockResolvedValueOnce({ exists: false })
-      .mockResolvedValueOnce({
-        exists: true,
-        data: () => ({ displayName: "sam@example.com" }),
-      });
+    mockGet.mockResolvedValueOnce({ exists: false }).mockResolvedValueOnce({
+      exists: true,
+      data: () => ({ displayName: "sam@example.com" }),
+    });
 
     await createSoloHousehold({ ...mockUser, email: "sam@example.com" });
 
     expect(mockSet).toHaveBeenNthCalledWith(
       1,
-      expect.objectContaining({ name: "sam's home" }),
+      expect.objectContaining({ name: "sam's home" })
     );
   });
 
@@ -97,7 +102,10 @@ describe("migrateUserPlants", () => {
     mockGet.mockResolvedValueOnce({
       empty: false,
       docs: [
-        { id: "p1", data: () => ({ id: "p1", plantId: "monstera", custom_name: "Monty" }) },
+        {
+          id: "p1",
+          data: () => ({ id: "p1", plantId: "monstera", custom_name: "Monty" }),
+        },
         { id: "p2", data: () => ({ id: "p2", plantId: "fern" }) },
       ],
     });
@@ -117,6 +125,8 @@ describe("migrateUserPlants", () => {
       shared: false,
     });
     expect(mockBatchCommit).toHaveBeenCalledTimes(1);
-    expect(mockSet).toHaveBeenCalledWith({ plantsMigratedAt: "SERVER_TIMESTAMP" });
+    expect(mockSet).toHaveBeenCalledWith({
+      plantsMigratedAt: "SERVER_TIMESTAMP",
+    });
   });
 });

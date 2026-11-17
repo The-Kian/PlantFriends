@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       setUser(userState);
       setCrashReportingUser(userState?.uid ?? null);
     },
-    [],
+    []
   );
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         ErrorService.handleError(error, "Login");
       }
     },
-    [],
+    []
   );
 
   const register = useCallback(
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         const userCredential = await createUserWithEmailAndPassword(
           getAuth(),
           email,
-          password,
+          password
         );
         const newUser = userCredential.user;
         const name = displayName?.trim() || emailName(email);
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         await setDoc(
           doc(collection(getFirestore(), "Users"), newUser.uid),
           { displayName: name, email },
-          { merge: true },
+          { merge: true }
         );
       } catch (error) {
         ErrorService.handleError(error, "Registration");
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         publishUser(getAuth().currentUser);
       }
     },
-    [publishUser],
+    [publishUser]
   );
 
   /**
@@ -141,13 +141,13 @@ export const AuthProvider = ({ children }: ProviderProps) => {
   const completeSocialSignIn = useCallback(
     async (
       credential: FirebaseAuthTypes.AuthCredential,
-      displayName: string | null = null,
+      displayName: string | null = null
     ) => {
       holdingUser.current = true;
       try {
         const userCredential = await signInWithCredential(
           getAuth(),
-          credential,
+          credential
         );
         if (!userCredential.additionalUserInfo?.isNewUser) {
           return;
@@ -166,14 +166,14 @@ export const AuthProvider = ({ children }: ProviderProps) => {
               (newUser.email ? emailName(newUser.email) : ""),
             email: newUser.email,
           },
-          { merge: true },
+          { merge: true }
         );
       } finally {
         holdingUser.current = false;
         publishUser(getAuth().currentUser);
       }
     },
-    [publishUser],
+    [publishUser]
   );
 
   const signInWithGoogle = useCallback(async () => {
@@ -222,7 +222,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         publishUser(getAuth().currentUser);
       }
     },
-    [publishUser],
+    [publishUser]
   );
 
   const logout = useCallback(async () => {
@@ -251,7 +251,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       await sendPasswordResetEmail(getAuth(), email);
       Alert.alert(
         "Password reset email sent",
-        "Check your inbox for instructions to reset your password.",
+        "Check your inbox for instructions to reset your password."
       );
     } catch (error) {
       ErrorService.handleError(error, "Reset Password");
@@ -312,7 +312,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       deleteAccount,
       signInWithGoogle,
       signInWithApple,
-    ],
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

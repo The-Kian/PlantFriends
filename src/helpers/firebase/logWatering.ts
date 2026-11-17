@@ -19,7 +19,7 @@ function logWatering(
   householdId: string,
   plant: IUserPlant,
   waterer: { uid: string; displayName: string | null },
-  frequencyDays: number,
+  frequencyDays: number
 ): IUserPlant {
   const now = Date.now();
   const watering = {
@@ -29,14 +29,13 @@ function logWatering(
     last_watered_by_name: waterer.displayName,
   };
 
-  updateDoc(
-    plantDoc(getFirestore(), householdId, plant.id),
-    watering,
-  ).catch((error: unknown) => {
-    ErrorService.handleError(error, "Log Watering", {
-      userMessage: "Failed to log watering. Please try again.",
-    });
-  });
+  updateDoc(plantDoc(getFirestore(), householdId, plant.id), watering).catch(
+    (error: unknown) => {
+      ErrorService.handleError(error, "Log Watering", {
+        userMessage: "Failed to log watering. Please try again.",
+      });
+    }
+  );
 
   return { ...plant, ...watering };
 }

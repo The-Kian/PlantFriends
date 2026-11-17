@@ -22,14 +22,13 @@ const trefle = (fields: Partial<TreflePlant> = {}): TreflePlant =>
 describe("mapTreflePlantToIPlant", () => {
   it("describes a plant with nothing else to say by its family", () => {
     expect(mapTreflePlantToIPlant(trefle()).description).toBe(
-      "A plant in the Araceae family",
+      "A plant in the Araceae family"
     );
   });
 
   it("doesn't invent a family", () => {
     expect(
-      mapTreflePlantToIPlant(trefle({ family: undefined as never }))
-        .description,
+      mapTreflePlantToIPlant(trefle({ family: undefined as never })).description
     ).toBe("A plant");
   });
 });

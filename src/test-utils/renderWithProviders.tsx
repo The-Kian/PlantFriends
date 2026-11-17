@@ -19,7 +19,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
 
 export function renderWithProviders(
   ui: React.ReactElement,
-  extendedRenderOptions: ExtendedRenderOptions = {},
+  extendedRenderOptions: ExtendedRenderOptions = {}
 ) {
   const {
     preloadedState = {},

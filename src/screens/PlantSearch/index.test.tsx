@@ -103,7 +103,7 @@ describe("PlantSearchScreen", () => {
 
   // A custom render function that provides a real navigator and all necessary contexts
   const renderComponent = (
-    initialRoute: keyof RootStackParamList = "PlantSearch",
+    initialRoute: keyof RootStackParamList = "PlantSearch"
   ) => {
     return renderWithProviders(
       <AuthContext.Provider value={mockAuthContextValue}>
@@ -115,13 +115,10 @@ describe("PlantSearchScreen", () => {
             <Stack.Screen name="Initial" component={InitialTestScreen} />
             <Stack.Screen name="PlantSearch" component={PlantSearchScreen} />
             <Stack.Screen name="Tab" component={MockTabScreen} />
-            <Stack.Screen
-              name="PlantDetails"
-              component={MockDetailsScreen}
-            />
+            <Stack.Screen name="PlantDetails" component={MockDetailsScreen} />
           </Stack.Navigator>
         </NavigationContainer>
-      </AuthContext.Provider>,
+      </AuthContext.Provider>
     );
   };
 
@@ -149,7 +146,10 @@ describe("PlantSearchScreen", () => {
 
   it("asks for a second letter before searching", () => {
     renderComponent();
-    fireEvent.changeText(screen.getByLabelText("Search for a plant input field"), "m");
+    fireEvent.changeText(
+      screen.getByLabelText("Search for a plant input field"),
+      "m"
+    );
     expect(screen.getByText(/at least 2 letters/)).toBeTruthy();
   });
 
@@ -163,7 +163,7 @@ describe("PlantSearchScreen", () => {
     renderComponent();
     fireEvent.changeText(
       screen.getByLabelText("Search for a plant input field"),
-      "zzzz",
+      "zzzz"
     );
 
     expect(await screen.findByText('No plants match "zzzz"')).toBeTruthy();
@@ -183,7 +183,7 @@ describe("PlantSearchScreen", () => {
     renderComponent();
     fireEvent.changeText(
       screen.getByLabelText("Search for a plant input field"),
-      "zzzz",
+      "zzzz"
     );
     expect(screen.queryByText(/No plants match/)).toBeNull();
   });
@@ -197,10 +197,10 @@ describe("PlantSearchScreen", () => {
     renderComponent();
 
     expect(
-      await screen.findByText("You're offline. Searching needs a connection."),
+      await screen.findByText("You're offline. Searching needs a connection.")
     ).toBeTruthy();
     expect(
-      screen.getByText("Add a new plant (not in search results)"),
+      screen.getByText("Add a new plant (not in search results)")
     ).toBeTruthy();
   });
 
@@ -213,7 +213,7 @@ describe("PlantSearchScreen", () => {
     renderComponent();
 
     expect(
-      await screen.findByText(/plants other people have added/),
+      await screen.findByText(/plants other people have added/)
     ).toBeTruthy();
   });
 
@@ -231,7 +231,7 @@ describe("PlantSearchScreen", () => {
   it("opens modal in 'add new' mode when button is pressed", async () => {
     renderComponent();
     fireEvent.press(
-      screen.getByText("Add a new plant (not in search results)"),
+      screen.getByText("Add a new plant (not in search results)")
     );
     await waitFor(() => {
       expect(screen.getByText("Mock Customization Modal")).toBeVisible();
@@ -268,7 +268,7 @@ describe("PlantSearchScreen", () => {
         expect.objectContaining({ plantId: mockPlant.id, id: "mock-uuid-123" }),
         mockPlant,
         mockUser,
-        mockHousehold,
+        mockHousehold
       );
     });
     expect(screen.getByText("Details for mock-uuid-123")).toBeVisible();
@@ -279,7 +279,7 @@ describe("PlantSearchScreen", () => {
     renderComponent();
 
     fireEvent.press(
-      screen.getByText("Add a new plant (not in search results)"),
+      screen.getByText("Add a new plant (not in search results)")
     );
     await screen.findByText("Mock Customization Modal");
     fireEvent.press(screen.getByTestId("save-button"));
@@ -289,7 +289,7 @@ describe("PlantSearchScreen", () => {
         expect.objectContaining({ plantId: mockPlant.id }),
         mockPlant,
         mockUser,
-        mockHousehold,
+        mockHousehold
       );
     });
     expect(screen.getByText(`Details for ${mockUserPlant.id}`)).toBeVisible();
@@ -300,7 +300,7 @@ describe("PlantSearchScreen", () => {
     renderComponent();
 
     fireEvent.press(
-      screen.getByText("Add a new plant (not in search results)"),
+      screen.getByText("Add a new plant (not in search results)")
     );
     await screen.findByText("Mock Customization Modal");
     fireEvent.press(screen.getByTestId("save-button"));

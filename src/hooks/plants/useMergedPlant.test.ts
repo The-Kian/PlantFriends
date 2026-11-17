@@ -30,7 +30,7 @@ describe("useMergedPlant", () => {
 
     const utils = renderHook(() => useMergedPlant(bare));
     await waitFor(() =>
-      expect(utils.result.current.mergedPlant?.name).toBe("Monstera"),
+      expect(utils.result.current.mergedPlant?.name).toBe("Monstera")
     );
     expect(utils.result.current.unavailable).toBe(false);
     expect(fetchFirebasePlantById).toHaveBeenCalledTimes(2);

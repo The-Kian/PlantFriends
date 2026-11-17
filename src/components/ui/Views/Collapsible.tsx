@@ -39,7 +39,10 @@ export function Collapsible({
           <View
             style={[
               styles.countBadge,
-              { backgroundColor: colors.primaryMuted, borderRadius: radius.pill },
+              {
+                backgroundColor: colors.primaryMuted,
+                borderRadius: radius.pill,
+              },
             ]}
           >
             <ThemedText style={[styles.countText, { color: colors.primary }]}>

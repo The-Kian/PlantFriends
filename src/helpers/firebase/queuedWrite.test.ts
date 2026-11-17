@@ -2,7 +2,6 @@ import { recordHandledError } from "@/services/CrashReporting";
 
 import { queuedWrite } from "./queuedWrite";
 
-
 jest.mock("@/services/CrashReporting", () => ({
   recordHandledError: jest.fn(),
 }));
@@ -20,7 +19,7 @@ describe("queuedWrite", () => {
 
   it("throws a rejection that arrives in time", async () => {
     await expect(
-      queuedWrite(Promise.reject(new Error("denied")), "t"),
+      queuedWrite(Promise.reject(new Error("denied")), "t")
     ).rejects.toThrow("denied");
   });
 
@@ -43,7 +42,7 @@ describe("queuedWrite", () => {
     await jest.advanceTimersByTimeAsync(0);
     expect(recordHandledError).toHaveBeenCalledWith(
       expect.any(Error),
-      "Save (after going offline)",
+      "Save (after going offline)"
     );
   });
 });

@@ -7,8 +7,7 @@
  */
 
 export type MembershipChangeEvent =
-  | { type: "start" }
-  | { type: "end"; succeeded: boolean };
+  { type: "start" } | { type: "end"; succeeded: boolean };
 
 type Listener = (event: MembershipChangeEvent) => void;
 
@@ -26,7 +25,7 @@ export function subscribeToMembershipChange(listener: Listener): () => void {
  * household provider told before and after.
  */
 export async function withMembershipChange<T>(
-  change: () => Promise<T>,
+  change: () => Promise<T>
 ): Promise<T> {
   listeners.forEach((listener) => listener({ type: "start" }));
   let succeeded = false;

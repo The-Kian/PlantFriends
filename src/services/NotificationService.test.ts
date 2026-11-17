@@ -21,24 +21,28 @@ describe("NotificationService", () => {
   it("cancels reminders an older build scheduled", async () => {
     await cancelAllWateringReminders();
 
-    expect(Notifications.cancelAllScheduledNotificationsAsync).toHaveBeenCalled();
+    expect(
+      Notifications.cancelAllScheduledNotificationsAsync
+    ).toHaveBeenCalled();
     expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
   });
 
   it("dismisses reminders for plants that have been watered or are gone", async () => {
-    jest.mocked(Notifications.getPresentedNotificationsAsync).mockResolvedValueOnce([
-      presented("watered", { plantId: "a", type: "due" }),
-      presented("still-due", { plantId: "b", type: "nudge" }),
-      presented("deleted", { plantId: "gone", type: "due" }),
-      presented("housemate", { plantId: "a", type: "watered" }),
-    ] as unknown as Notifications.Notification[]);
+    jest
+      .mocked(Notifications.getPresentedNotificationsAsync)
+      .mockResolvedValueOnce([
+        presented("watered", { plantId: "a", type: "due" }),
+        presented("still-due", { plantId: "b", type: "nudge" }),
+        presented("deleted", { plantId: "gone", type: "due" }),
+        presented("housemate", { plantId: "a", type: "watered" }),
+      ] as unknown as Notifications.Notification[]);
 
     await dismissStaleReminders(
       [
         { ...mockUserPlant, id: "a", next_watering_date: NOW + 1 },
         { ...mockUserPlant, id: "b", next_watering_date: NOW - 1 },
       ],
-      NOW,
+      NOW
     );
 
     const dismissed = jest

@@ -94,7 +94,7 @@ function isPermissionDenied(error: unknown): boolean {
 // so the caller can try again later.
 async function mergeWithBasePlants(
   plants: IUserPlant[],
-  cache: BasePlantCache,
+  cache: BasePlantCache
 ): Promise<{ plants: (IUserPlant | IUserPlantMerged)[]; failed: boolean }> {
   let failed = false;
   const merged = await Promise.all(
@@ -120,7 +120,7 @@ async function mergeWithBasePlants(
         console.warn("Couldn't load species data for a plant:", e);
         return up;
       }
-    }),
+    })
   );
   return { plants: merged, failed };
 }
@@ -265,7 +265,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         recordHandledError(e, "Profile listener");
         setError("Couldn't load your household. Please try again.");
         setLoading(false);
-      },
+      }
     );
   }, [user, dispatch, resume, setUpHousehold]);
 
@@ -295,7 +295,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         onReal();
       }, PERMISSION_GRACE_MS);
     },
-    [],
+    []
   );
 
   // 2. Follow the household itself (name and members).
@@ -306,11 +306,18 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       householdDoc(getFirestore(), householdId),
       (snap) => {
         const data = snap?.data();
-        setHousehold(data ? ({ ...data, id: householdId } as IHousehold) : null);
+        setHousehold(
+          data ? ({ ...data, id: householdId } as IHousehold) : null
+        );
       },
       (e) => {
-        timer = reportListenerError(e, "Household listener", householdId, () => {});
-      },
+        timer = reportListenerError(
+          e,
+          "Household listener",
+          householdId,
+          () => {}
+        );
+      }
     );
     return () => {
       unsubscribe();
@@ -334,7 +341,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
 
       const { plants: merged, failed } = await mergeWithBasePlants(
         plants,
-        basePlantCache.current,
+        basePlantCache.current
       );
       if (run !== latest) return; // a newer snapshot has arrived
       dispatch(setUserPlants(merged));
@@ -357,16 +364,21 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       plantsCol(getFirestore(), householdId),
       (snap) => {
         current = (snap?.docs ?? []).map(
-          (d: { data: () => unknown }) => d.data() as IUserPlant,
+          (d: { data: () => unknown }) => d.data() as IUserPlant
         );
         void process(current);
       },
       (e) => {
-        errorTimer = reportListenerError(e, "Plants listener", householdId, () => {
-          setError("Failed to load your plants. Please try again.");
-          setLoading(false);
-        });
-      },
+        errorTimer = reportListenerError(
+          e,
+          "Plants listener",
+          householdId,
+          () => {
+            setError("Failed to load your plants. Please try again.");
+            setLoading(false);
+          }
+        );
+      }
     );
 
     return () => {
@@ -388,14 +400,16 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       memberName: (uid) =>
         (uid && household?.members?.[uid]?.displayName) || null,
     }),
-    [household, loading, error, setupError, retrySetup, notificationPrefs],
+    [household, loading, error, setupError, retrySetup, notificationPrefs]
   );
 
   return (
     <HouseholdContext.Provider value={value}>
       {setupError ? (
         <ThemedView style={styles.failed} testID="household-setup-failed">
-          <ThemedText type="subtitle">Couldn&apos;t set up your home</ThemedText>
+          <ThemedText type="subtitle">
+            Couldn&apos;t set up your home
+          </ThemedText>
           <ThemedText type="caption" style={styles.message}>
             Check your connection and try again.
           </ThemedText>

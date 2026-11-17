@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { IPlant, IUserPlant } from '@/constants/IPlant';
-import fetchFirebasePlantById from '@/helpers/firebase/fetchFirebasePlantById';
+import { IPlant, IUserPlant } from "@/constants/IPlant";
+import fetchFirebasePlantById from "@/helpers/firebase/fetchFirebasePlantById";
 
 // Species that loaded (or are known not to exist). A failed lookup is never
 // stored here, so it's tried again next time.

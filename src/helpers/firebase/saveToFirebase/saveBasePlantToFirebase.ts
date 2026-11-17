@@ -14,7 +14,7 @@ import { recordHandledError } from "@/services/CrashReporting";
 
 const saveBasePlantToFirebase = async (
   plantData: IPlant,
-  user: FirebaseAuthTypes.User,
+  user: FirebaseAuthTypes.User
 ): Promise<boolean> => {
   const plantId = plantData.id;
   const db = getFirestore();
@@ -35,7 +35,7 @@ const saveBasePlantToFirebase = async (
           contributed_by: user.displayName ?? user.email ?? user.uid,
           isVerified: false,
           slug: plantData.name ? plantData.name.toLowerCase() : "",
-        }).filter(([, value]) => value !== null && value !== undefined),
+        }).filter(([, value]) => value !== null && value !== undefined)
       );
       await queuedWrite(setDoc(plantRef, basePlantData), "Save base plant");
     } catch (error) {

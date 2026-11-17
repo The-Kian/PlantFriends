@@ -8,7 +8,7 @@ import ErrorService from "@/services/ErrorService";
 const removeUserPlantFromFirebase = async (
   userPlantId: string,
   user: FirebaseAuthTypes.User | null,
-  householdId: string | null,
+  householdId: string | null
 ): Promise<boolean> => {
   if (!user || !householdId) {
     ErrorService.handleError("User is not authenticated", "Remove Plant");
@@ -20,7 +20,7 @@ const removeUserPlantFromFirebase = async (
     // waiting on it.
     await queuedWrite(
       deleteDoc(plantDoc(getFirestore(), householdId, userPlantId)),
-      "Delete plant",
+      "Delete plant"
     );
     return true;
   } catch (error) {

@@ -16,11 +16,18 @@ describe("CrashReporting", () => {
     recordHandledError(error, "Search");
 
     expect(log).toHaveBeenCalledWith(expect.anything(), "Search");
-    expect(recordError).toHaveBeenCalledWith(expect.anything(), error, "Search");
+    expect(recordError).toHaveBeenCalledWith(
+      expect.anything(),
+      error,
+      "Search"
+    );
   });
 
   it("wraps Firebase-style error objects in an Error", () => {
-    recordHandledError({ code: "auth/network-request-failed", message: "offline" });
+    recordHandledError({
+      code: "auth/network-request-failed",
+      message: "offline",
+    });
 
     const recorded = (recordError as jest.Mock).mock.calls[0][1];
     expect(recorded).toBeInstanceOf(Error);

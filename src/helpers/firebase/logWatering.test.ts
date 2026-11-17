@@ -30,7 +30,7 @@ describe("logWatering", () => {
       "household1",
       plant,
       { uid: "user2", displayName: "Sam" },
-      7,
+      7
     );
 
     const watering = {
@@ -50,7 +50,7 @@ describe("logWatering", () => {
       "household1",
       mockUserPlant,
       { uid: "user1", displayName: "Kian" },
-      3,
+      3
     );
 
     expect(result.last_watered_by).toBe("user1");
@@ -67,14 +67,14 @@ describe("logWatering", () => {
       "household1",
       mockUserPlant,
       { uid: "user1", displayName: "Kian" },
-      3,
+      3
     );
 
     await waitFor(() => {
       expect(handleError).toHaveBeenCalledWith(
         error,
         "Log Watering",
-        expect.objectContaining({ userMessage: expect.any(String) }),
+        expect.objectContaining({ userMessage: expect.any(String) })
       );
     });
   });

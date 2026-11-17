@@ -435,7 +435,9 @@ export async function seedFakePlants(options: SeedOptions = {}) {
       const creds = await signInAnonymously(getAuth());
       user = creds.user;
     } catch (error) {
-      console.warn("seedFakePlants: sign-in failed; ensure auth is configured.");
+      console.warn(
+        "seedFakePlants: sign-in failed; ensure auth is configured."
+      );
       throw error;
     }
   }

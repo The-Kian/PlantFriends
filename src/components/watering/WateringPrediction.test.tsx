@@ -1,13 +1,13 @@
-import React from 'react';
+import React from "react";
 
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from "@testing-library/react-native";
 
-import { formatLastWatered, WateringPrediction } from './WateringPrediction';
+import { formatLastWatered, WateringPrediction } from "./WateringPrediction";
 
 // Themed components are mocked in jest/setup.js
 
-describe('WateringPrediction', () => {
-  const fixedNow = new Date('2025-12-18T10:00:00.000Z');
+describe("WateringPrediction", () => {
+  const fixedNow = new Date("2025-12-18T10:00:00.000Z");
 
   beforeAll(() => {
     jest.useFakeTimers();
@@ -26,17 +26,17 @@ describe('WateringPrediction', () => {
         lastWatered={null}
         wateringFrequency={7}
         onLogWatering={onLog}
-      />,
+      />
     );
 
     expect(screen.getByText("This plant hasn't been watered yet")).toBeTruthy();
 
-    const firstLogButton = screen.getByText('Log First Watering');
+    const firstLogButton = screen.getByText("Log First Watering");
     fireEvent.press(firstLogButton);
     expect(onLog).toHaveBeenCalled();
   });
 
-  it('shows soon status when within threshold', () => {
+  it("shows soon status when within threshold", () => {
     const onLog = jest.fn();
 
     // last watered 5 days ago, frequency 7 days => 2 days until
@@ -47,14 +47,14 @@ describe('WateringPrediction', () => {
         lastWatered={lastWatered}
         wateringFrequency={7}
         onLogWatering={onLog}
-      />,
+      />
     );
 
     expect(screen.getByText(/Water in 2 days/)).toBeTruthy();
-    expect(screen.getByText('Log Watering')).toBeTruthy();
+    expect(screen.getByText("Log Watering")).toBeTruthy();
   });
 
-  it('shows overdue status for past due dates', () => {
+  it("shows overdue status for past due dates", () => {
     const onLog = jest.fn();
 
     // last watered 10 days ago, frequency 7 => overdue by 3 days
@@ -65,7 +65,7 @@ describe('WateringPrediction', () => {
         lastWatered={lastWatered}
         wateringFrequency={7}
         onLogWatering={onLog}
-      />,
+      />
     );
 
     expect(screen.getByText(/Overdue by 3 days/)).toBeTruthy();
@@ -77,7 +77,9 @@ describe("formatLastWatered", () => {
   const day = 24 * 60 * 60 * 1000;
 
   it("says who watered it when given a name", () => {
-    expect(formatLastWatered(now - 2 * day, now, "Sam")).toBe("Watered 2 days ago by Sam");
+    expect(formatLastWatered(now - 2 * day, now, "Sam")).toBe(
+      "Watered 2 days ago by Sam"
+    );
     expect(formatLastWatered(now, now, "Sam")).toBe("Watered today by Sam");
   });
 

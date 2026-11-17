@@ -9,7 +9,10 @@ import { AuthContext } from "@/context/auth/AuthProvider";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
-import { mockHousehold, mockHouseholdContext } from "@/test-utils/MockHousehold";
+import {
+  mockHousehold,
+  mockHouseholdContext,
+} from "@/test-utils/MockHousehold";
 import { mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
@@ -21,19 +24,18 @@ describe("PlantCard", () => {
   const now = new Date("2026-10-05T12:00:00Z").getTime();
   const day = 24 * 60 * 60 * 1000;
 
-  const renderCard = (
-    plant: IUserPlant,
-    household = mockHouseholdContext(),
-  ) =>
+  const renderCard = (plant: IUserPlant, household = mockHouseholdContext()) =>
     renderWithProviders(
       <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
         <PlantCard plant={plant} onPress={jest.fn()} onDelete={jest.fn()} />
       </AuthContext.Provider>,
-      { household },
+      { household }
     );
 
   beforeEach(() => {
-    jest.mocked(useMergedPlant).mockReturnValue({ mergedPlant: null, loading: false });
+    jest
+      .mocked(useMergedPlant)
+      .mockReturnValue({ mergedPlant: null, loading: false });
     jest.spyOn(Date, "now").mockReturnValue(now);
   });
 
@@ -78,7 +80,7 @@ describe("PlantCard", () => {
       { ...mockUserPlant, addedBy: "user1", shared: true },
       mockHouseholdContext({
         household: { ...mockHousehold, memberIds: ["user1"] },
-      }),
+      })
     );
 
     expect(screen.queryByText("Shared")).toBeNull();
@@ -99,7 +101,7 @@ describe("PlantCard image", () => {
           onDelete={jest.fn()}
         />
       </AuthContext.Provider>,
-      { household: mockHouseholdContext() },
+      { household: mockHouseholdContext() }
     );
 
     fireEvent(screen.UNSAFE_getByType(Image), "error");

@@ -17,7 +17,7 @@ describe("RootLayout", () => {
         <NavigationContainer>
           <RootLayout />
         </NavigationContainer>
-      </AuthContext.Provider>,
+      </AuthContext.Provider>
     );
 
   it("shows login & signup screens when user is not logged in", async () => {

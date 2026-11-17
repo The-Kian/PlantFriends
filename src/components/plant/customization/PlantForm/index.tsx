@@ -31,7 +31,7 @@ const PlantForm = ({
   const { user } = useContext(AuthContext);
 
   const [customizations, setCustomizations] = useState<Partial<IPlant>>(
-    initialPlantData || {},
+    initialPlantData || {}
   );
 
   const [userData, setUserData] = useState<IUserPlant>(
@@ -40,7 +40,7 @@ const PlantForm = ({
       plantId: "",
       id: uuid.v4().toString(),
       custom_attributes: {},
-    },
+    }
   );
 
   useEffect(() => {
@@ -67,19 +67,25 @@ const PlantForm = ({
           plantId: initialPlantData.id || "",
           id: uuid.v4().toString(),
           custom_attributes: {},
-        },
+        }
       );
     }
   }, [isAddingNewPlant, initialPlantData, initialUserPlantData, user]);
 
-  const handlePlantAttributeChange = (key: keyof IPlant, value: IPlant[keyof IPlant]) => {
+  const handlePlantAttributeChange = (
+    key: keyof IPlant,
+    value: IPlant[keyof IPlant]
+  ) => {
     setCustomizations((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
-  const handleUserDataChange = (key: keyof IUserPlant, value: IUserPlant[keyof IUserPlant]) => {
+  const handleUserDataChange = (
+    key: keyof IUserPlant,
+    value: IUserPlant[keyof IUserPlant]
+  ) => {
     setUserData((prev) => ({
       ...prev,
       [key]: value,
@@ -102,9 +108,9 @@ const PlantForm = ({
 
     const finalUserData = {
       ...userData,
-      userId: user?.uid || "", 
+      userId: user?.uid || "",
       plantId: finalPlantData.id,
-      id: userData.id || uuid.v4().toString(), 
+      id: userData.id || uuid.v4().toString(),
     } as IUserPlant;
 
     await onSave(finalUserData, finalPlantData);

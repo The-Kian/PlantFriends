@@ -1,6 +1,9 @@
 import { Alert } from "react-native";
 
-import { OFFLINE_MESSAGE, isOfflineError } from "@/helpers/errors/friendlyErrors";
+import {
+  OFFLINE_MESSAGE,
+  isOfflineError,
+} from "@/helpers/errors/friendlyErrors";
 
 import { recordHandledError } from "./CrashReporting";
 
@@ -65,7 +68,8 @@ class ErrorService {
     // Auth errors
     "auth/user-not-found": {
       severity: "error",
-      userMessage: "User not found. Please check your email or create an account.",
+      userMessage:
+        "User not found. Please check your email or create an account.",
     },
     "auth/wrong-password": {
       severity: "error",
@@ -80,11 +84,13 @@ class ErrorService {
     },
     "auth/too-many-requests": {
       severity: "warning",
-      userMessage: "Too many attempts. Please wait a few minutes and try again.",
+      userMessage:
+        "Too many attempts. Please wait a few minutes and try again.",
     },
     "auth/email-already-in-use": {
       severity: "error",
-      userMessage: "This email is already registered. Please log in or use a different email.",
+      userMessage:
+        "This email is already registered. Please log in or use a different email.",
     },
     "auth/invalid-email": {
       severity: "error",
@@ -115,13 +121,15 @@ class ErrorService {
     },
     "firestore/unavailable": {
       severity: "error",
-      userMessage: "The service is temporarily unavailable. Please try again later.",
+      userMessage:
+        "The service is temporarily unavailable. Please try again later.",
     },
 
     // API errors
     "api/network-error": {
       severity: "error",
-      userMessage: "Failed to fetch data. Please check your connection and try again.",
+      userMessage:
+        "Failed to fetch data. Please check your connection and try again.",
     },
     "api/rate-limited": {
       severity: "warning",
@@ -139,7 +147,7 @@ class ErrorService {
   static handleError(
     error: unknown,
     context?: string,
-    customConfig?: Partial<ErrorConfig>,
+    customConfig?: Partial<ErrorConfig>
   ): void {
     const errorCode = this.extractErrorCode(error);
     const config = this.configFor(error, errorCode);
@@ -157,7 +165,7 @@ class ErrorService {
    */
   static async handleErrorAsync(
     error: unknown,
-    context?: string,
+    context?: string
   ): Promise<{ success: false; error: ErrorConfig }> {
     const errorCode = this.extractErrorCode(error);
     const config = this.configFor(error, errorCode);
@@ -174,7 +182,7 @@ class ErrorService {
   static async validateAndExecute<T>(
     asyncFn: () => Promise<T>,
     context: string,
-    onError?: (config: ErrorConfig) => void,
+    onError?: (config: ErrorConfig) => void
   ): Promise<{ success: boolean; data?: T; error?: ErrorConfig }> {
     try {
       const data = await asyncFn();
@@ -212,7 +220,7 @@ class ErrorService {
   private static logError(
     error: unknown,
     errorCode: string,
-    context?: string,
+    context?: string
   ): void {
     console.error(`[${context || "Error"}] ${errorCode}:`, error);
     // Being offline, or a user typing the wrong password, isn't a fault in
@@ -268,7 +276,11 @@ class ErrorService {
   private static showAlert(config: ErrorConfig, context?: string): void {
     const title = alertTitleFor(context);
 
-    Alert.alert(title, config.userMessage, config.actions || [{ text: "OK", onPress: () => {} }]);
+    Alert.alert(
+      title,
+      config.userMessage,
+      config.actions || [{ text: "OK", onPress: () => {} }]
+    );
   }
 }
 

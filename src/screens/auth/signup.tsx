@@ -9,12 +9,12 @@ import { CredentialsType } from "@/context/auth/AuthTypes";
 
 function SignupScreen() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const { register } =useContext(AuthContext);
+  const { register } = useContext(AuthContext);
 
   async function signupHandler(
     email: string,
     password: string,
-    displayName: string,
+    displayName: string
   ) {
     setIsAuthenticating(true);
     // The name goes in with the account, so the household is named after it.
@@ -24,22 +24,22 @@ function SignupScreen() {
 
   return (
     <View style={styles.screen}>
-    <AuthContent
-      onSubmit={(credentials: CredentialsType) => {
-        signupHandler(
-          credentials.email,
-          credentials.password,
-          credentials.displayName,
-        );
-      }}
-      credentialsInvalid={{
-        email: false,
-        confirmEmail: false,
-        password: false,
-        confirmPassword: false,
-      }}
-      authScreenType={"signUp"}
-    />
+      <AuthContent
+        onSubmit={(credentials: CredentialsType) => {
+          signupHandler(
+            credentials.email,
+            credentials.password,
+            credentials.displayName
+          );
+        }}
+        credentialsInvalid={{
+          email: false,
+          confirmEmail: false,
+          password: false,
+          confirmPassword: false,
+        }}
+        authScreenType={"signUp"}
+      />
       {/* On top of the form, not instead of it, so a failed sign-up keeps
           what was typed. */}
       {isAuthenticating ? (

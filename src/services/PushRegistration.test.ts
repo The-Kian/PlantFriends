@@ -30,7 +30,7 @@ describe("PushRegistration", () => {
       expect.objectContaining({
         expoPushToken: "ExponentPushToken[test-device]",
         updatedAt: "SERVER_TIMESTAMP",
-      }),
+      })
     );
     expect(mockSet).toHaveBeenCalledWith({ timeZone: expect.any(String) });
   });
@@ -49,7 +49,7 @@ describe("PushRegistration", () => {
   it("gives up quietly when the device can't get a token", async () => {
     jest.spyOn(console, "warn").mockImplementation(() => {});
     (Notifications.getExpoPushTokenAsync as jest.Mock).mockRejectedValueOnce(
-      new Error("No Google Play services"),
+      new Error("No Google Play services")
     );
 
     expect(await registerForPush("user1", { prompt: true })).toBeNull();
