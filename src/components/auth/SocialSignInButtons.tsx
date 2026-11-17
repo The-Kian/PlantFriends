@@ -40,7 +40,9 @@ function SocialSignInButtons() {
       {appleAvailable && (
         <AppleAuthentication.AppleAuthenticationButton
           testID="apple-sign-in"
-          buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+          buttonType={
+            AppleAuthentication.AppleAuthenticationButtonType.CONTINUE
+          }
           buttonStyle={
             dark
               ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
@@ -54,7 +56,9 @@ function SocialSignInButtons() {
       <GoogleSigninButton
         testID="google-sign-in"
         size={GoogleSigninButton.Size.Wide}
-        color={dark ? GoogleSigninButton.Color.Dark : GoogleSigninButton.Color.Light}
+        color={
+          dark ? GoogleSigninButton.Color.Dark : GoogleSigninButton.Color.Light
+        }
         disabled={busy}
         onPress={() => run(signInWithGoogle)}
         style={styles.googleButton}

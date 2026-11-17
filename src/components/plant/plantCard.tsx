@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 
 import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 
@@ -24,6 +24,7 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
     const { mergedPlant } = useMergedPlant(plant);
     const { user } = useContext(AuthContext);
     const { household, memberName } = useHousehold();
+    const [imageFailed, setImageFailed] = useState(false);
 
     const displayName = plant.custom_name || mergedPlant?.name || "Unnamed Plant";
     const imageUri = (plant as IUserPlantMerged).images?.[0] || mergedPlant?.images?.[0] || null;
@@ -55,8 +56,12 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
                 pressed && styles.pressed,
             ]}
         >
-            {imageUri ? (
-                <Image source={{ uri: imageUri }} style={[styles.image, { borderRadius: radius.medium }]} />
+            {imageUri && !imageFailed ? (
+                <Image
+                    source={{ uri: imageUri }}
+                    onError={() => setImageFailed(true)}
+                    style={[styles.image, { borderRadius: radius.medium }]}
+                />
             ) : (
                 <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: colors.primaryMuted, borderRadius: radius.medium }]}>
                     <Ionicons name="leaf" size={26} color={colors.primary} />

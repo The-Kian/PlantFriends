@@ -57,7 +57,7 @@ describe('wateringCalculations', () => {
     const soonDays = Math.min(SOON_THRESHOLD_DAYS, 2);
     expect(getWateringStatus(soonDays)).toEqual({ message: `Water in ${soonDays} days`, urgency: 'soon' });
 
-    expect(getWateringStatus(SOON_THRESHOLD_DAYS + 1)).toEqual({ message: `Next watering in ${SOON_THRESHOLD_DAYS + 1} days`, urgency: 'ok' });
+    expect(getWateringStatus(SOON_THRESHOLD_DAYS + 1)).toEqual({ message: `Water in ${SOON_THRESHOLD_DAYS + 1} days`, urgency: 'ok' });
   });
 
   test('getWateringFrequencyInDays chooses custom > base > default', () => {

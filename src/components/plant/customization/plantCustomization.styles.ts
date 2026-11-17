@@ -47,8 +47,8 @@ export const useCustomizationStyles = () => {
       color: theme.colors.text,
     },
     closeButton: {
-      width: 36,
-      height: 36,
+      width: 48,
+      height: 48,
       borderRadius: theme.radius.pill,
       alignItems: "center",
       justifyContent: "center",

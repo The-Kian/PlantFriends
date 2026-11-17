@@ -1,6 +1,11 @@
 import { Alert, Share } from "react-native";
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { HouseholdContext } from "@/context/household/HouseholdProvider";
@@ -13,7 +18,10 @@ import {
 } from "@/helpers/household/invites";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
-import { mockHousehold, mockHouseholdContext } from "@/test-utils/MockHousehold";
+import {
+  mockHousehold,
+  mockHouseholdContext,
+} from "@/test-utils/MockHousehold";
 
 import HouseholdCard from "./HouseholdCard";
 
@@ -32,7 +40,7 @@ const renderCard = (household = mockHousehold) =>
       <HouseholdContext.Provider value={mockHouseholdContext({ household })}>
         <HouseholdCard />
       </HouseholdContext.Provider>
-    </AuthContext.Provider>,
+    </AuthContext.Provider>
   );
 
 // Pressing a button in the last Alert.alert call.
@@ -118,18 +126,59 @@ describe("HouseholdCard", () => {
     fireEvent.press(screen.getByLabelText("Continue"));
 
     await waitFor(() => expect(Alert.alert).toHaveBeenCalled());
-    expect(previewInvite).toHaveBeenCalledWith("k7px m3qh");
+    expect(previewInvite).toHaveBeenCalledWith("K7PX-M3QH");
     expect(Alert.alert).toHaveBeenCalledWith(
       "Join The Flat?",
       "Your 3 plants will move with you. You'll see the plants this household shares.",
-      expect.any(Array),
+      expect.any(Array)
     );
     expect(joinHousehold).not.toHaveBeenCalled();
 
     pressAlertButton("Join");
 
-    await waitFor(() => expect(joinHousehold).toHaveBeenCalledWith("k7px m3qh"));
-    await waitFor(() => expect(screen.queryByLabelText("Invite code")).toBeNull());
+    await waitFor(() =>
+      expect(joinHousehold).toHaveBeenCalledWith("K7PX-M3QH")
+    );
+    await waitFor(() =>
+      expect(screen.queryByLabelText("Invite code")).toBeNull()
+    );
+  });
+
+  it("tidies the invite code as it's typed", () => {
+    renderCard();
+    openJoinForm("k7qm3pxd");
+    expect(screen.getByLabelText("Invite code")).toHaveProp(
+      "value",
+      "K7QM-3PXD"
+    );
+
+    // 0, 1, I, L and O aren't in codes; extra characters are dropped.
+    fireEvent.changeText(
+      screen.getByLabelText("Invite code"),
+      "k7-0q1m ilo 3pxd99"
+    );
+    expect(screen.getByLabelText("Invite code")).toHaveProp(
+      "value",
+      "K7QM-3PXD"
+    );
+
+    fireEvent.changeText(screen.getByLabelText("Invite code"), "k7q");
+    expect(screen.getByLabelText("Invite code")).toHaveProp("value", "K7Q");
+  });
+
+  it("explains a code that's too short without asking the server", () => {
+    renderCard();
+    openJoinForm("k7qm");
+
+    fireEvent.press(screen.getByLabelText("Continue"));
+
+    expect(
+      screen.getByText("Check the code: it's 8 characters, like K7QM-3PXD.")
+    ).toBeVisible();
+    expect(previewInvite).not.toHaveBeenCalled();
+
+    fireEvent.changeText(screen.getByLabelText("Invite code"), "k7qm3");
+    expect(screen.queryByText(/Check the code/)).toBeNull();
   });
 
   it("leaves out the plants line when none are moving", async () => {
@@ -147,7 +196,7 @@ describe("HouseholdCard", () => {
     expect(Alert.alert).toHaveBeenCalledWith(
       "Join The Flat?",
       "You'll see the plants this household shares.",
-      expect.any(Array),
+      expect.any(Array)
     );
   });
 
@@ -185,8 +234,8 @@ describe("HouseholdCard", () => {
       expect(Alert.alert).toHaveBeenCalledWith(
         "Join a household",
         message,
-        expect.any(Array),
-      ),
+        expect.any(Array)
+      )
     );
   });
 
@@ -196,7 +245,9 @@ describe("HouseholdCard", () => {
       memberCount: 2,
       plantsMoving: 0,
     });
-    jest.mocked(joinHousehold).mockRejectedValue({ code: "functions/resource-exhausted" });
+    jest
+      .mocked(joinHousehold)
+      .mockRejectedValue({ code: "functions/resource-exhausted" });
     renderCard();
     openJoinForm();
 
@@ -208,8 +259,8 @@ describe("HouseholdCard", () => {
       expect(Alert.alert).toHaveBeenLastCalledWith(
         "Join a household",
         "This household is full.",
-        expect.any(Array),
-      ),
+        expect.any(Array)
+      )
     );
   });
 
@@ -228,8 +279,8 @@ describe("HouseholdCard", () => {
 
       expect(Alert.alert).toHaveBeenCalledWith(
         "Leave The Flat?",
-        "You'll go back to a household of your own, with no plants. Plants here stay with your housemates.",
-        expect.any(Array),
+        "You'll go back to a household of your own, with no plants. Plants only you looked after stay here and become shared with your housemates.",
+        expect.any(Array)
       );
       expect(leaveHousehold).not.toHaveBeenCalled();
 
@@ -250,7 +301,9 @@ describe("HouseholdCard", () => {
     });
 
     it("explains a failed leave", async () => {
-      jest.mocked(leaveHousehold).mockRejectedValue({ code: "failed-precondition" });
+      jest
+        .mocked(leaveHousehold)
+        .mockRejectedValue({ code: "failed-precondition" });
       renderCard();
 
       fireEvent.press(screen.getByLabelText("Leave household"));
@@ -260,8 +313,8 @@ describe("HouseholdCard", () => {
         expect(Alert.alert).toHaveBeenLastCalledWith(
           "Leave household",
           "You're the only one in this household.",
-          expect.any(Array),
-        ),
+          expect.any(Array)
+        )
       );
     });
 
@@ -274,8 +327,8 @@ describe("HouseholdCard", () => {
 
       expect(Alert.alert).toHaveBeenCalledWith(
         "Remove Sam?",
-        "Sam will go back to a household of their own. Plants only they looked after will be shared with everyone left.",
-        expect.any(Array),
+        "Sam will go back to a household of their own, with no plants. Plants only they looked after stay here and become shared with everyone left.",
+        expect.any(Array)
       );
       expect(removeMember).not.toHaveBeenCalled();
       pressAlertButton("Remove");
@@ -289,7 +342,9 @@ describe("HouseholdCard", () => {
     });
 
     it("explains a failed remove", async () => {
-      jest.mocked(removeMember).mockRejectedValue({ code: "functions/permission-denied" });
+      jest
+        .mocked(removeMember)
+        .mockRejectedValue({ code: "functions/permission-denied" });
       renderCard();
 
       fireEvent.press(screen.getByLabelText("Remove Sam"));
@@ -299,8 +354,8 @@ describe("HouseholdCard", () => {
         expect(Alert.alert).toHaveBeenLastCalledWith(
           "Remove housemate",
           "Only the person who set up the household can remove people.",
-          expect.any(Array),
-        ),
+          expect.any(Array)
+        )
       );
     });
   });
