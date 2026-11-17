@@ -74,6 +74,22 @@ describe("notifyWatering", () => {
     );
   });
 
+  it("drops the push during quiet hours instead of holding it", async () => {
+    const send = jest.fn(async () => 1);
+    const args = { db, before, after: watered, householdId: "h1", plantId: "p1", send };
+
+    // 22:30 and 07:30 in London (BST in October is UTC+1).
+    for (const night of ["2026-10-05T21:30:00Z", "2026-10-05T06:30:00Z"]) {
+      expect(await notifyWatering({ ...args, now: Date.parse(night) })).toBe(0);
+    }
+    expect(send).not.toHaveBeenCalled();
+
+    // 08:00 local is sent again.
+    expect(
+      await notifyWatering({ ...args, now: Date.parse("2026-10-05T07:00:00Z") })
+    ).toBe(1);
+  });
+
   it("sends nothing for an edit, a new plant or a deleted one", async () => {
     const send = jest.fn();
     const args = { db, householdId: "h1", plantId: "p1", now: NOW, send };

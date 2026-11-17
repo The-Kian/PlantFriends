@@ -123,6 +123,42 @@ describe("sendToUsers", () => {
     expect(db.deleted).toEqual(["ExponentPushToken[old]"]);
   });
 
+  it("still saves tickets, and logs, when removing a dead device fails", async () => {
+    const db = fakeDb({
+      users: { sam: {} },
+      devices: { sam: ["ExponentPushToken[old]", "ExponentPushToken[new]"] },
+    });
+    const collection = db.collection;
+    db.collection = (path) => {
+      const col = collection(path);
+      const get = col.get;
+      col.get = async () => {
+        const result = await get();
+        result.docs.forEach((d) => {
+          d.ref.delete = async () => {
+            throw new Error("delete failed");
+          };
+        });
+        return result;
+      };
+      return col;
+    };
+    const { fetchImpl } = fakeFetch([
+      { status: "error", details: { error: "DeviceNotRegistered" } },
+      { status: "ok", id: "ticket-9" },
+    ]);
+
+    await expect(
+      sendToUsers(db, ["sam"], message, "reminders", fetchImpl, 1000)
+    ).resolves.toBe(2);
+
+    expect(Object.keys(db.saved)).toEqual(["ticket-9"]);
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("dead device"),
+      expect.objectContaining({ failed: 1 })
+    );
+  });
+
   it("does nothing for nobody", async () => {
     const { calls, fetchImpl } = fakeFetch([]);
     expect(await sendToUsers(fakeDb({ users: {}, devices: {} }), [], message, "reminders", fetchImpl)).toBe(0);
