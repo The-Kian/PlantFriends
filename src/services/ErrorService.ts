@@ -43,6 +43,15 @@ const ALERT_TITLES: Record<string, string> = {
   "Search Plants": "Couldn't search for plants",
   "Fetch Plant By ID": "Couldn't load the plant",
   "Share invite": "Couldn't share the invite",
+  "Share Plant": "Couldn't change sharing",
+  "Notification Settings": "Couldn't change notifications",
+  // Contexts that are already plain words.
+  "Join a household": "Join a household",
+  "Leave household": "Leave household",
+  "Remove housemate": "Remove housemate",
+  "Invite housemate": "Invite housemate",
+  "Share code": "Share code",
+  "Log Watering": "Couldn't log the watering",
 };
 
 export const DEFAULT_ALERT_TITLE = "Something went wrong";
