@@ -1,5 +1,7 @@
 import { getDoc } from "@react-native-firebase/firestore";
 
+import { Alert } from "react-native";
+
 import fetchFirebasePlantById from "./fetchFirebasePlantById";
 
 describe("fetchFirebasePlantById", () => {
@@ -31,6 +33,16 @@ describe("fetchFirebasePlantById", () => {
     } as never);
 
     expect(await fetchFirebasePlantById("123")).toBeNull();
+  });
+
+  it("throws, without showing an alert, when the lookup fails", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert");
+    jest.mocked(getDoc).mockRejectedValueOnce({ code: "firestore/unavailable" });
+
+    await expect(fetchFirebasePlantById("123")).rejects.toEqual({
+      code: "firestore/unavailable",
+    });
+    expect(alertSpy).not.toHaveBeenCalled();
   });
 
   it("returns null without a plant ID", async () => {
