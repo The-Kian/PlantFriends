@@ -11,7 +11,12 @@ import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import ErrorService from "@/services/ErrorService";
 import { registerForPush } from "@/services/PushRegistration";
-import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
+import {
+  addPlant,
+  deletePlant,
+  updatePlant,
+  upsertPlant,
+} from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
@@ -92,7 +97,7 @@ export const usePlantManagement = () => {
       
       if (!removed) {
         // Rollback the optimistic update if Firebase delete failed
-        dispatch(addPlant(plant));
+        dispatch(upsertPlant(plant));
         ErrorService.handleError("Failed to remove plant from firebase", "Delete Plant");
         return false;
       }
@@ -100,7 +105,7 @@ export const usePlantManagement = () => {
       return true;
     } catch (error) {
       // Rollback the optimistic update on error
-      dispatch(addPlant(plant));
+      dispatch(upsertPlant(plant));
       ErrorService.handleError(error, "Delete Plant");
       return false;
     }

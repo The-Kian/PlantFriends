@@ -1,4 +1,4 @@
-import functions from "@react-native-firebase/functions";
+import { getFunctions, httpsCallable } from "@react-native-firebase/functions";
 
 import { IPlant } from "@/constants/IPlant";
 import { isOfflineError } from "@/helpers/errors/friendlyErrors";
@@ -14,7 +14,9 @@ import PlantCacheService from "@/services/PlantCacheService";
  *
  * Note: Results are cached for 24 hours to minimize API calls.
  */
-export const fetchTreflePlants = async (searchQuery: string): Promise<IPlant[]> => {
+export const fetchTreflePlants = async (
+  searchQuery: string
+): Promise<IPlant[]> => {
   try {
     const query = searchQuery.trim();
     if (!query) {
@@ -28,8 +30,9 @@ export const fetchTreflePlants = async (searchQuery: string): Promise<IPlant[]> 
     }
 
     // Call the server-side proxy (hides the Trefle token from the client).
-    const callable = functions().httpsCallable<{ q: string }, { plants: IPlant[] }>(
-      "searchPlants",
+    const callable = httpsCallable<{ q: string }, { plants: IPlant[] }>(
+      getFunctions(),
+      "searchPlants"
     );
     const result = await callable({ q: query });
     const plantsData = result.data?.plants ?? [];

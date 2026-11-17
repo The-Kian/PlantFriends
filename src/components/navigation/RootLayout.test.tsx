@@ -26,6 +26,16 @@ describe("RootLayout", () => {
     expect(await screen.findByText("Create a new user")).toBeTruthy();
   });
 
+  it("shows a spinner, not the login screen, while auth is initializing", () => {
+    renderRootLayout({
+      ...mockAuthContextValue,
+      user: null,
+      initializing: true,
+    });
+    expect(screen.getByTestId("activity-indicator")).toBeTruthy();
+    expect(screen.queryByText("Create a new user")).toBeNull();
+  });
+
   it("shows Tab, Profile, PlantSearch & SubmitPlant screens when user is logged in", async () => {
     renderRootLayout(mockAuthContextValue);
     expect(screen.getByTestId("profile-button")).toBeTruthy();

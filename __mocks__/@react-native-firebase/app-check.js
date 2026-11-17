@@ -1,11 +1,11 @@
 // __mocks__/@react-native-firebase/app-check.js
 
-const provider = { configure: jest.fn() };
-const instance = {
-  newReactNativeFirebaseAppCheckProvider: jest.fn(() => provider),
-  initializeAppCheck: jest.fn(async () => {}),
-};
+export const mockProviderConfigure = jest.fn();
 
-const appCheck = jest.fn(() => instance);
+export class ReactNativeFirebaseAppCheckProvider {
+  configure(options) {
+    mockProviderConfigure(options);
+  }
+}
 
-export default appCheck;
+export const initializeAppCheck = jest.fn(async () => ({}));

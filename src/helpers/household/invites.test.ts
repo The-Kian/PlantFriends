@@ -1,4 +1,4 @@
-import functions from "@react-native-firebase/functions";
+import * as functionsModule from "@react-native-firebase/functions";
 
 import {
   createInvite,
@@ -13,7 +13,7 @@ import {
 
 const mockCallable = jest.fn();
 const httpsCallable = (
-  functions as unknown as { _mockHttpsCallable: jest.Mock }
+  functionsModule as unknown as { _mockHttpsCallable: jest.Mock }
 )._mockHttpsCallable;
 
 beforeEach(() => {

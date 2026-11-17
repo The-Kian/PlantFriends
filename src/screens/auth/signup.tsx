@@ -9,7 +9,7 @@ import { CredentialsType } from "@/context/auth/AuthTypes";
 
 function SignupScreen() {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const { register, update } = useContext(AuthContext);
+  const { register } =useContext(AuthContext);
 
   async function signupHandler(
     email: string,
@@ -17,8 +17,8 @@ function SignupScreen() {
     displayName: string,
   ) {
     setIsAuthenticating(true);
-    await register({ email, password });
-    await update({ displayName });
+    // The name goes in with the account, so the household is named after it.
+    await register({ email, password, displayName });
     setIsAuthenticating(false);
   }
 

@@ -13,7 +13,7 @@ import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
 import saveUserPlantToFirebase from "@/helpers/firebase/saveToFirebase/saveUserPlantToFirebase";
 import ErrorService from "@/services/ErrorService";
 import { registerForPush } from "@/services/PushRegistration";
-import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
+import { addPlant, deletePlant, updatePlant, upsertPlant } from "@/store/userPlantsSlice";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockHousehold, mockHouseholdContext } from "@/test-utils/MockHousehold";
@@ -191,7 +191,7 @@ describe("usePlantManagement", () => {
       });
       expect(removeUserPlantFromFirebase).not.toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenNthCalledWith(1, deletePlant(mockUserPlant.id));
-      expect(mockDispatch).toHaveBeenNthCalledWith(2, addPlant(mockUserPlant));
+      expect(mockDispatch).toHaveBeenNthCalledWith(2, upsertPlant(mockUserPlant));
     });
 
     it.each([false, "reject"])("rolls back and reports failed deletion (%s)", async (failure) => {
@@ -207,7 +207,7 @@ describe("usePlantManagement", () => {
       });
       expect(mockDispatch).toHaveBeenCalledTimes(2);
       expect(mockDispatch).toHaveBeenNthCalledWith(1, deletePlant(mockUserPlant.id));
-      expect(mockDispatch).toHaveBeenNthCalledWith(2, addPlant(mockUserPlant));
+      expect(mockDispatch).toHaveBeenNthCalledWith(2, upsertPlant(mockUserPlant));
       expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
       expect(ErrorService.handleError).toHaveBeenCalledWith(
         failure === false ? "Failed to remove plant from firebase" : error,

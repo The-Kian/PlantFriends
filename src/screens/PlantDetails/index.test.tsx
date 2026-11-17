@@ -3,7 +3,7 @@ import React from "react";
 
 import { Alert, View } from "react-native";
 
-import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { fireEvent, screen, waitFor } from "@testing-library/react-native";
 
 import { WateringSplash } from "@/components/watering/WateringSplash";
 import { AuthContext } from "@/context/auth/AuthProvider";
@@ -78,7 +78,7 @@ describe("PlantDetailsScreen watering", () => {
     jest.restoreAllMocks();
   });
 
-  it("waits for a successful write before updating Redux or showing the splash", async () => {
+  it("updates Redux and shows the splash at once, without waiting for the server", async () => {
     const updatedPlant = {
       ...plant,
       last_watered_date: now,
@@ -86,10 +86,7 @@ describe("PlantDetailsScreen watering", () => {
       last_watered_by: mockUser.uid,
       last_watered_by_name: "Kian",
     };
-    let resolveWrite!: (watered: typeof updatedPlant) => void;
-    jest.mocked(logWatering).mockReturnValue(new Promise((resolve) => {
-      resolveWrite = resolve;
-    }));
+    jest.mocked(logWatering).mockReturnValue(updatedPlant);
     const { store } = renderDetails({ ...mockUser, displayName: "Kian" });
     const dispatch = jest.spyOn(store, "dispatch");
 
@@ -101,14 +98,9 @@ describe("PlantDetailsScreen watering", () => {
       { uid: mockUser.uid, displayName: "Kian" },
       3,
     );
-    expect(store.getState().userPlants).toEqual([plant]);
-    expect(dispatch).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("watering-splash")).toBeNull();
-
-    await act(async () => {
-      resolveWrite(updatedPlant);
+    await waitFor(() => {
+      expect(screen.getByTestId("watering-splash")).toBeTruthy();
     });
-
     expect(store.getState().userPlants).toEqual([updatedPlant]);
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId("watering-splash")).toBeTruthy();
@@ -127,9 +119,11 @@ describe("PlantDetailsScreen watering", () => {
     expect(screen.getByText(/, by Sam$/)).toBeTruthy();
   });
 
-  it("does not show success and alerts only once after a rejected write", async () => {
+  it("does not show success and alerts only once when logging fails", async () => {
     const error = new Error("Watering write rejected");
-    jest.mocked(logWatering).mockRejectedValue(error);
+    jest.mocked(logWatering).mockImplementation(() => {
+      throw error;
+    });
     const { store } = renderDetails();
     const dispatch = jest.spyOn(store, "dispatch");
 

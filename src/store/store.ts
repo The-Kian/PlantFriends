@@ -8,7 +8,7 @@ const rootReducer = combineReducers({
 
 export function setupStore(preloadedState?: Partial<RootState>) {
   return configureStore({
-    devTools: true,
+    devTools: __DEV__,
     reducer: rootReducer,
     preloadedState,
   });

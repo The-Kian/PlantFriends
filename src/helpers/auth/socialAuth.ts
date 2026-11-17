@@ -1,4 +1,8 @@
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {
+  AppleAuthProvider,
+  FirebaseAuthTypes,
+  GoogleAuthProvider,
+} from "@react-native-firebase/auth";
 import { GoogleSignin, isSuccessResponse } from "@react-native-google-signin/google-signin";
 import * as AppleAuthentication from "expo-apple-authentication";
 import * as Crypto from "expo-crypto";
@@ -34,7 +38,7 @@ export async function getGoogleCredential(): Promise<FirebaseAuthTypes.AuthCrede
   if (!idToken) {
     throw new Error("Google sign-in did not return an ID token.");
   }
-  return auth.GoogleAuthProvider.credential(idToken);
+  return GoogleAuthProvider.credential(idToken);
 }
 
 export async function signOutOfGoogle(): Promise<void> {
@@ -94,7 +98,7 @@ export async function getAppleCredential(): Promise<AppleSignInResult | null> {
   const displayName = [givenName, familyName].filter(Boolean).join(" ") || null;
 
   return {
-    credential: auth.AppleAuthProvider.credential(
+    credential: AppleAuthProvider.credential(
       appleCredential.identityToken,
       rawNonce,
     ),

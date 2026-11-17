@@ -1,46 +1,54 @@
 // __mocks__/@react-native-firebase/auth.js
+// Mirrors the modular API (getAuth, signInWithEmailAndPassword, ...).
 
 import mockUser from "@/test-utils/MockFirebaseUser";
 
-const mockAuthModule = {
-  currentUser: { ...mockUser, updateProfile: jest.fn(() => Promise.resolve()) },
-  signInWithEmailAndPassword: jest.fn(() => Promise.resolve()),
-  createUserWithEmailAndPassword: jest.fn(() =>
-    Promise.resolve({
-      user: mockUser,
-    }),
-  ),
-  signInWithCredential: jest.fn(() =>
-    Promise.resolve({
-      user: { ...mockUser, updateProfile: jest.fn(() => Promise.resolve()) },
-      additionalUserInfo: { isNewUser: true },
-    }),
-  ),
+// The Auth instance returned by getAuth(). Only members the modular API
+// doesn't cover (currentUser, revokeToken) live here.
+export const mockAuthInstance = {
+  currentUser: { ...mockUser },
   revokeToken: jest.fn(() => Promise.resolve()),
-  signOut: jest.fn(() => Promise.resolve()),
-  onAuthStateChanged: jest.fn((callback) => {
-    // Delay callback to simulate asynchronous behavior.
-    // This ensures the initial state (before the callback is invoked) is preserved.
-    setTimeout(() => {
-      // You can adjust this to pass a mock user if needed.
-      callback(mockUser);
-    }, 100); // Adjust the delay as needed
+};
 
-    // Return an unsubscribe function.
-    return jest.fn();
+export const getAuth = jest.fn(() => mockAuthInstance);
+
+export const signInWithEmailAndPassword = jest.fn(() => Promise.resolve());
+export const createUserWithEmailAndPassword = jest.fn(() =>
+  Promise.resolve({ user: { ...mockUser } }),
+);
+export const signInWithCredential = jest.fn(() =>
+  Promise.resolve({
+    user: { ...mockUser },
+    additionalUserInfo: { isNewUser: true },
   }),
-};
+);
+export const signOut = jest.fn(() => Promise.resolve());
+export const sendPasswordResetEmail = jest.fn(() => Promise.resolve());
+export const updateProfile = jest.fn(() => Promise.resolve());
+export const signInAnonymously = jest.fn(() =>
+  Promise.resolve({ user: { ...mockUser } }),
+);
+export const onAuthStateChanged = jest.fn((_auth, callback) => {
+  // Delay the callback to simulate asynchronous behaviour, so the initial
+  // state (before the callback is invoked) is preserved.
+  setTimeout(() => {
+    callback(mockUser);
+  }, 100);
 
-const auth = jest.fn(() => mockAuthModule);
-auth.GoogleAuthProvider = {
-  credential: jest.fn((idToken) => ({ providerId: "google.com", token: idToken })),
+  // Return an unsubscribe function.
+  return jest.fn();
+});
+
+export const GoogleAuthProvider = {
+  credential: jest.fn((idToken) => ({
+    providerId: "google.com",
+    token: idToken,
+  })),
 };
-auth.AppleAuthProvider = {
+export const AppleAuthProvider = {
   credential: jest.fn((idToken, nonce) => ({
     providerId: "apple.com",
     token: idToken,
     secret: nonce,
   })),
 };
-
-export default auth;

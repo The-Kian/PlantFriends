@@ -34,6 +34,20 @@ const userPlantsSlice = createSlice({
     },
     /**
      * @reducer
+     * takes an IUserPlant object and replaces the plant with the same ID, or
+     * adds it if there isn't one. Used to put a plant back after a failed
+     * delete, when the plants listener may already have restored it.
+     */
+    upsertPlant: (state, action: PayloadAction<IUserPlant | IUserPlantMerged>) => {
+      const index = state.findIndex((plant) => plant.id === action.payload.id);
+      if (index === -1) {
+        state.push(action.payload);
+      } else {
+        state[index] = action.payload;
+      }
+    },
+    /**
+     * @reducer
      * takes an IUserPlant object and updates the existing plant in the state.
      * This is used when a plant is updated.
      */
@@ -55,6 +69,11 @@ const userPlantsSlice = createSlice({
   },
 });
 
-export const { setUserPlants, addPlant, updatePlant, deletePlant } =
-  userPlantsSlice.actions;
+export const {
+  setUserPlants,
+  addPlant,
+  upsertPlant,
+  updatePlant,
+  deletePlant,
+} = userPlantsSlice.actions;
 export default userPlantsSlice.reducer;

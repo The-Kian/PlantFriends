@@ -1,11 +1,19 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
-import auth from "@react-native-firebase/auth";
-import firestore from "@react-native-firebase/firestore";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "@react-native-firebase/auth";
+import { setDoc } from "@react-native-firebase/firestore";
+import * as functionsModule from "@react-native-firebase/functions";
 import * as Notifications from "expo-notifications";
-import React from "react";
+import { useContext } from "react";
 
-import { Alert } from "react-native";
+import { Alert, Text } from "react-native";
 
 import {
   fireEvent,
@@ -14,8 +22,19 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { AuthProvider } from "./AuthProvider";
+import * as PushRegistration from "@/services/PushRegistration";
+
+import { AuthContext, AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
+
+jest.mock("@/services/PushRegistration", () => ({
+  registerForPush: jest.fn(),
+  unregisterForPush: jest.fn(async () => {}),
+}));
+
+const mockHttpsCallable = (
+  functionsModule as unknown as { _mockHttpsCallable: jest.Mock }
+)._mockHttpsCallable;
 
 describe("AuthProvider", () => {
   it("handles onAuthStateChanged updates correctly", async () => {
@@ -46,7 +65,7 @@ describe("AuthProvider", () => {
     );
     fireEvent.press(screen.getByTestId("login"));
     await waitFor(() => {
-      expect(auth().signInWithEmailAndPassword).toHaveBeenCalled();
+      expect(signInWithEmailAndPassword).toHaveBeenCalled();
     });
   });
 
@@ -58,11 +77,16 @@ describe("AuthProvider", () => {
     );
     fireEvent.press(screen.getByTestId("register"));
     await waitFor(() => {
-      expect(auth().createUserWithEmailAndPassword).toHaveBeenCalled();
+      expect(createUserWithEmailAndPassword).toHaveBeenCalled();
     });
   });
 
-  it("calls firebase updateProfile when update function is called", async () => {
+  it("calls the updateDisplayName function, then updates the profile, when update is called", async () => {
+    const callable = jest.fn(async () => ({
+      data: { displayName: "New Name", householdName: "New Name's home" },
+    }));
+    mockHttpsCallable.mockReturnValueOnce(callable);
+
     render(
       <AuthProvider>
         <AuthTestComponent />
@@ -70,8 +94,13 @@ describe("AuthProvider", () => {
     );
     fireEvent.press(screen.getByTestId("update"));
     await waitFor(() => {
-      expect(auth().currentUser?.updateProfile).toHaveBeenCalled();
+      expect(updateProfile).toHaveBeenCalledWith(
+        getAuth().currentUser,
+        { displayName: "New Name" },
+      );
     });
+    expect(mockHttpsCallable).toHaveBeenCalledWith("updateDisplayName");
+    expect(callable).toHaveBeenCalledWith({ displayName: "New Name" });
   });
 
   it("calls firebase signOut when logout function is called", async () => {
@@ -86,9 +115,97 @@ describe("AuthProvider", () => {
     });
     fireEvent.press(screen.getByTestId("logout"));
     await waitFor(() => {
-      expect(auth().signOut).toHaveBeenCalled();
+      expect(signOut).toHaveBeenCalled();
     });
     expect(Notifications.cancelAllScheduledNotificationsAsync).toHaveBeenCalled();
+  });
+});
+
+describe("AuthProvider sign-up", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    console.error = jest.fn();
+  });
+
+  it("sets the name on the account, and in Users, before publishing the user", async () => {
+    const order: string[] = [];
+    let authListener: ((user: unknown) => void) | undefined;
+    (onAuthStateChanged as jest.Mock).mockImplementationOnce(
+      (_auth: unknown, cb: (user: unknown) => void) => {
+        authListener = cb;
+        return jest.fn();
+      },
+    );
+    const newUser = { uid: "new-user", displayName: null };
+    (createUserWithEmailAndPassword as jest.Mock).mockImplementationOnce(
+      async () => {
+        order.push("created");
+        // Firebase signs the new user in right away.
+        authListener?.(newUser);
+        return { user: newUser };
+      },
+    );
+    (updateProfile as jest.Mock).mockImplementationOnce(async () => {
+      order.push("profile");
+    });
+    (setDoc as jest.Mock).mockImplementationOnce(async () => {
+      order.push("users doc");
+    });
+
+    function Register() {
+      const { register, user } = useContext(AuthContext);
+      if (user) order.push("published");
+      return (
+        <Text
+          testID="register-sam"
+          onPress={() =>
+            register({
+              email: "sam@example.com",
+              password: "secret1",
+              displayName: "Sam",
+            })
+          }
+        >
+          Register
+        </Text>
+      );
+    }
+
+    render(
+      <AuthProvider>
+        <Register />
+      </AuthProvider>,
+    );
+    fireEvent.press(screen.getByTestId("register-sam"));
+
+    await waitFor(() => {
+      expect(order).toContain("published");
+    });
+    expect(order).toEqual(["created", "profile", "users doc", "published"]);
+    expect(updateProfile).toHaveBeenCalledWith(newUser, {
+      displayName: "Sam",
+    });
+    expect(setDoc).toHaveBeenCalledWith(
+      expect.anything(),
+      { displayName: "Sam", email: "sam@example.com" },
+      { merge: true },
+    );
+  });
+
+  it("falls back to the start of the email when no name is given", async () => {
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>,
+    );
+    fireEvent.press(screen.getByTestId("register"));
+    await waitFor(() => {
+      expect(setDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        { displayName: "test", email: "test@example.com" },
+        { merge: true },
+      );
+    });
   });
 });
 
@@ -99,9 +216,9 @@ describe("AuthProvider error handling", () => {
     console.error = jest.fn();
   });
 
-  it("shows alert for email already in use on registration", async () => {
+  it("explains an email that is already in use on registration", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-    (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+    (createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/email-already-in-use",
     });
 
@@ -114,14 +231,16 @@ describe("AuthProvider error handling", () => {
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        "That email address is already in use!",
+        "Couldn't sign up",
+        expect.stringContaining("already registered"),
+        expect.anything(),
       );
     });
   });
 
-  it("shows alert for invalid email on registration", async () => {
+  it("explains an invalid email on registration", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-    (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+    (createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/invalid-email",
     });
 
@@ -133,14 +252,18 @@ describe("AuthProvider error handling", () => {
     fireEvent.press(screen.getByTestId("register"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("That email address is invalid!");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Couldn't sign up",
+        expect.stringContaining("valid email"),
+        expect.anything(),
+      );
     });
   });
 
-  it("shows alert for user not found on login", async () => {
+  it("goes through ErrorService when login fails", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-    (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
-      code: "auth/user-not-found",
+    (signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+      code: "auth/invalid-credential",
     });
 
     render(
@@ -151,12 +274,16 @@ describe("AuthProvider error handling", () => {
     fireEvent.press(screen.getByTestId("login"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("User not found");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Couldn't log in",
+        expect.stringContaining("don't match"),
+        expect.anything(),
+      );
     });
   });
 
-  it("shows console error for signIn", async () => {
-    (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+  it("shows console error for sign-up failure", async () => {
+    (createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/sad",
     });
 
@@ -172,29 +299,13 @@ describe("AuthProvider error handling", () => {
     });
   });
 
-  it("shows alert for update failed", async () => {
+  it("alerts when the rename fails", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-    (auth().currentUser?.updateProfile as jest.Mock).mockRejectedValueOnce({
-      message: "err0r",
-    });
-
-    render(
-      <AuthProvider>
-        <AuthTestComponent />
-      </AuthProvider>,
+    mockHttpsCallable.mockReturnValueOnce(
+      jest.fn(async () => {
+        throw { code: "functions/internal", message: "err0r" };
+      }),
     );
-    fireEvent.press(screen.getByTestId("update"));
-
-    await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Error updating profile:", "err0r");
-    });
-  });
-
-  it("shows alert for update Firestore failed", async () => {
-    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-    (firestore as any)._mockSet.mockRejectedValueOnce({
-      message: "err0r",
-    });
 
     render(
       <AuthProvider>
@@ -205,15 +316,17 @@ describe("AuthProvider error handling", () => {
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        "Error updating Firestore:",
-        "err0r",
+        "Couldn't save your name",
+        expect.any(String),
+        expect.anything(),
       );
     });
+    expect(updateProfile).not.toHaveBeenCalled();
   });
 
-  it("shows alert for error logging out failed", async () => {
+  it("alerts when logging out fails", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-    (auth().signOut as jest.Mock).mockRejectedValueOnce({
+    (signOut as jest.Mock).mockRejectedValueOnce({
       message: "err0r",
     });
 
@@ -225,12 +338,34 @@ describe("AuthProvider error handling", () => {
     fireEvent.press(screen.getByTestId("logout"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Error logging out:", "err0r");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Couldn't log out",
+        expect.any(String),
+        expect.anything(),
+      );
+    });
+  });
+
+  it("still logs out when unregistering the device fails", async () => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    (PushRegistration.unregisterForPush as jest.Mock).mockRejectedValueOnce(
+      new Error("offline"),
+    );
+
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>,
+    );
+    fireEvent.press(screen.getByTestId("logout"));
+
+    await waitFor(() => {
+      expect(signOut).toHaveBeenCalled();
     });
   });
 
   it("shows console error for login failure", async () => {
-    (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
+    (signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/unknown-error",
     });
 
