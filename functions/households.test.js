@@ -202,7 +202,7 @@ describe("joinHouseholdHandler", () => {
   });
 
   it("refuses when the household is full", async () => {
-    const ids = Array.from({ length: 10 }, (_, i) => `u${i}`);
+    const ids = ["kian", ...Array.from({ length: 9 }, (_, i) => `u${i}`)];
     fake.store.set("Households/flat", { name: "The Flat", ...members(...ids) });
     await rejectsWith(join({ code: CODE }), "resource-exhausted", "This household is full.");
   });
@@ -418,7 +418,7 @@ describe("leaving and removing", () => {
 
   it("someone who left can join again with a code", async () => {
     await leave("sam");
-    fake.store.set("Invites/K7PXM3QH", { householdId: "kian", expiresAt: ts(NOW + DAY_MS) });
+    fake.store.set("Invites/K7PXM3QH", { householdId: "kian", createdBy: "kian", expiresAt: ts(NOW + DAY_MS) });
 
     await joinHouseholdHandler({ db, uid: "sam", data: { code: "K7PXM3QH" }, now: NOW });
 
