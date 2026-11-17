@@ -204,7 +204,7 @@ export const AuthProvider = ({ children }: ProviderProps) => {
   const update = useCallback(
     async ({ displayName }: { displayName: string }) => {
       const currentUser = getAuth().currentUser;
-      if (!currentUser) return;
+      if (!currentUser) return false;
       try {
         const callable = httpsCallable<
           { displayName: string },
@@ -214,8 +214,10 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         await updateProfile(currentUser, {
           displayName: result.data?.displayName ?? displayName,
         });
+        return true;
       } catch (error) {
         ErrorService.handleError(error, "Update Profile");
+        return false;
       } finally {
         publishUser(getAuth().currentUser);
       }

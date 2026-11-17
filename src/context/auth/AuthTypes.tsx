@@ -34,7 +34,7 @@ export interface AuthContextType {
     displayName?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
-  update: (props: { displayName: string }) => Promise<void>;
+  update: (props: { displayName: string }) => Promise<boolean>;
   resetPassword: (props: { email: string }) => Promise<void>;
   deleteAccount: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -48,7 +48,7 @@ export const defaultAuthContext: AuthContextType = {
   login: async () => {},
   register: async () => {},
   logout: async () => {},
-  update: async () => {},
+  update: async () => false,
   resetPassword: async () => {},
   deleteAccount: async () => {},
   signInWithGoogle: async () => {},

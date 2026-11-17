@@ -81,7 +81,7 @@ export function formatInviteCode(code: string): string {
 }
 
 const JOIN_MESSAGES: Record<string, string> = {
-  "invalid-argument": "Codes are 8 letters and numbers.",
+  "invalid-argument": "Check the code: it's 8 characters, like K7QM-3PXD.",
   "not-found": "That code isn't valid or has expired.",
   "already-exists": "You're already in this household.",
   "failed-precondition": "Leave your current household first.",

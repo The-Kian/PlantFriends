@@ -221,7 +221,7 @@ describe("HouseholdCard", () => {
     ["already-exists", "You're already in this household."],
     ["failed-precondition", "Leave your current household first."],
     ["resource-exhausted", "This household is full."],
-    ["invalid-argument", "Codes are 8 letters and numbers."],
+    ["invalid-argument", "Check the code: it's 8 characters, like K7QM-3PXD."],
     ["internal", "Couldn't join. Check your connection and try again."],
   ])("shows the message for %s", async (code, message) => {
     jest.mocked(previewInvite).mockRejectedValue({ code });

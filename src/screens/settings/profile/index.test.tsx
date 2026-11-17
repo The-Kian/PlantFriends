@@ -246,7 +246,7 @@ describe("ProfileSettingsScreen", () => {
   });
 
   it("says Saved after the name is saved, and clears it when edited", async () => {
-    const update = jest.fn(async () => {});
+    const update = jest.fn(async () => true);
     render(
       <NavigationContainer>
         <AuthContext.Provider

@@ -71,9 +71,9 @@ const ProfileSettingsScreen = () => {
     }
     setIsSaving(true);
     setSaved(false);
-    await update({ displayName: displayName.trim() });
+    const ok = await update({ displayName: displayName.trim() });
     setIsSaving(false);
-    setSaved(true);
+    setSaved(ok);
   };
 
   const handleLogout = () => {
