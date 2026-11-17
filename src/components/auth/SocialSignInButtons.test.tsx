@@ -13,7 +13,7 @@ const renderButtons = () =>
   render(
     <AuthContext.Provider value={mockAuthContextValue}>
       <SocialSignInButtons />
-    </AuthContext.Provider>,
+    </AuthContext.Provider>
   );
 
 describe("SocialSignInButtons", () => {

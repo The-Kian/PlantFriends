@@ -18,7 +18,7 @@ export const Colors = {
     waterMuted: "#DCEBF4",
     border: "#E2E4DA",
     success: "#4E8A57",
-    warning: "#C4842A",
+    warning: "#8F5A00",
     error: "#C0473C",
     errorMuted: "#F7E1DE",
     overlay: "rgba(20, 28, 22, 0.55)",

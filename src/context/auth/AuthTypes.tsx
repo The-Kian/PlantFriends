@@ -13,7 +13,6 @@ export type CredentialsType = {
   password: string;
   confirmPassword: string;
   displayName: string;
-  dateOfBirth: Date;
 };
 
 export type AuthProps = {
