@@ -4,7 +4,6 @@ import { useState, useContext } from "react";
 
 import { View } from "react-native";
 
-import DatePickerField from "@/components/ui/Input/DatePickerField";
 import TextInputField from "@/components/ui/Input/TextInputField";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { AuthContext } from "@/context/auth/AuthProvider";
@@ -12,26 +11,26 @@ import { AuthProps } from "@/context/auth/AuthTypes";
 
 import ThemedButton from "../ui/Buttons/ThemedButton";
 
+// Dev builds only fill the form in when explicitly asked to, so they behave
+// like release builds by default.
+const devPrefill = __DEV__ && process.env.EXPO_PUBLIC_DEV_PREFILL === "true";
+
 const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
-  const isDevelopment = process.env.NODE_ENV === "development";
   const { user } = useContext(AuthContext);
   const [enteredEmail, setEnteredEmail] = useState(
-    user?.email ?? (isDevelopment ? "test@gmail.com" : ""),
+    user?.email ?? (devPrefill ? "test@gmail.com" : "")
   );
   const [enteredConfirmEmail, setEnteredConfirmEmail] = useState(
-    isDevelopment ? "test@gmail.com" : "",
+    devPrefill ? "test@gmail.com" : ""
   );
   const [enteredPassword, setEnteredPassword] = useState(
-    isDevelopment ? "password" : "",
+    devPrefill ? "password" : ""
   );
   const [enteredConfirmPassword, setEnteredConfirmPassword] = useState(
-    isDevelopment ? "password" : "",
+    devPrefill ? "password" : ""
   );
   const [enteredDisplayName, setEnteredDisplayName] = useState(
-    user?.displayName ?? (isDevelopment ? "Test User" : ""),
-  );
-  const [enteredDateOfBirth, setEnteredDateOfBirth] = useState(
-    isDevelopment ? new Date("1997-12-12") : new Date(),
+    user?.displayName ?? (devPrefill ? "Test User" : "")
   );
 
   const submitHandler = () => {
@@ -39,7 +38,6 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
       email: enteredEmail,
       password: enteredPassword,
       displayName: enteredDisplayName,
-      dateOfBirth: enteredDateOfBirth,
       confirmEmail: enteredConfirmEmail,
       confirmPassword: enteredConfirmPassword,
     });
@@ -61,23 +59,16 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
           />
         )}
         {authScreenType === "signUp" && (
-          <View>
-            <TextInputField
-              label="Confirm Email Address"
-              onChangeText={setEnteredConfirmEmail}
-              value={enteredConfirmEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
-              textContentType="emailAddress"
-            />
-            <DatePickerField
-              label="Date of Birth"
-              date={enteredDateOfBirth}
-              onDateChange={setEnteredDateOfBirth}
-            />
-          </View>
+          <TextInputField
+            label="Confirm Email Address"
+            onChangeText={setEnteredConfirmEmail}
+            value={enteredConfirmEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            textContentType="emailAddress"
+          />
         )}
         {authScreenType !== "login" && (
           <TextInputField
@@ -94,8 +85,12 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
             secureTextEntry={true}
             autoCapitalize="none"
             autoCorrect={false}
-            autoComplete={authScreenType === "signUp" ? "new-password" : "current-password"}
-            textContentType={authScreenType === "signUp" ? "newPassword" : "password"}
+            autoComplete={
+              authScreenType === "signUp" ? "new-password" : "current-password"
+            }
+            textContentType={
+              authScreenType === "signUp" ? "newPassword" : "password"
+            }
           />
         )}
         {authScreenType === "signUp" && (

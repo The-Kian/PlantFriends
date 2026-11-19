@@ -4,6 +4,7 @@ import { mockUserPlant, mockUserPlant2 } from "@/test-utils/MockPlant";
 import userPlantsReducer, {
   setUserPlants,
   addPlant,
+  upsertPlant,
   updatePlant,
   deletePlant,
 } from "./userPlantsSlice";
@@ -21,6 +22,18 @@ describe("userPlantsSlice", () => {
     const plant: IUserPlant = mockUserPlant;
     const newState = userPlantsReducer(initialState, addPlant(plant));
     expect(newState).toEqual([plant]);
+  });
+
+  it("upsertPlant adds a missing plant and replaces a present one", () => {
+    const added = userPlantsReducer([], upsertPlant(mockUserPlant));
+    expect(added).toEqual([mockUserPlant]);
+
+    const renamed = { ...mockUserPlant, custom_name: "Back again" };
+    const replaced = userPlantsReducer(
+      [mockUserPlant, mockUserPlant2],
+      upsertPlant(renamed)
+    );
+    expect(replaced).toEqual([renamed, mockUserPlant2]);
   });
 
   it("should handle updatePlant", () => {

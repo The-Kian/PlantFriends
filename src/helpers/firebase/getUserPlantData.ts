@@ -16,12 +16,12 @@ import { plantsCol } from "@/helpers/firebase/householdPaths";
 async function getUserPlantData(
   householdId: string,
   userId: string,
-  plantId: string,
+  plantId: string
 ): Promise<IUserPlant | undefined> {
   const q = query(
     plantsCol(getFirestore(), householdId),
     where("plantId", "==", plantId),
-    where("addedBy", "==", userId),
+    where("addedBy", "==", userId)
   );
 
   const snapshot = await getDocs(q);

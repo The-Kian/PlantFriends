@@ -14,6 +14,7 @@ const {
   setDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
   setLogLevel,
 } = require("firebase/firestore");
 
@@ -76,6 +77,51 @@ describe("Users", () => {
     await assertSucceeds(getDoc(doc(db(ALICE), "Users/alice/Devices/tok")));
   });
 
+  test("can write every key the app writes except householdId", async () => {
+    const ref = doc(db(ALICE), "Users/alice");
+    await assertSucceeds(setDoc(ref, { displayName: "Alice", email: "a@example.com" }, { merge: true }));
+    await assertSucceeds(setDoc(ref, { timeZone: "Europe/London" }, { merge: true }));
+    await assertSucceeds(setDoc(ref, { notificationPrefs: { reminders: false } }, { merge: true }));
+    await assertSucceeds(setDoc(ref, { plantsMigratedAt: Date.now() }, { merge: true }));
+    // Writing the value it already has is not a change.
+    await assertSucceeds(setDoc(ref, { householdId: "h1" }, { merge: true }));
+  });
+
+  test("can't change householdId, except to a household of their own they're alone in", async () => {
+    // Setting up the first time: create the household, then point at it.
+    const eveHome = { name: "Eve's home", memberIds: [EVE], members: {}, createdBy: EVE };
+    await assertSucceeds(setDoc(doc(db(EVE), "Households/eve"), eveHome));
+    await assertSucceeds(setDoc(doc(db(EVE), "Users/eve"), { householdId: "eve" }, { merge: true }));
+    await assertSucceeds(
+      setDoc(doc(db(EVE), "Users/eve"), { displayName: "Eve", householdId: "eve" }, { merge: true }),
+    );
+
+    // Pointing at someone else's household (to read it, or join without a code).
+    await assertFails(setDoc(doc(db(EVE), "Users/eve"), { householdId: "h1" }, { merge: true }));
+    await assertFails(updateDoc(doc(db(EVE), "Users/eve"), { householdId: "h1" }));
+    // At a household that doesn't exist, or isn't a string, or is removed.
+    await assertFails(updateDoc(doc(db(EVE), "Users/eve"), { householdId: "nowhere" }));
+    await assertFails(updateDoc(doc(db(EVE), "Users/eve"), { householdId: 5 }));
+    await assertFails(updateDoc(doc(db(EVE), "Users/eve"), { householdId: null }));
+    await assertFails(updateDoc(doc(db(EVE), "Users/eve"), { householdId: deleteField() }));
+  });
+
+  test("a member of a shared household can't switch to a different one", async () => {
+    await assertFails(updateDoc(doc(db(ALICE), "Users/alice"), { householdId: "h1x" }));
+    // Not even a "solo" household that isn't theirs.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "Households/zed"), {
+        name: "Zed's", memberIds: ["zed"], members: {}, createdBy: "zed",
+      });
+    });
+    await assertFails(updateDoc(doc(db(ALICE), "Users/alice"), { householdId: "zed" }));
+  });
+
+  test("a new profile can't be created pointing at someone else's household", async () => {
+    await assertFails(setDoc(doc(db(EVE), "Users/eve"), { householdId: "h1" }));
+    await assertSucceeds(setDoc(doc(db(EVE), "Users/eve"), { displayName: "Eve" }));
+  });
+
   test("can't read or write someone else's profile or devices", async () => {
     await assertFails(getDoc(doc(db(BOB), "Users/alice")));
     await assertFails(setDoc(doc(db(BOB), "Users/alice"), { a: 1 }));
@@ -126,18 +172,99 @@ describe("Households", () => {
 describe("Household plants", () => {
   const p = (uid, id = "p1") => doc(db(uid), `Households/h1/Plants/${id}`);
 
-  test("members can read, add, edit and delete", async () => {
+  const watering = () => ({
+    last_watered_date: Date.now(),
+    next_watering_date: Date.now() + 1,
+    last_watered_by: BOB,
+    last_watered_by_name: "Bob",
+  });
+
+  // p1 is Alice's personal plant; "shared" is looked after by both of them;
+  // "bobs" is Bob's personal plant.
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const admin = ctx.firestore();
+      await setDoc(
+        doc(admin, "Households/h1/Plants/shared"),
+        plant({ id: "shared", shared: true, carerIds: [ALICE, BOB] }),
+      );
+      await setDoc(
+        doc(admin, "Households/h1/Plants/bobs"),
+        plant({ id: "bobs", addedBy: BOB, userId: BOB, carerIds: [BOB] }),
+      );
+    });
+  });
+
+  test("members can read, add, edit and delete their own plants", async () => {
     await assertSucceeds(getDoc(p(BOB)));
     await assertSucceeds(setDoc(p(BOB, "p2"), plant({ id: "p2", addedBy: BOB, carerIds: [BOB] })));
-    await assertSucceeds(updateDoc(p(BOB), { custom_notes: "Likes shade" }));
-    await assertSucceeds(
-      updateDoc(p(BOB), {
-        last_watered_date: Date.now(),
-        next_watering_date: Date.now() + 1,
-        last_watered_by: BOB,
-        last_watered_by_name: "Bob",
-      }),
-    );
+    await assertSucceeds(updateDoc(p(BOB, "bobs"), { custom_notes: "Likes shade" }));
+    await assertSucceeds(updateDoc(p(BOB, "bobs"), watering()));
+    await assertSucceeds(deleteDoc(p(BOB, "bobs")));
+  });
+
+  test("a housemate can't edit or delete someone's personal plant", async () => {
+    await assertFails(updateDoc(p(BOB), { custom_notes: "Likes shade" }));
+    await assertFails(updateDoc(p(BOB), { custom_name: "Mine now" }));
+    await assertFails(updateDoc(p(BOB), { shared: true, carerIds: [ALICE, BOB] }));
+    await assertFails(updateDoc(p(BOB), { carerIds: [ALICE, BOB] }));
+    await assertFails(deleteDoc(p(BOB)));
+    // Not even to log a watering: it isn't shared with them.
+    await assertFails(updateDoc(p(BOB), watering()));
+    // The owner still can.
+    await assertSucceeds(updateDoc(p(ALICE), { custom_notes: "Likes shade" }));
+    await assertSucceeds(deleteDoc(p(ALICE)));
+  });
+
+  test("any member can log a watering on a shared plant, and nothing else", async () => {
+    await assertSucceeds(updateDoc(p(BOB, "shared"), watering()));
+    await assertSucceeds(updateDoc(p(BOB, "shared"), { last_watered_date: Date.now() }));
+    await assertSucceeds(updateDoc(p(BOB, "shared"), { next_watering_date: null }));
+  });
+
+  test("a carer can edit a shared plant they look after", async () => {
+    await assertSucceeds(updateDoc(p(BOB, "shared"), { custom_notes: "Bright spot" }));
+    await assertSucceeds(updateDoc(p(ALICE, "shared"), { custom_notes: "Bright spot" }));
+  });
+
+  test("a member who isn't a carer of a shared plant can only log waterings", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      // Bob joined, so he's a member, but nothing has added him as a carer yet.
+      await setDoc(
+        doc(ctx.firestore(), "Households/h1/Plants/shared"),
+        plant({ id: "shared", shared: true, carerIds: [ALICE] }),
+      );
+    });
+    await assertSucceeds(updateDoc(p(BOB, "shared"), watering()));
+    await assertFails(updateDoc(p(BOB, "shared"), { custom_notes: "x" }));
+    await assertFails(updateDoc(p(BOB, "shared"), { custom_name: "x" }));
+    await assertFails(updateDoc(p(BOB, "shared"), { shared: false }));
+    await assertFails(updateDoc(p(BOB, "shared"), { carerIds: [ALICE, BOB] }));
+    await assertFails(updateDoc(p(BOB, "shared"), { ...watering(), custom_notes: "x" }));
+  });
+
+  test("a shared plant can be deleted by any member; a personal one only by its adder or a carer", async () => {
+    await assertSucceeds(deleteDoc(p(BOB, "shared")));
+    await assertFails(deleteDoc(p(BOB, "p1")));
+    await assertFails(deleteDoc(p(ALICE, "bobs")));
+    // The adder can always delete, even if no longer listed as a carer.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), "Households/h1/Plants/odd"),
+        plant({ id: "odd", carerIds: [BOB] }),
+      );
+    });
+    await assertSucceeds(deleteDoc(p(ALICE, "odd")));
+  });
+
+  test("a carer of a personal plant can delete and edit it", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), "Households/h1/Plants/p1"),
+        plant({ carerIds: [ALICE, BOB] }),
+      );
+    });
+    await assertSucceeds(updateDoc(p(BOB), { custom_notes: "I water this one" }));
     await assertSucceeds(deleteDoc(p(BOB)));
   });
 
@@ -150,14 +277,21 @@ describe("Household plants", () => {
 
   test("addedBy must be you and can't change", async () => {
     await assertFails(setDoc(p(BOB, "p2"), plant({ addedBy: ALICE })));
-    await assertFails(updateDoc(p(BOB), { addedBy: BOB }));
+    await assertFails(updateDoc(p(BOB, "bobs"), { addedBy: ALICE }));
+    await assertFails(updateDoc(p(BOB, "shared"), { addedBy: BOB }));
   });
 
-  test("clients can't write notify_at or notify_stage", async () => {
-    await assertFails(setDoc(p(ALICE, "p2"), plant({ notify_at: 1 })));
-    await assertFails(setDoc(p(ALICE, "p2"), plant({ notify_stage: "due" })));
-    await assertFails(updateDoc(p(ALICE), { notify_at: 1 }));
-    await assertFails(updateDoc(p(ALICE), { notify_stage: "nudge" }));
+  test("clients can't write the notify_* fields", async () => {
+    for (const [key, value] of [
+      ["notify_at", 1],
+      ["notify_stage", "due"],
+      ["notify_for", 1],
+      ["notify_lease", 1],
+      ["notify_sending", "due"],
+    ]) {
+      await assertFails(setDoc(p(ALICE, "p2"), plant({ [key]: value })));
+      await assertFails(updateDoc(p(ALICE), { [key]: value }));
+    }
   });
 
   test("carerIds can only include members", async () => {

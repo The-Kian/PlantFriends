@@ -17,13 +17,23 @@ describe("RootLayout", () => {
         <NavigationContainer>
           <RootLayout />
         </NavigationContainer>
-      </AuthContext.Provider>,
+      </AuthContext.Provider>
     );
 
   it("shows login & signup screens when user is not logged in", async () => {
     const contextValueWithoutUser = { ...mockAuthContextValue, user: null };
     renderRootLayout(contextValueWithoutUser);
     expect(await screen.findByText("Create a new user")).toBeTruthy();
+  });
+
+  it("shows a spinner, not the login screen, while auth is initializing", () => {
+    renderRootLayout({
+      ...mockAuthContextValue,
+      user: null,
+      initializing: true,
+    });
+    expect(screen.getByTestId("activity-indicator")).toBeTruthy();
+    expect(screen.queryByText("Create a new user")).toBeNull();
   });
 
   it("shows Tab, Profile, PlantSearch & SubmitPlant screens when user is logged in", async () => {

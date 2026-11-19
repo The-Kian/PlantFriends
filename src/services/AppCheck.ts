@@ -1,4 +1,7 @@
-import appCheck from "@react-native-firebase/app-check";
+import {
+  ReactNativeFirebaseAppCheckProvider,
+  initializeAppCheck,
+} from "@react-native-firebase/app-check";
 
 /**
  * Turns on Firebase App Check, so Cloud Functions and Firestore can tell
@@ -9,8 +12,9 @@ import appCheck from "@react-native-firebase/app-check";
  */
 export async function initAppCheck(): Promise<void> {
   try {
-    const provider = appCheck().newReactNativeFirebaseAppCheckProvider();
-    const debugToken = process.env.EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN || undefined;
+    const provider = new ReactNativeFirebaseAppCheckProvider();
+    const debugToken =
+      process.env.EXPO_PUBLIC_APPCHECK_DEBUG_TOKEN || undefined;
     provider.configure({
       android: {
         provider: __DEV__ ? "debug" : "playIntegrity",
@@ -21,7 +25,7 @@ export async function initAppCheck(): Promise<void> {
         debugToken,
       },
     });
-    await appCheck().initializeAppCheck({
+    await initializeAppCheck(undefined, {
       provider,
       isTokenAutoRefreshEnabled: true,
     });

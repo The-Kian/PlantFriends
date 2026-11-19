@@ -4,11 +4,44 @@ import { IPlant } from "@/constants/IPlant";
 import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
 import { fetchTreflePlants } from "@/helpers/plants/plantAPI/fetchTreflePlants";
 
+/** Searches shorter than this are too broad to be useful. */
+export const MIN_SEARCH_LENGTH = 2;
+
+const firstScientificName = (plant: IPlant) =>
+  plant.scientific_name?.[0]?.trim().toLowerCase() ?? "";
+
+/**
+ * The catalogue's plants first, then Trefle's, without repeats: by id or name,
+ * and without a Trefle plant whose scientific name is one a catalogue plant
+ * already has ("Fruit-salad-plant" next to "Monstera Deliciosa").
+ */
+export function combineResults(
+  catalogue: IPlant[],
+  trefle: IPlant[]
+): IPlant[] {
+  const known = new Set(
+    catalogue.map(firstScientificName).filter((name) => name !== "")
+  );
+  const extra = trefle.filter((plant) => {
+    const name = firstScientificName(plant);
+    return name === "" || !known.has(name);
+  });
+  return [...catalogue, ...extra].filter(
+    (plant, index, self) =>
+      index ===
+      self.findIndex((p) => p.id === plant.id || p.name === plant.name)
+  );
+}
+
 export const useCombinedPlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const query = searchQuery.trim();
+  // The query a finished search was for, so the screen can tell "no matches"
+  // from "haven't looked yet".
+  const [searchedQuery, setSearchedQuery] = useState("");
+  const trimmed = searchQuery.trim();
+  const query = trimmed.length >= MIN_SEARCH_LENGTH ? trimmed : "";
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   // Debounce logic: Update `debouncedQuery` after a delay
@@ -29,6 +62,7 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
       setPlants([]);
       setLoading(false);
       setError(null);
+      setSearchedQuery("");
       setDebouncedQuery("");
       return;
     }
@@ -43,7 +77,8 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
       setLoading(true);
       setError(null);
       try {
-        const firebasePlants = (await fetchFirebasePlants(debouncedQuery)) || [];
+        const firebasePlants =
+          (await fetchFirebasePlants(debouncedQuery)) || [];
         if (!active) return;
 
         // Fetch from Trefle API but don't let it fail the whole search —
@@ -59,21 +94,16 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
         }
         if (!active) return;
 
-        // Combine and deduplicate plants based on `id` or `name`
-        const combinedPlants = [...firebasePlants, ...apiPlants];
-        const uniquePlants = combinedPlants.filter(
-          (plant, index, self) =>
-            index ===
-            self.findIndex((p) => p.id === plant.id || p.name === plant.name),
-        );
-
-        setPlants(uniquePlants);
+        setPlants(combineResults(firebasePlants, apiPlants));
       } catch (err) {
         if (!active) return;
         // Reported by fetchFirebasePlants; the screen shows the message.
         setError(err as Error);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          setSearchedQuery(debouncedQuery);
+        }
       }
     };
 
@@ -83,5 +113,10 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
     };
   }, [debouncedQuery, query]);
 
-  return { plants, loading, error };
+  return {
+    plants,
+    loading,
+    error,
+    searched: query !== "" && searchedQuery === query,
+  };
 };

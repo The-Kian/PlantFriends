@@ -1,6 +1,13 @@
 // PlantCustomizationModal.tsx
 
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 import uuid from "react-native-uuid";
 
 import { useCustomizationStyles } from "@/components/plant/customization/plantCustomization.styles";

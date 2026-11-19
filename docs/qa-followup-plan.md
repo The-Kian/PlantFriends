@@ -19,14 +19,14 @@ Line numbers are from `eb8721f` and will drift; search for the names given.
 
 | # | Session | Depends on | Size | Status |
 |---|---------|-----------|------|--------|
-| A | Leftover small fixes | none | S | Not started |
-| B | Names that stay right | none | M | Not started |
+| A | Leftover small fixes | none | S | Done (no Copy button: expo-clipboard is not a dependency) |
+| B | Names that stay right | none | M | Done (Kian: deploy functions, two-phone rename check) |
 | C | Edit a plant, notes, per-plant settings | none | M–L | Not started |
 | D | Watering history and undo | C (shares the details screen) | M | Not started |
-| E | Household plant rules and invite lifecycle | none | M | Not started |
-| F | Reliable reminders | none | M | Not started |
-| G | Start-up, offline and listener robustness | none | M | Not started |
-| H | Housekeeping: line endings, modular Firebase, test noise, deps | none | M (spread out) | Not started |
+| E | Household plant rules and invite lifecycle | none | M | Done; what a leaving member keeps unchanged (Kian: run rules tests on JDK 21, deploy, TTL) |
+| F | Reliable reminders | none | M | Done (Kian: deploy functions, delete old index) |
+| G | Start-up, offline and listener robustness | none | M | Done except the offline notes in the UI (see Found along the way) |
+| H | Housekeeping: line endings, modular Firebase, test noise, deps | none | M (spread out) | Done except the dependency upgrades and audit overrides |
 | I | Features: snooze, photos, rooms, search and sort | C, D | L | Not started |
 
 A, B, E, F, G and H don't touch the same files much and can run in parallel.
@@ -63,12 +63,12 @@ In the PR that added this file:
 
 Each is a few lines. Do them as one PR.
 
-- [ ] **Remove date of birth from sign-up.** It's collected and never stored
+- [x] **Remove date of birth from sign-up.** It's collected and never stored
       or used (`AuthForm.tsx` around lines 42 and 159, `AuthTypes.tsx:16`
       `dateOfBirth`, the `DatePickerField` on the sign-up form). Remove the
       field, the type member and the tests that set it. Check
       `docs/PRIVACY_POLICY.md` and `docs/STORE_LISTING.md` don't mention it.
-- [ ] **Dev defaults on the auth form.** `AuthForm.tsx:14-31` pre-fills
+- [x] **Dev defaults on the auth form.** `AuthForm.tsx:14-31` pre-fills
       `test@gmail.com`, `password`, "Test User" and a 1997 birthday when
       `process.env.NODE_ENV === "development"`. Use `__DEV__`, and leave the
       fields empty unless an `EXPO_PUBLIC_DEV_PREFILL` flag is set, so dev
@@ -82,12 +82,12 @@ Each is a few lines. Do them as one PR.
       the title ("Login", "Fetch Plant By ID", "Save Plant"). Give each context
       a human title ("Couldn't log in", "Couldn't save the plant"), or pass a
       title with the context.
-- [ ] **Keyboard on sign-up.** `AuthContent.tsx` uses a plain `ScrollView`.
+- [x] **Keyboard on sign-up.** `AuthContent.tsx` uses a plain `ScrollView`.
       Wrap it in `KeyboardAvoidingView` (behavior `"padding"` on iOS,
       `"height"` on Android) so Confirm Password and Sign Up aren't hidden.
       Add a show/hide toggle to password fields (an eye icon as a
       `TextInputField` right accessory).
-- [ ] **Invite code field.** In `HouseholdCard.tsx` the join field has the
+- [x] **Invite code field** (no Copy button: `expo-clipboard` isn't a dependency; press and hold copies). In `HouseholdCard.tsx` the join field has the
       placeholder `XXXX-XXXX`. Uppercase input as typed, insert the hyphen
       after 4 characters, and drop characters outside the code alphabet
       (`functions/inviteCode.js`: no 0, 1, I, L, O). Change the client
@@ -96,16 +96,16 @@ Each is a few lines. Do them as one PR.
       K7QM-3PXD." Add a **Copy** button next to the shown invite code
       (`expo-clipboard`, which needs a dev-client rebuild; otherwise
       `Share` is fine).
-- [ ] **Search empty states.** `PlantSearch/index.tsx` and
+- [x] **Search empty states.** `PlantSearch/index.tsx` and
       `PlantSearch/Results`: show a hint before typing ("Search by common or
       Latin name"), a "No plants match …" message with the "Add it yourself"
       button for no results, and don't search until 2 characters.
-- [ ] **De-duplicate search results.** The same species appears twice, once
+- [x] **De-duplicate search results.** The same species appears twice, once
       from the catalogue ("Monstera Deliciosa") and once from Trefle
       ("Fruit-salad-plant", scientific name *Monstera deliciosa*). In
       `useCombinedPlantSearch`, drop Trefle results whose first scientific
       name matches a catalogue plant's, ignoring case.
-- [ ] **Copy and contrast.**
+- [x] **Copy and contrast.**
       - `mapTreflePlantToIPlant.ts:116` builds "A Araceae species"; use
         "A plant in the Araceae family".
       - Make the watering copy consistent: "Water in 3 days" vs "Next
@@ -113,7 +113,7 @@ Each is a few lines. Do them as one PR.
       - The `warning` amber (`Colors.ts:21`, `#C4842A`) on the pale card is
         about 2.9:1. Darken it to reach 4.5:1 for text.
       - The disabled button style is nearly invisible.
-- [ ] **Visual bits.**
+- [x] **Visual bits.**
       - The "Watering Logged!" splash is see-through (`WateringSplash.tsx`
         uses hard-coded colours and `Colors.light`); give it the theme's
         `surface` background.
@@ -124,11 +124,11 @@ Each is a few lines. Do them as one PR.
       - The customisation modal close button is 36dp
         (`plantCustomization.styles.ts:50`) and the household remove icon has
         `minHeight: 28`; make both at least 48dp, or add `hitSlop`.
-- [ ] **Feedback.** Show "Saved" after renaming on Profile. Ask for
+- [x] **Feedback.** Show "Saved" after renaming on Profile. Ask for
       confirmation on Logout. After adding a plant, open its details rather
       than going to Home (`PlantSearch/index.tsx`
       `navigation.navigate("Tab")`).
-- [ ] **Notification prompt.** Before the system prompt
+- [x] **Notification prompt.** Before the system prompt
       (`PlantSearch/index.tsx` `registerForPush(..., { prompt: true })`,
       `usePlantManagement.ts:75`, `PlantDetails/index.tsx:115`), show one
       line saying why. On Profile, show "Notifications are turned off" only
@@ -451,7 +451,7 @@ Split this into small PRs.
       - `services/AppCheck.ts`.
       - `dev/seedFakePlants.ts`.
       Migrate one file per commit and update the `__mocks__` to match.
-- [ ] **Test noise.** 22 `act()` warnings (SocialSignInButtons 11,
+- [x] **Test noise.** 22 `act()` warnings (SocialSignInButtons 11,
       HookContainer 4, ProfileSettingsScreen 4, StackView 3) and 2
       InteractionManager deprecation warnings. Fix the awaits so `pnpm test`
       prints nothing on a pass.
@@ -510,6 +510,18 @@ short design note before coding.
 ---
 
 ## Found along the way
+
+- ~~Invite join error message~~ Fixed: `invites.ts` uses the same text.
+- ~~Profile "Saved" after a failed rename~~ Fixed: `update` returns whether it worked.
+- `PlantCacheService.test.ts` prints a `console.warn` on a passing test; mock it
+  there.
+- After adding a plant the app opens its details straight away. If the
+  household listener hasn't delivered the plant yet the screen briefly shows
+  "Plant not found".
+- ~~Rules tests picked up by Jest in a worktree~~ Fixed in `jest.config.js`.
+- The "Details unavailable offline" and "Will sync when you're online" notes (session G) aren't built; `useMergedPlant` returns `unavailable` for the first.
+- Rules tests for session E were written but not run: the emulator needs JDK 21 and this machine has 17.
+- Session H dependency work (audit overrides, Expo 58 / RN 0.88 / RN Firebase 27) is left for its own session.
 
 - Test data on the `test` account changed during QA on 17 November 2026:
   - "Watermelon" was deleted by a mis-tap and re-added, so its history is

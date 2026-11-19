@@ -16,7 +16,10 @@ import { IPlant } from "@/constants/IPlant";
 
 class PlantCacheService {
   // In-memory cache: Map<query, { plants: IPlant[], timestamp: number }>
-  private memoryCache = new Map<string, { plants: IPlant[]; timestamp: number }>();
+  private memoryCache = new Map<
+    string,
+    { plants: IPlant[]; timestamp: number }
+  >();
 
   // Cache expiry time: 24 hours (in milliseconds)
   private CACHE_EXPIRY_MS = 24 * 60 * 60 * 1000;
@@ -96,9 +99,13 @@ class PlantCacheService {
     try {
       const keys = await AsyncStorage.getAllKeys();
       if (keys && Array.isArray(keys)) {
-        const cacheKeys = keys.filter((k) => k.startsWith(this.STORAGE_KEY_PREFIX));
+        const cacheKeys = keys.filter((k) =>
+          k.startsWith(this.STORAGE_KEY_PREFIX)
+        );
         if (cacheKeys.length > 0) {
-          await Promise.all(cacheKeys.map((key) => AsyncStorage.removeItem(key)));
+          await Promise.all(
+            cacheKeys.map((key) => AsyncStorage.removeItem(key))
+          );
         }
       }
     } catch (err) {

@@ -15,7 +15,9 @@ function toError(error: unknown): Error {
   if (error instanceof Error) return error;
   if (typeof error === "object" && error !== null) {
     const { code, message } = error as { code?: string; message?: string };
-    return new Error([code, message].filter(Boolean).join(": ") || "Unknown error");
+    return new Error(
+      [code, message].filter(Boolean).join(": ") || "Unknown error"
+    );
   }
   return new Error(String(error));
 }

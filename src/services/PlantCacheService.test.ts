@@ -60,12 +60,12 @@ describe("PlantCacheService", () => {
 
       // Mock AsyncStorage to throw error
       (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
-        new Error("Storage error"),
+        new Error("Storage error")
       );
 
       // Should not throw
       await expect(
-        PlantCacheService.cacheSearchResults(query, plants),
+        PlantCacheService.cacheSearchResults(query, plants)
       ).resolves.toBeUndefined();
 
       // But should still be in memory
@@ -108,7 +108,9 @@ describe("PlantCacheService", () => {
       await PlantCacheService.clearQueryCache("tomato");
 
       expect(await PlantCacheService.getSearchResults("tomato")).toBeNull();
-      expect(await PlantCacheService.getSearchResults("pepper")).toEqual(plants);
+      expect(await PlantCacheService.getSearchResults("pepper")).toEqual(
+        plants
+      );
     });
   });
 
@@ -135,7 +137,9 @@ describe("PlantCacheService", () => {
       await PlantCacheService.cacheSearchResults(query, plants);
 
       // Mock the time to be 25 hours later
-      jest.spyOn(Date, "now").mockReturnValueOnce(Date.now() + 25 * 60 * 60 * 1000);
+      jest
+        .spyOn(Date, "now")
+        .mockReturnValueOnce(Date.now() + 25 * 60 * 60 * 1000);
 
       const cached = await PlantCacheService.getSearchResults(query);
       expect(cached).toBeNull();

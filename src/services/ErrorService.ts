@@ -1,6 +1,9 @@
 import { Alert } from "react-native";
 
-import { OFFLINE_MESSAGE, isOfflineError } from "@/helpers/errors/friendlyErrors";
+import {
+  OFFLINE_MESSAGE,
+  isOfflineError,
+} from "@/helpers/errors/friendlyErrors";
 
 import { recordHandledError } from "./CrashReporting";
 
@@ -22,14 +25,51 @@ const EXPECTED_USER_ERRORS = new Set([
   "auth/email-already-in-use",
   "auth/weak-password",
   "auth/too-many-requests",
+  "auth/account-exists-with-different-credential",
 ]);
+
+// What the alert says, by the context the caller gave. Anything not listed
+// gets "Something went wrong".
+const ALERT_TITLES: Record<string, string> = {
+  Login: "Couldn't log in",
+  Registration: "Couldn't sign up",
+  "Reset Password": "Couldn't send the reset email",
+  "Delete Account": "Couldn't delete your account",
+  Logout: "Couldn't log out",
+  "Update Profile": "Couldn't save your name",
+  "Google Sign-In": "Couldn't sign in with Google",
+  "Apple Sign-In": "Couldn't sign in with Apple",
+  "Save Plant": "Couldn't save the plant",
+  "Update Plant": "Couldn't update the plant",
+  "Delete Plant": "Couldn't delete the plant",
+  "Remove Plant": "Couldn't remove the plant",
+  "Search Plants": "Couldn't search for plants",
+  "Fetch Plant By ID": "Couldn't load the plant",
+  "Share invite": "Couldn't share the invite",
+  "Share Plant": "Couldn't change sharing",
+  "Notification Settings": "Couldn't change notifications",
+  // Contexts that are already plain words.
+  "Join a household": "Join a household",
+  "Leave household": "Leave household",
+  "Remove housemate": "Remove housemate",
+  "Invite housemate": "Invite housemate",
+  "Share code": "Share code",
+  "Log Watering": "Couldn't log the watering",
+};
+
+export const DEFAULT_ALERT_TITLE = "Something went wrong";
+
+export function alertTitleFor(context?: string): string {
+  return (context && ALERT_TITLES[context]) || DEFAULT_ALERT_TITLE;
+}
 
 class ErrorService {
   private static errorMap: Record<string, ErrorConfig> = {
     // Auth errors
     "auth/user-not-found": {
       severity: "error",
-      userMessage: "User not found. Please check your email or create an account.",
+      userMessage:
+        "User not found. Please check your email or create an account.",
     },
     "auth/wrong-password": {
       severity: "error",
@@ -44,11 +84,13 @@ class ErrorService {
     },
     "auth/too-many-requests": {
       severity: "warning",
-      userMessage: "Too many attempts. Please wait a few minutes and try again.",
+      userMessage:
+        "Too many attempts. Please wait a few minutes and try again.",
     },
     "auth/email-already-in-use": {
       severity: "error",
-      userMessage: "This email is already registered. Please log in or use a different email.",
+      userMessage:
+        "This email is already registered. Please log in or use a different email.",
     },
     "auth/invalid-email": {
       severity: "error",
@@ -57,6 +99,11 @@ class ErrorService {
     "auth/weak-password": {
       severity: "error",
       userMessage: "Password must be at least 6 characters.",
+    },
+    "auth/account-exists-with-different-credential": {
+      severity: "error",
+      userMessage:
+        "An account with this email already exists. Sign in with the method you used before.",
     },
     "auth/network-request-failed": {
       severity: "error",
@@ -74,13 +121,15 @@ class ErrorService {
     },
     "firestore/unavailable": {
       severity: "error",
-      userMessage: "The service is temporarily unavailable. Please try again later.",
+      userMessage:
+        "The service is temporarily unavailable. Please try again later.",
     },
 
     // API errors
     "api/network-error": {
       severity: "error",
-      userMessage: "Failed to fetch data. Please check your connection and try again.",
+      userMessage:
+        "Failed to fetch data. Please check your connection and try again.",
     },
     "api/rate-limited": {
       severity: "warning",
@@ -98,7 +147,7 @@ class ErrorService {
   static handleError(
     error: unknown,
     context?: string,
-    customConfig?: Partial<ErrorConfig>,
+    customConfig?: Partial<ErrorConfig>
   ): void {
     const errorCode = this.extractErrorCode(error);
     const config = this.configFor(error, errorCode);
@@ -116,7 +165,7 @@ class ErrorService {
    */
   static async handleErrorAsync(
     error: unknown,
-    context?: string,
+    context?: string
   ): Promise<{ success: false; error: ErrorConfig }> {
     const errorCode = this.extractErrorCode(error);
     const config = this.configFor(error, errorCode);
@@ -133,7 +182,7 @@ class ErrorService {
   static async validateAndExecute<T>(
     asyncFn: () => Promise<T>,
     context: string,
-    onError?: (config: ErrorConfig) => void,
+    onError?: (config: ErrorConfig) => void
   ): Promise<{ success: boolean; data?: T; error?: ErrorConfig }> {
     try {
       const data = await asyncFn();
@@ -171,7 +220,7 @@ class ErrorService {
   private static logError(
     error: unknown,
     errorCode: string,
-    context?: string,
+    context?: string
   ): void {
     console.error(`[${context || "Error"}] ${errorCode}:`, error);
     // Being offline, or a user typing the wrong password, isn't a fault in
@@ -225,9 +274,13 @@ class ErrorService {
    * Show alert to user
    */
   private static showAlert(config: ErrorConfig, context?: string): void {
-    const title = context ? `${context}` : "Error";
+    const title = alertTitleFor(context);
 
-    Alert.alert(title, config.userMessage, config.actions || [{ text: "OK", onPress: () => {} }]);
+    Alert.alert(
+      title,
+      config.userMessage,
+      config.actions || [{ text: "OK", onPress: () => {} }]
+    );
   }
 }
 

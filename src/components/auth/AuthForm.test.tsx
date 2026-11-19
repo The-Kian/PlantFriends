@@ -19,7 +19,7 @@ describe("AuthForm Component", () => {
     return render(
       <NavigationContainer>
         <AuthForm {...defaultProps} {...props} />
-      </NavigationContainer>,
+      </NavigationContainer>
     );
   };
 
@@ -36,7 +36,7 @@ describe("AuthForm Component", () => {
     expect(screen.getByText("Confirm Email Address")).toBeVisible();
     expect(screen.getByText("Password")).toBeVisible();
     expect(screen.getByText("Confirm Password")).toBeVisible();
-    expect(screen.getByText("Date of Birth")).toBeVisible();
+    expect(screen.queryByText("Date of Birth")).toBeNull();
     expect(screen.getByText("Sign Up")).toBeVisible();
   });
 
@@ -65,29 +65,24 @@ describe("AuthForm Component", () => {
 
     fireEvent.changeText(
       screen.getByLabelText("Email Address input field"),
-      "new@example.com",
+      "new@example.com"
     );
     fireEvent.changeText(
       screen.getByLabelText("Confirm Email Address input field"),
-      "new@example.com",
+      "new@example.com"
     );
     fireEvent.changeText(
       screen.getByLabelText("Password input field"),
-      "newpassword",
+      "newpassword"
     );
     fireEvent.changeText(
       screen.getByLabelText("Confirm Password input field"),
-      "newpassword",
+      "newpassword"
     );
     fireEvent.changeText(
       screen.getByLabelText("Display Name input field"),
-      "New User",
+      "New User"
     );
-
-    // Update dateOfBirth
-    const newDate = new Date("2000-01-01");
-    const datePicker = screen.getByText("Date of Birth");
-    fireEvent(datePicker, "onDateChange", newDate);
 
     fireEvent.press(screen.getByText("Sign Up"));
 
@@ -95,21 +90,48 @@ describe("AuthForm Component", () => {
       email: "new@example.com",
       password: "newpassword",
       displayName: "New User",
-      dateOfBirth: new Date("2000-01-01"),
       confirmEmail: "new@example.com",
       confirmPassword: "newpassword",
     });
+  });
+
+  it("starts empty even in dev builds", () => {
+    renderComponent({ authScreenType: "signUp" });
+    expect(screen.getByLabelText("Email Address input field")).toHaveProp(
+      "value",
+      ""
+    );
+    expect(screen.getByLabelText("Password input field")).toHaveProp(
+      "value",
+      ""
+    );
+  });
+
+  it("can show and hide the password", () => {
+    renderComponent();
+    const input = screen.getByLabelText("Password input field");
+    expect(input).toHaveProp("secureTextEntry", true);
+    fireEvent.press(screen.getByLabelText("Show password"));
+    expect(screen.getByLabelText("Password input field")).toHaveProp(
+      "secureTextEntry",
+      false
+    );
+    fireEvent.press(screen.getByLabelText("Hide password"));
+    expect(screen.getByLabelText("Password input field")).toHaveProp(
+      "secureTextEntry",
+      true
+    );
   });
 
   it("calls onSubmit with correct credentials for login", () => {
     renderComponent();
     fireEvent.changeText(
       screen.getByLabelText("Email Address input field"),
-      "test@test.com",
+      "test@test.com"
     );
     fireEvent.changeText(
       screen.getByLabelText("Password input field"),
-      "password",
+      "password"
     );
     fireEvent.press(screen.getByText("Log In"));
 
@@ -117,7 +139,7 @@ describe("AuthForm Component", () => {
       expect.objectContaining({
         email: "test@test.com",
         password: "password",
-      }),
+      })
     );
   });
 });

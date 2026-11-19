@@ -42,6 +42,9 @@ function createFakeFirestore() {
       id: path.split("/").pop(),
       get: async () => snapshot(path),
       create: async (data) => applyCreate(path, data),
+      delete: async () => {
+        store.delete(path);
+      },
       collection: (name) => collectionRef(`${path}/${name}`),
     };
   }
@@ -51,6 +54,12 @@ function createFakeFirestore() {
       path,
       doc: (id) => docRef(`${path}/${id === undefined ? `auto${autoId++}` : id}`),
       get: async () => ({ docs: childDocs(path) }),
+      // Equality filters only, which is all the invite queries use.
+      where: (field, op, value) => ({
+        get: async () => ({
+          docs: childDocs(path).filter((d) => op === "==" && d.get(field) === value),
+        }),
+      }),
     };
   }
 

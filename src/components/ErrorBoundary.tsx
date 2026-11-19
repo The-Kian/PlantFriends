@@ -1,6 +1,12 @@
 import React from "react";
 
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 
 import { recordHandledError } from "@/services/CrashReporting";
 import { Colors } from "@/theme/Colors";
@@ -18,7 +24,10 @@ interface ErrorBoundaryState {
   errorInfo: React.ErrorInfo | null;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -62,32 +71,51 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       const colors = Colors.light;
 
       return (
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View
+          style={[styles.container, { backgroundColor: colors.background }]}
+        >
           <ScrollView contentContainerStyle={styles.contentContainer}>
             <View style={styles.iconContainer}>
               <Text style={styles.errorIcon}>⚠️</Text>
             </View>
 
-            <Text style={[styles.title, { color: colors.text }]}>Oops! Something went wrong</Text>
+            <Text style={[styles.title, { color: colors.text }]}>
+              Oops! Something went wrong
+            </Text>
 
             <Text style={[styles.message, { color: colors.text }]}>
-              We encountered an unexpected error. Try refreshing the screen or restarting the app.
+              We encountered an unexpected error. Try refreshing the screen or
+              restarting the app.
             </Text>
 
             {__DEV__ && this.state.error && (
               <>
-                <Text style={[styles.devLabel, { color: colors.error }]}>Technical Details (Dev Only):</Text>
-                <View style={[styles.detailsContainer, { backgroundColor: colors.surfaceMuted }]}>
-                  <Text style={[styles.errorMessage, { color: colors.error }]}>{this.state.error.toString()}</Text>
+                <Text style={[styles.devLabel, { color: colors.error }]}>
+                  Technical Details (Dev Only):
+                </Text>
+                <View
+                  style={[
+                    styles.detailsContainer,
+                    { backgroundColor: colors.surfaceMuted },
+                  ]}
+                >
+                  <Text style={[styles.errorMessage, { color: colors.error }]}>
+                    {this.state.error.toString()}
+                  </Text>
                   {this.state.errorInfo && (
-                    <Text style={[styles.stackTrace, { color: colors.text }]}>{this.state.errorInfo.componentStack}</Text>
+                    <Text style={[styles.stackTrace, { color: colors.text }]}>
+                      {this.state.errorInfo.componentStack}
+                    </Text>
                   )}
                 </View>
               </>
             )}
           </ScrollView>
 
-          <TouchableOpacity style={[styles.button, { backgroundColor: colors.tint }]} onPress={this.handleReset}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: colors.tint }]}
+            onPress={this.handleReset}
+          >
             <Text style={styles.buttonText}>Try Again</Text>
           </TouchableOpacity>
         </View>

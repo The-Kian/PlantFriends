@@ -15,7 +15,7 @@ export const mockHousehold: IHousehold = {
 };
 
 export function mockHouseholdContext(
-  overrides: Partial<HouseholdContextType> = {},
+  overrides: Partial<HouseholdContextType> = {}
 ): HouseholdContextType {
   const household = overrides.household ?? mockHousehold;
   return {
@@ -23,8 +23,7 @@ export function mockHouseholdContext(
     loading: false,
     error: null,
     notificationPrefs: {},
-    memberName: (uid) =>
-      (uid && household?.members[uid]?.displayName) || null,
+    memberName: (uid) => (uid && household?.members[uid]?.displayName) || null,
     ...overrides,
   };
 }

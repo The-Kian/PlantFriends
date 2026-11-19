@@ -36,11 +36,12 @@ export default function HomeScreen() {
       ({ progress }) =>
         progress.daysUntil == null ||
         progress.status.urgency === "overdue" ||
-        progress.status.urgency === "urgent",
+        progress.status.urgency === "urgent"
     )
     .sort(
       (a, b) =>
-        (a.progress.daysUntil ?? -Infinity) - (b.progress.daysUntil ?? -Infinity),
+        (a.progress.daysUntil ?? -Infinity) -
+        (b.progress.daysUntil ?? -Infinity)
     );
   const hasPlants = userPlants.length > 0;
 
@@ -111,7 +112,10 @@ export default function HomeScreen() {
           <View
             style={[
               styles.emptyContainer,
-              { backgroundColor: colors.primaryMuted, borderRadius: radius.large },
+              {
+                backgroundColor: colors.primaryMuted,
+                borderRadius: radius.large,
+              },
             ]}
           >
             <Ionicons

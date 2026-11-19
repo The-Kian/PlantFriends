@@ -20,9 +20,17 @@ describe("saveUserPlantToFirebase", () => {
 
   it("records who added a new plant and makes it theirs", async () => {
     mockGet.mockResolvedValueOnce({ exists: false });
-    const plant = { ...mockUserPlant, last_watered_date: 100, next_watering_date: 200 };
+    const plant = {
+      ...mockUserPlant,
+      last_watered_date: 100,
+      next_watering_date: 200,
+    };
 
-    const result = await saveUserPlantToFirebase(plant, mockUser, mockHousehold);
+    const result = await saveUserPlantToFirebase(
+      plant,
+      mockUser,
+      mockHousehold
+    );
 
     expect(result).toBe(true);
     expect(writtenData()).toMatchObject({
@@ -62,7 +70,7 @@ describe("saveUserPlantToFirebase", () => {
     await saveUserPlantToFirebase(
       { ...mockUserPlant, shared: true },
       mockUser,
-      mockHousehold,
+      mockHousehold
     );
 
     expect(writtenData().carerIds).toEqual(["user1", "user2"]);
@@ -73,11 +81,17 @@ describe("saveUserPlantToFirebase", () => {
       exists: true,
       data: () => ({ addedBy: "user2", shared: true }),
     });
-    const { shared: _shared, ...edit } = { ...mockUserPlant, shared: undefined };
+    const { shared: _shared, ...edit } = {
+      ...mockUserPlant,
+      shared: undefined,
+    };
 
     await saveUserPlantToFirebase(edit, mockUser, mockHousehold);
 
-    expect(writtenData()).toMatchObject({ shared: true, carerIds: ["user1", "user2"] });
+    expect(writtenData()).toMatchObject({
+      shared: true,
+      carerIds: ["user1", "user2"],
+    });
   });
 
   it("never writes species data", async () => {
@@ -100,7 +114,11 @@ describe("saveUserPlantToFirebase", () => {
     mockGet.mockResolvedValueOnce({ exists: false });
     mockSet.mockRejectedValueOnce(new Error("Failed to save"));
 
-    const result = await saveUserPlantToFirebase(mockUserPlant, mockUser, mockHousehold);
+    const result = await saveUserPlantToFirebase(
+      mockUserPlant,
+      mockUser,
+      mockHousehold
+    );
 
     expect(result).toBe(false);
   });

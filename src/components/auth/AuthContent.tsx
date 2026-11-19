@@ -1,6 +1,14 @@
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
-import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RootStackParamList } from "@/components/navigation/types";
@@ -36,7 +44,7 @@ function AuthContent({ authScreenType, onSubmit, children }: AuthProps) {
     if (!validationResult.isValid) {
       Alert.alert(
         "Check your details",
-        validationResult.message ?? "Please check your entered credentials.",
+        validationResult.message ?? "Please check your entered credentials."
       );
       return;
     }
@@ -47,52 +55,69 @@ function AuthContent({ authScreenType, onSubmit, children }: AuthProps) {
 
   return (
     <ThemedView testID={"AuthContent-View"} style={styles.container}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          isAuthScreen && { paddingTop: insets.top + Spacing.xl },
-        ]}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        {isAuthScreen && (
-          <View style={styles.brand}>
-            <Image
-              source={appIcon}
-              accessibilityIgnoresInvertColors
-              style={[styles.logo, { borderRadius: radius.large }]}
-            />
-            <ThemedText type="title">
-              {authScreenType === "login" ? "Welcome back" : "Create account"}
-            </ThemedText>
-            <ThemedText type="caption">
-              {authScreenType === "login"
-                ? "Log in to keep your plants happy."
-                : "Start tracking your plants in a minute."}
-            </ThemedText>
-          </View>
-        )}
-
-        <AuthForm onSubmit={submitHandler} authScreenType={authScreenType} />
-        {children}
-
-        {isAuthScreen && (
-          <>
-            <View style={styles.dividerRow}>
-              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-              <ThemedText type="caption">or</ThemedText>
-              <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            isAuthScreen && { paddingTop: insets.top + Spacing.xl },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {isAuthScreen && (
+            <View style={styles.brand}>
+              <Image
+                source={appIcon}
+                accessibilityIgnoresInvertColors
+                style={[styles.logo, { borderRadius: radius.large }]}
+              />
+              <ThemedText type="title">
+                {authScreenType === "login" ? "Welcome back" : "Create account"}
+              </ThemedText>
+              <ThemedText type="caption">
+                {authScreenType === "login"
+                  ? "Log in to keep your plants happy."
+                  : "Start tracking your plants in a minute."}
+              </ThemedText>
             </View>
-            <SocialSignInButtons />
-            <ThemedButton
-              onPress={switchAuthModeHandler}
-              variant="ghost"
-              title={
-                authScreenType === "login" ? "Create a new user" : "Login instead"
-              }
-            />
-          </>
-        )}
-      </ScrollView>
+          )}
+
+          <AuthForm onSubmit={submitHandler} authScreenType={authScreenType} />
+          {children}
+
+          {isAuthScreen && (
+            <>
+              <View style={styles.dividerRow}>
+                <View
+                  style={[
+                    styles.dividerLine,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+                <ThemedText type="caption">or</ThemedText>
+                <View
+                  style={[
+                    styles.dividerLine,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+              </View>
+              <SocialSignInButtons />
+              <ThemedButton
+                onPress={switchAuthModeHandler}
+                variant="ghost"
+                title={
+                  authScreenType === "login"
+                    ? "Create a new user"
+                    : "Login instead"
+                }
+              />
+            </>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }

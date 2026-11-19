@@ -38,10 +38,11 @@ export type NotificationPermission = "granted" | "denied" | "undetermined";
  * true, so the question comes at a useful moment rather than on launch.
  */
 export async function requestNotificationPermissions(
-  prompt: boolean = true,
+  prompt: boolean = true
 ): Promise<boolean> {
   try {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     if (existingStatus === "granted") {
       return true;
     }
@@ -61,7 +62,9 @@ export async function requestNotificationPermissions(
 export async function getNotificationPermission(): Promise<NotificationPermission> {
   try {
     const { status } = await Notifications.getPermissionsAsync();
-    return status === "granted" || status === "denied" ? status : "undetermined";
+    return status === "granted" || status === "denied"
+      ? status
+      : "undetermined";
   } catch (error) {
     console.warn("getNotificationPermission failed:", error);
     return "undetermined";
@@ -71,7 +74,7 @@ export async function getNotificationPermission(): Promise<NotificationPermissio
 /** Opens this app's page in the phone's settings, to allow notifications. */
 export function openNotificationSettings(): void {
   Linking.openSettings().catch((error) =>
-    console.warn("openNotificationSettings failed:", error),
+    console.warn("openNotificationSettings failed:", error)
   );
 }
 
@@ -97,7 +100,7 @@ export async function cancelAllWateringReminders(): Promise<void> {
  */
 export async function dismissStaleReminders(
   plants: IUserPlant[],
-  now: number = Date.now(),
+  now: number = Date.now()
 ): Promise<void> {
   try {
     const presented = await Notifications.getPresentedNotificationsAsync();
@@ -107,9 +110,11 @@ export async function dismissStaleReminders(
       presented
         .filter((notification) => {
           const data = notification.request.content.data as
-            | PlantNotificationData
-            | undefined;
-          if (!data?.plantId || (data.type !== "due" && data.type !== "nudge")) {
+            PlantNotificationData | undefined;
+          if (
+            !data?.plantId ||
+            (data.type !== "due" && data.type !== "nudge")
+          ) {
             return false;
           }
           const plant = byId.get(data.plantId);
@@ -119,8 +124,10 @@ export async function dismissStaleReminders(
           );
         })
         .map((notification) =>
-          Notifications.dismissNotificationAsync(notification.request.identifier),
-        ),
+          Notifications.dismissNotificationAsync(
+            notification.request.identifier
+          )
+        )
     );
   } catch (error) {
     console.warn("dismissStaleReminders failed:", error);

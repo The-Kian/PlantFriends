@@ -24,11 +24,13 @@ const {
   joinHouseholdHandler,
   leaveHouseholdHandler,
   removeMemberHandler,
+  updateDisplayNameHandler,
 } = require("./households");
 
 admin.initializeApp();
 
 const TREFLE_BASE_URL = "https://trefle.io/api/v1";
+const TREFLE_TIMEOUT_MS = 8000;
 
 // Replicates the client-side `mapTreflePlantToIPlant` mapping so the client
 // receives IPlant objects directly.
@@ -110,8 +112,9 @@ exports.searchPlants = functions
     const log = logFor("searchPlants");
     const uid = requireCaller(context);
     const q = requireString(data && data.q, "q", 100);
-    await rateLimit(uid, "searchPlants", 30, 60 * 1000);
 
+    // Checked before the rate limit so a missing key doesn't spend the
+    // caller's allowance.
     const TREFLE_API_KEY = process.env.TREFLE_API_KEY;
     if (!TREFLE_API_KEY) {
       throw new functions.https.HttpsError(
@@ -119,12 +122,15 @@ exports.searchPlants = functions
         "Trefle API key is not configured."
       );
     }
+    await rateLimit(uid, "searchPlants", 30, 60 * 1000);
 
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TREFLE_TIMEOUT_MS);
     try {
       const url = `${TREFLE_BASE_URL}/species/search?token=${encodeURIComponent(
         TREFLE_API_KEY
       )}&q=${encodeURIComponent(q)}&limit=20`;
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
 
       if (response.status === 401) {
         throw new functions.https.HttpsError(
@@ -156,12 +162,21 @@ exports.searchPlants = functions
         log.warn("searchPlants refused", { uid, code: error.code });
         throw error;
       }
+      if (controller.signal.aborted) {
+        log.warn("searchPlants timed out", { uid });
+        throw new functions.https.HttpsError(
+          "deadline-exceeded",
+          "The plant search took too long. Please try again."
+        );
+      }
       // The request URL holds the Trefle token, so never log the raw error.
       log.error("searchPlants failed", {
         uid,
         message: redact(error && error.message, [TREFLE_API_KEY]),
       });
       throw new functions.https.HttpsError("internal", "Search failed.");
+    } finally {
+      clearTimeout(timer);
     }
   });
 
@@ -216,12 +231,22 @@ exports.deleteAccount = functions
 
       const writer = db.bulkWriter();
       [...householdPlants, ...oldPlants].forEach((plantDoc) => {
-        writer.create(db.collection("AnonymousPlants").doc(), {
+        // The plant's own ID, so a retry after a partial failure overwrites
+        // the row instead of adding a duplicate.
+        writer.set(db.collection("AnonymousPlants").doc(plantDoc.id), {
           ...anonymiseUserPlant(plantDoc.data()),
           anonymisedAt: admin.FieldValue.serverTimestamp(),
         });
       });
       await writer.close();
+
+      // Their invite codes stop working (households.js revokeInvitesBy).
+      const invites = (
+        await db.collection("Invites").where("createdBy", "==", uid).get()
+      ).docs;
+      const revoker = db.bulkWriter();
+      invites.forEach((invite) => revoker.delete(invite.ref));
+      await revoker.close();
 
       if (isMember && hasHousemates) {
         const others = (await householdRef.collection("Plants").get()).docs
@@ -371,6 +396,28 @@ exports.removeMember = functions
       context,
       { max: 20, windowMs: 60 * 60 * 1000 },
       (args) => removeMemberHandler({ ...args, data: { uid: targetUid } })
+    );
+  });
+
+/**
+ * updateDisplayName({ displayName }) — renames the caller everywhere (profile
+ * and household member list), and the household if it still has its automatic
+ * name. Returns { displayName, householdName }. See ./households.js.
+ */
+exports.updateDisplayName = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) => {
+    requireCaller(context);
+    const displayName = requireString(
+      data && data.displayName,
+      "displayName",
+      50
+    );
+    return runHouseholdCall(
+      "updateDisplayName",
+      context,
+      { max: 20, windowMs: 60 * 60 * 1000 },
+      (args) => updateDisplayNameHandler({ ...args, data: { displayName } })
     );
   });
 

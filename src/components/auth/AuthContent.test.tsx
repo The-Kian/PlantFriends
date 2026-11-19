@@ -53,7 +53,7 @@ describe("AuthContent Tests", () => {
           {...props}
         />
         ;
-      </NavigationContainer>,
+      </NavigationContainer>
     );
   };
 
@@ -69,7 +69,7 @@ describe("AuthContent Tests", () => {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignupScreen} />
         </Stack.Navigator>
-      </NavigationContainer>,
+      </NavigationContainer>
     );
   };
 
@@ -132,7 +132,7 @@ describe("AuthContent Tests", () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       "Check your details",
-      "Enter a valid email address.",
+      "Enter a valid email address."
     );
   });
 });

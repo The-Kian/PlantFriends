@@ -13,6 +13,7 @@ const admin = require("./admin");
 const { MAX_INSTANCES } = require("./guards");
 const { logFor } = require("./log");
 const { basePlantName, householdTimeZone } = require("./lookups");
+const { inQuietHours } = require("./notifyAt");
 const { sendToUsers } = require("./push");
 const { planReminder } = require("./reminders");
 const { plantName, isWatering, wateredMessages } = require("./plantMessages");
@@ -36,6 +37,11 @@ async function notifyWatering({
     householdTimeZone(db, householdId),
     basePlantName(db, after),
   ]);
+  // Quiet hours (21:00 to 08:00 in the household's time zone) apply here too.
+  // These pushes are dropped, not held until 08:00: "Sam watered the Monstera"
+  // would be hours old by then and no use to anyone, and the plant's next
+  // reminder is already planned from the new due date.
+  if (inQuietHours(now, timeZone)) return 0;
   const messages = wateredMessages({
     plant: after,
     plantId,

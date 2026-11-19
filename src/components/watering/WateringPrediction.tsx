@@ -1,14 +1,17 @@
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
 
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from "react-native";
 
-import ThemedButton from '@/components/ui/Buttons/ThemedButton';
-import { ThemedText } from '@/components/ui/Text/ThemedText';
-import { MILLIS_PER_DAY, type WateringUrgency } from '@/helpers/plants/wateringCalculations';
-import { getWateringProgress } from '@/helpers/plants/wateringProgress';
-import { useTheme } from '@/hooks/utils/useTheme';
-import { type ThemeColors } from '@/theme/Colors';
+import ThemedButton from "@/components/ui/Buttons/ThemedButton";
+import { ThemedText } from "@/components/ui/Text/ThemedText";
+import {
+  MILLIS_PER_DAY,
+  type WateringUrgency,
+} from "@/helpers/plants/wateringCalculations";
+import { getWateringProgress } from "@/helpers/plants/wateringProgress";
+import { useTheme } from "@/hooks/utils/useTheme";
+import { type ThemeColors } from "@/theme/Colors";
 
 interface WateringPredictionProps {
   lastWatered: number | null;
@@ -37,12 +40,21 @@ export function WateringPrediction({
   const cardStyle = [
     styles.container,
     shadow,
-    { backgroundColor: colors.surface, borderColor: colors.border, borderRadius: radius.large },
+    {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderRadius: radius.large,
+    },
   ];
 
   const header = (
     <View style={styles.header}>
-      <View style={[styles.headerIcon, { backgroundColor: colors.waterMuted, borderRadius: radius.pill }]}>
+      <View
+        style={[
+          styles.headerIcon,
+          { backgroundColor: colors.waterMuted, borderRadius: radius.pill },
+        ]}
+      >
         <Ionicons name="water" size={18} color={colors.water} />
       </View>
       <ThemedText type="subtitle" style={styles.headerText}>
@@ -55,7 +67,9 @@ export function WateringPrediction({
     return (
       <View style={cardStyle}>
         {header}
-        <ThemedText style={[styles.notWateredText, { color: colors.textMuted }]}>
+        <ThemedText
+          style={[styles.notWateredText, { color: colors.textMuted }]}
+        >
           This plant hasn't been watered yet
         </ThemedText>
         <ThemedButton
@@ -77,14 +91,26 @@ export function WateringPrediction({
   } = wateringProgress;
 
   const urgencyColor = getUrgencyColor(status.urgency, colors);
-  const needsWater = status.urgency === 'urgent' || status.urgency === 'overdue';
+  const needsWater =
+    status.urgency === "urgent" || status.urgency === "overdue";
 
   const rows: [string, string][] = [
-    ['Last watered', lastWateredBy ? `${formatDate(lastWateredDate)}, by ${lastWateredBy}` : formatDate(lastWateredDate)],
-    ['Next watering', nextWateringDate ? formatDate(nextWateringDate) : 'Not scheduled'],
+    [
+      "Last watered",
+      lastWateredBy
+        ? `${formatDate(lastWateredDate)}, by ${lastWateredBy}`
+        : formatDate(lastWateredDate),
+    ],
+    [
+      "Next watering",
+      nextWateringDate ? formatDate(nextWateringDate) : "Not scheduled",
+    ],
   ];
   if (frequencyInDays > 0) {
-    rows.push(['Frequency', `Every ${frequencyInDays} day${frequencyInDays === 1 ? '' : 's'}`]);
+    rows.push([
+      "Frequency",
+      `Every ${frequencyInDays} day${frequencyInDays === 1 ? "" : "s"}`,
+    ]);
   }
 
   return (
@@ -95,7 +121,12 @@ export function WateringPrediction({
         <View
           style={[
             styles.statusPill,
-            { backgroundColor: needsWater ? colors.errorMuted : colors.surfaceMuted, borderRadius: radius.small },
+            {
+              backgroundColor: needsWater
+                ? colors.errorMuted
+                : colors.surfaceMuted,
+              borderRadius: radius.small,
+            },
           ]}
         >
           <ThemedText style={[styles.statusText, { color: urgencyColor }]}>
@@ -104,7 +135,12 @@ export function WateringPrediction({
         </View>
       ) : null}
 
-      <View style={[styles.progressBarContainer, { backgroundColor: colors.surfaceMuted }]}>
+      <View
+        style={[
+          styles.progressBarContainer,
+          { backgroundColor: colors.surfaceMuted },
+        ]}
+      >
         <View
           style={[
             styles.progressBarFill,
@@ -115,7 +151,9 @@ export function WateringPrediction({
 
       {rows.map(([label, value]) => (
         <View key={label} style={styles.infoRow}>
-          <ThemedText style={[styles.label, { color: colors.textMuted }]}>{label}</ThemedText>
+          <ThemedText style={[styles.label, { color: colors.textMuted }]}>
+            {label}
+          </ThemedText>
           <ThemedText style={styles.value}>{value}</ThemedText>
         </View>
       ))}
@@ -124,7 +162,7 @@ export function WateringPrediction({
         title="Log Watering"
         onPress={onLogWatering}
         icon="water-outline"
-        variant={needsWater ? 'accept' : 'secondary'}
+        variant={needsWater ? "accept" : "secondary"}
         additionalStyle={styles.button}
       />
     </View>
@@ -136,12 +174,12 @@ export function getUrgencyColor(
   colors: ThemeColors
 ): string {
   switch (urgency) {
-    case 'overdue':
-    case 'urgent':
+    case "overdue":
+    case "urgent":
       return colors.error;
-    case 'soon':
+    case "soon":
       return colors.warning;
-    case 'ok':
+    case "ok":
       return colors.success;
     default:
       return colors.text;
@@ -152,23 +190,27 @@ export function getUrgencyColor(
 export function formatLastWatered(
   epochMs: number | null,
   now: number = Date.now(),
-  by?: string | null,
+  by?: string | null
 ): string {
   if (!epochMs) {
-    return 'Not watered yet';
+    return "Not watered yet";
   }
   const days = Math.floor((now - epochMs) / MILLIS_PER_DAY);
   const when =
-    days <= 0 ? 'Watered today' : days === 1 ? 'Watered yesterday' : `Watered ${days} days ago`;
+    days <= 0
+      ? "Watered today"
+      : days === 1
+        ? "Watered yesterday"
+        : `Watered ${days} days ago`;
   return by ? `${when} by ${by}` : when;
 }
 
 function formatDate(epochMs: number): string {
   const dateObj = new Date(epochMs);
-  return dateObj.toLocaleDateString('en-GB', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return dateObj.toLocaleDateString("en-GB", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -179,54 +221,54 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     marginBottom: 4,
   },
   headerIcon: {
     width: 32,
     height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerText: {
     fontSize: 18,
   },
   statusPill: {
     paddingVertical: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statusText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   progressBarContainer: {
     height: 6,
     borderRadius: 99,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 4,
   },
   progressBarFill: {
-    height: '100%',
+    height: "100%",
     borderRadius: 99,
   },
   infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   label: {
     fontSize: 15,
   },
   value: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   button: {
     marginTop: 8,
   },
   notWateredText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginVertical: 8,
   },
 });
