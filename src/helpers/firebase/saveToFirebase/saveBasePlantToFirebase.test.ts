@@ -39,6 +39,26 @@ describe("saveBasePlantToFirebase", () => {
     expect(result).toBe(true);
   });
 
+  it("saves a Trefle plant as unverified and without null fields", async () => {
+    // Trefle marks most species "accepted" (isVerified: true) and sends null
+    // for unknown values; the catalog rule rejects both.
+    const trefle = {
+      ...mockPlant,
+      isVerified: true,
+      temperature_minimum: null,
+      description: undefined,
+    } as any;
+    (getDoc as jest.Mock).mockResolvedValueOnce({ exists: false });
+    (setDoc as jest.Mock).mockResolvedValueOnce(undefined);
+
+    await saveBasePlantToFirebase(trefle, mockUser);
+
+    const written = (setDoc as jest.Mock).mock.calls[0][1];
+    expect(written.isVerified).toBe(false);
+    expect("temperature_minimum" in written).toBe(false);
+    expect("description" in written).toBe(false);
+  });
+
   it("should not save the base plant data if it already exists", async () => {
     const plantData = mockPlant;
     const user = mockUser;

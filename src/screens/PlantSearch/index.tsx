@@ -1,7 +1,7 @@
 import { NavigationProp } from "@react-navigation/native";
 import React, { useState, useContext, useEffect } from "react";
 
-import { View } from "react-native";
+import { Alert, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import uuid from "react-native-uuid";
 
@@ -72,18 +72,30 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
   };
 
   const handleSave = async (userData: IUserPlant, plantData: IPlant) => {
+    const hasName =
+      !!plantData.name?.trim() || (plantData.scientific_name?.length ?? 0) > 0;
+    if (!hasName) {
+      Alert.alert("Name needed", "Give the plant a name before saving it.");
+      return;
+    }
     if (isAddingNewPlant) {
       userData.plantId = plantData.id;
     }
     // The household's live listener adds the plant to the list.
     const saved = await savePlantToFirebase(userData, plantData, user, household);
 
+    // On failure the error has been shown; keep the form open so nothing
+    // typed is lost and the user can try again.
+    if (!saved) {
+      return;
+    }
+
     closeModal();
     navigation.navigate("Tab");
 
     // A good moment to ask for notifications: reminders for this plant, and
     // (from phase 4) hearing when a housemate waters it.
-    if (saved && user) {
+    if (user) {
       await registerForPush(user.uid, { prompt: true });
     }
   };

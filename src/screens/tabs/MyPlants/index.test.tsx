@@ -3,9 +3,9 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import { Text } from "react-native";
+import { Alert, Text } from "react-native";
 
-import { fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
 import { mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
@@ -88,7 +88,14 @@ describe("MyPlantsScreen", () => {
     // Simulate deleting the plant
     // Living Room is the first group, so its plant has the first delete button.
     const deleteButton = screen.getAllByLabelText(/^Delete /)[0];
+    const alertSpy = jest.spyOn(Alert, "alert");
     fireEvent.press(deleteButton);
+
+    // Confirm in the dialog.
+    const buttons = alertSpy.mock.calls.at(-1)![2]!;
+    act(() => {
+      buttons.find((b) => b.text === "Delete")?.onPress?.();
+    });
 
     // Verify the plant is no longer visible
     await waitFor(() => {

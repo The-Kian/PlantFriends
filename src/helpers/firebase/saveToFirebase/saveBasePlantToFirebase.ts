@@ -26,12 +26,17 @@ const saveBasePlantToFirebase = async (
   // species was never saved; docExists handles both forms.
   if (!docExists(plantDoc)) {
     try {
-      const basePlantData = {
-        ...plantData,
-        contributed_by: user.displayName ?? user.email ?? user.uid,
-        isVerified: plantData.isVerified ?? false,
-        slug: plantData.name ? plantData.name.toLowerCase() : "",
-      };
+      // The catalog rule only accepts plants a client contributes as
+      // unverified, and rejects null values (Trefle sends null for unknown
+      // temperatures and the like), so drop those fields.
+      const basePlantData = Object.fromEntries(
+        Object.entries({
+          ...plantData,
+          contributed_by: user.displayName ?? user.email ?? user.uid,
+          isVerified: false,
+          slug: plantData.name ? plantData.name.toLowerCase() : "",
+        }).filter(([, value]) => value !== null && value !== undefined),
+      );
       await queuedWrite(setDoc(plantRef, basePlantData), "Save base plant");
     } catch (error) {
       console.error("Error saving base plant data: ", error);

@@ -34,7 +34,9 @@ export function getDaysUntilWatering(nextWateringDate: number): number {
   nextDate.setHours(0, 0, 0, 0);
 
   const diffTime = nextDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / MILLIS_PER_DAY);
+  // Round, not ceil: across a clock change a day is 23 or 25 hours, and
+  // ceil would turn 2.04 days into 3.
+  const diffDays = Math.round(diffTime / MILLIS_PER_DAY);
 
   return diffDays;
 }

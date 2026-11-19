@@ -66,7 +66,9 @@ function ThemedButton({
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+      // Without a label, a screen reader joins the icon's glyph and the title
+      // into ", Add a plant".
+      accessibilityLabel={accessibilityLabel ?? title}
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         buttonStyles.button,

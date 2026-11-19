@@ -81,3 +81,36 @@ describe("validateCredentials", () => {
     expect(result.isValid).toBe(false);
   });
 });
+
+describe("validateCredentials messages", () => {
+  const base = {
+    email: "test@example.com",
+    confirmEmail: "test@example.com",
+    password: "secret",
+    confirmPassword: "secret",
+    displayName: "",
+    dateOfBirth: new Date(),
+  };
+
+  it("accepts a 6-character password, Firebase's minimum", () => {
+    expect(validateCredentials(base, "login").isValid).toBe(true);
+    expect(validateCredentials(base, "signUp").isValid).toBe(true);
+  });
+
+  it("says which field is wrong", () => {
+    expect(validateCredentials({ ...base, email: "nope" }, "login").message).toBe(
+      "Enter a valid email address.",
+    );
+    expect(
+      validateCredentials({ ...base, password: "short" }, "login").message,
+    ).toBe("Passwords are at least 6 characters.");
+    expect(
+      validateCredentials({ ...base, confirmEmail: "x@example.com" }, "signUp")
+        .message,
+    ).toBe("The two email addresses don't match.");
+    expect(
+      validateCredentials({ ...base, confirmPassword: "secret2" }, "signUp")
+        .message,
+    ).toBe("The two passwords don't match.");
+  });
+});

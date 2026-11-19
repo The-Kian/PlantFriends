@@ -122,14 +122,17 @@ describe("AuthContent Tests", () => {
   });
 
   it("displays an alert when credentials are invalid", () => {
-    mockedValidateCredentials.mockReturnValue({ isValid: false });
+    mockedValidateCredentials.mockReturnValue({
+      isValid: false,
+      message: "Enter a valid email address.",
+    });
     renderComponent();
 
     fireEvent.press(screen.getByText("Log In"));
 
     expect(Alert.alert).toHaveBeenCalledWith(
-      "Invalid input",
-      "Please check your entered credentials.",
+      "Check your details",
+      "Enter a valid email address.",
     );
   });
 });

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useContext } from 'react';
 
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/ui/Text/ThemedText';
 import { IUserPlant, IUserPlantMerged } from '@/constants/IPlant';
@@ -89,7 +89,16 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
                 accessibilityLabel={`Delete ${displayName}`}
                 accessibilityRole="button"
                 hitSlop={10}
-                onPress={() => onDelete(plant)}
+                onPress={() =>
+                    Alert.alert(
+                        `Delete ${displayName}?`,
+                        'Its watering history goes too. This can\'t be undone.',
+                        [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Delete', style: 'destructive', onPress: () => onDelete(plant) },
+                        ],
+                    )
+                }
                 style={({ pressed }) => [styles.deleteButton, pressed && styles.pressed]}
             >
                 <Ionicons name="trash-outline" size={20} color={colors.textMuted} />

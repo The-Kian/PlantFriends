@@ -13,6 +13,17 @@ interface ErrorConfig {
   actions?: { title: string; onPress: () => void }[];
 }
 
+// User mistakes with a clear message of their own: not sent to Crashlytics.
+const EXPECTED_USER_ERRORS = new Set([
+  "auth/invalid-credential",
+  "auth/wrong-password",
+  "auth/user-not-found",
+  "auth/invalid-email",
+  "auth/email-already-in-use",
+  "auth/weak-password",
+  "auth/too-many-requests",
+]);
+
 class ErrorService {
   private static errorMap: Record<string, ErrorConfig> = {
     // Auth errors
@@ -23,6 +34,17 @@ class ErrorService {
     "auth/wrong-password": {
       severity: "error",
       userMessage: "Incorrect password. Please try again.",
+    },
+    // What Firebase now returns for a wrong password or an unknown email
+    // (email enumeration protection), instead of the two codes above.
+    "auth/invalid-credential": {
+      severity: "error",
+      userMessage:
+        "That email and password don't match an account. Check them and try again, or reset your password.",
+    },
+    "auth/too-many-requests": {
+      severity: "warning",
+      userMessage: "Too many attempts. Please wait a few minutes and try again.",
     },
     "auth/email-already-in-use": {
       severity: "error",
@@ -152,7 +174,9 @@ class ErrorService {
     context?: string,
   ): void {
     console.error(`[${context || "Error"}] ${errorCode}:`, error);
-    if (!isOfflineError(error)) {
+    // Being offline, or a user typing the wrong password, isn't a fault in
+    // the app, so it isn't reported.
+    if (!isOfflineError(error) && !EXPECTED_USER_ERRORS.has(errorCode)) {
       recordHandledError(error, context);
     }
   }

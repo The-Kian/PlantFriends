@@ -190,6 +190,7 @@ describe("PlantSearchScreen", () => {
   });
 
   it("navigates to Tab screen after saving a selected plant", async () => {
+    (savePlantToFirebase as jest.Mock).mockResolvedValueOnce({ id: "saved" });
     (useCombinedPlantSearch as jest.Mock).mockReturnValue({
       plants: [mockPlant],
     });
@@ -211,6 +212,7 @@ describe("PlantSearchScreen", () => {
   });
 
   it("navigates to Tab screen after saving a new plant", async () => {
+    (savePlantToFirebase as jest.Mock).mockResolvedValueOnce({ id: "saved" });
     renderComponent();
 
     fireEvent.press(
@@ -228,6 +230,21 @@ describe("PlantSearchScreen", () => {
       );
     });
     expect(screen.getByText("You are on the Tab screen")).toBeVisible();
+  });
+
+  it("keeps the form open when the save fails", async () => {
+    (savePlantToFirebase as jest.Mock).mockResolvedValueOnce(null);
+    renderComponent();
+
+    fireEvent.press(
+      screen.getByText("Add a new plant (not in search results)"),
+    );
+    await screen.findByText("Mock Customization Modal");
+    fireEvent.press(screen.getByTestId("save-button"));
+
+    await waitFor(() => expect(savePlantToFirebase).toHaveBeenCalled());
+    expect(screen.getByText("Mock Customization Modal")).toBeVisible();
+    expect(screen.queryByText("You are on the Tab screen")).toBeNull();
   });
 
   it("navigates back when the header back button is pressed", async () => {
