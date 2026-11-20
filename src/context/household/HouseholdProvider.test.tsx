@@ -12,6 +12,7 @@ import {
   createSoloHousehold,
   migrateUserPlants,
 } from "@/helpers/household/setupHousehold";
+import { recordHandledError } from "@/services/CrashReporting";
 import { dismissStaleReminders } from "@/services/NotificationService";
 import { setupStore } from "@/store/store";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
@@ -28,6 +29,10 @@ jest.mock("@/services/PushRegistration", () => ({
 jest.mock("@/helpers/household/setupHousehold", () => ({
   createSoloHousehold: jest.fn(async () => "user1"),
   migrateUserPlants: jest.fn(async () => 0),
+}));
+jest.mock("@/services/CrashReporting", () => ({
+  recordHandledError: jest.fn(),
+  setCrashReportingUser: jest.fn(),
 }));
 jest.mock("@/services/NotificationService", () => ({
   dismissStaleReminders: jest.fn(async () => {}),
@@ -56,11 +61,13 @@ function serveSnapshots(profile: object, plants: object[] = []) {
 }
 
 let currentError: string | null = null;
+let currentRetry: () => void = () => {};
 const errorOf = () => currentError;
 
 function HouseholdName() {
-  const { household, loading, error } = useHousehold();
+  const { household, loading, error, retry } = useHousehold();
   currentError = error;
+  currentRetry = retry;
   return <Text>{loading ? "loading" : household?.name ?? "no household"}</Text>;
 }
 
@@ -117,8 +124,36 @@ describe("HouseholdProvider", () => {
     mountProvider();
 
     await waitFor(() => {
-      expect(createSoloHousehold).toHaveBeenCalledWith(mockUser);
+      expect(createSoloHousehold).toHaveBeenCalledWith(mockUser, undefined);
     });
+  });
+
+  it("names the household from the profile's display name, which sign-up saved", async () => {
+    serveSnapshots({ displayName: "Sam" });
+
+    mountProvider();
+
+    await waitFor(() => {
+      expect(createSoloHousehold).toHaveBeenCalledWith(mockUser, "Sam");
+    });
+  });
+
+  it("offers a way to try again when the household can't be set up", async () => {
+    jest.spyOn(console, "warn").mockImplementation(() => {});
+    serveSnapshots({});
+    jest.mocked(createSoloHousehold).mockRejectedValueOnce(new Error("offline"));
+
+    mountProvider();
+    await waitFor(() => {
+      expect(errorOf()).toBe("Couldn't set up your household. Please try again.");
+    });
+
+    act(() => currentRetry());
+
+    await waitFor(() => {
+      expect(createSoloHousehold).toHaveBeenCalledTimes(2);
+    });
+    expect(errorOf()).toBeNull();
   });
 
   it("moves plants from older builds across once", async () => {
@@ -192,5 +227,124 @@ describe("HouseholdProvider", () => {
 
     expect(screen.getByText("loading")).toBeTruthy();
     expect(onSnapshot).not.toHaveBeenCalled();
+  });
+
+  describe("species that can't be fetched", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+    });
+    afterEach(() => jest.useRealTimers());
+
+    it("aren't remembered as missing: the plant gets its details once the fetch works", async () => {
+      serveSnapshots({ householdId: "household1", plantsMigratedAt: 1 }, [
+        { ...mockUserPlant, custom_name: "Monty" },
+      ]);
+      jest
+        .mocked(fetchFirebasePlantById)
+        .mockRejectedValueOnce({ code: "unavailable" });
+
+      const store = mountProvider();
+
+      // First pass: the plant shows with its nickname and no species data.
+      await waitFor(() => {
+        expect(store.getState().userPlants).toEqual([
+          expect.objectContaining({ id: "1", custom_name: "Monty" }),
+        ]);
+      });
+      expect(store.getState().userPlants[0]).not.toHaveProperty("watering_frequency");
+      expect(errorOf()).toBeNull();
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(20_000);
+      });
+
+      expect(fetchFirebasePlantById).toHaveBeenCalledTimes(2);
+      expect(store.getState().userPlants[0]).toMatchObject({
+        id: "1",
+        watering_frequency: 7,
+      });
+    });
+  });
+
+  describe("losing access to a household", () => {
+    type Listeners = Record<
+      string,
+      { error?: (e: unknown) => void; next?: (snap: Snapshot) => void }
+    >;
+
+    function serveWithErrors(profile: object): Listeners {
+      const listeners: Listeners = {};
+      jest.mocked(onSnapshot).mockImplementation(((
+        ref: { _path: string },
+        onNext: (snap: Snapshot) => void,
+        onError: (e: unknown) => void,
+      ) => {
+        if (ref._path.endsWith("/Plants")) {
+          listeners.plants = { error: onError };
+          onNext({ docs: [] });
+        } else if (ref._path.endsWith(`/${mockUser.uid}`)) {
+          listeners.profile = { next: onNext };
+          onNext({ data: () => profile });
+        } else {
+          listeners.household = { error: onError };
+          onNext({ data: () => mockHousehold });
+        }
+        return jest.fn();
+      }) as unknown as typeof onSnapshot);
+      return listeners;
+    }
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+    });
+    afterEach(() => jest.useRealTimers());
+
+    it("ignores permission-denied from a household the profile has moved off", async () => {
+      const listeners = serveWithErrors({ householdId: "household1", plantsMigratedAt: 1 });
+      mountProvider();
+      await waitFor(() => expect(listeners.plants).toBeDefined());
+
+      // We left: the profile points at the new household, and the old
+      // household's listener fails (it was captured before the switch).
+      const oldPlantsListener = listeners.plants.error;
+      act(() => listeners.profile?.next?.({ data: () => ({ householdId: "household2", plantsMigratedAt: 1 }) }));
+      act(() => oldPlantsListener?.({ code: "firestore/permission-denied" }));
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(10_000);
+      });
+
+      expect(recordHandledError).not.toHaveBeenCalled();
+      expect(errorOf()).toBeNull();
+    });
+
+    it("reports permission-denied if the profile still points at that household", async () => {
+      const listeners = serveWithErrors({ householdId: "household1", plantsMigratedAt: 1 });
+      mountProvider();
+      await waitFor(() => expect(listeners.plants).toBeDefined());
+
+      act(() => listeners.plants.error?.({ code: "firestore/permission-denied" }));
+      expect(recordHandledError).not.toHaveBeenCalled(); // not yet: grace period
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(10_000);
+      });
+
+      expect(recordHandledError).toHaveBeenCalledTimes(1);
+    });
+
+    it("reports other listener errors straight away", async () => {
+      const listeners = serveWithErrors({ householdId: "household1", plantsMigratedAt: 1 });
+      mountProvider();
+      await waitFor(() => expect(listeners.plants).toBeDefined());
+
+      act(() => listeners.plants.error?.({ code: "firestore/unavailable" }));
+
+      expect(recordHandledError).toHaveBeenCalledWith(
+        expect.objectContaining({ code: "firestore/unavailable" }),
+        "Plants listener",
+      );
+      expect(errorOf()).toBe("Failed to load your plants. Please try again.");
+    });
   });
 });

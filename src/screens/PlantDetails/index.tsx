@@ -17,6 +17,7 @@ import { WateringSplash } from "@/components/watering/WateringSplash";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { useHousehold } from "@/context/household/HouseholdProvider";
 import logWatering from "@/helpers/firebase/logWatering";
+import { wateringFields } from "@/helpers/firebase/wateringFields";
 import setPlantSharing from "@/helpers/firebase/setPlantSharing";
 import { displayNameFor } from "@/helpers/household/setupHousehold";
 import { getWateringFrequencyInDays } from "@/helpers/plants/wateringCalculations";
@@ -50,6 +51,8 @@ const PlantDetailsScreen = () => {
   const { mergedPlant, loading } = useMergedPlant(userPlant || null);
 
   const [showSplash, setShowSplash] = useState(false);
+  // True while a watering is saved on this phone but not yet on the server.
+  const [waitingToSync, setWaitingToSync] = useState(false);
 
   // Opened before the household's plants have loaded.
   if (!userPlant && householdLoading) {
@@ -98,22 +101,31 @@ const PlantDetailsScreen = () => {
         mergedPlant?.watering_frequency
       );
 
+      // The result is shown straight away. The write carries on in the
+      // background: offline, it waits in Firestore's queue and syncs later.
       // Only the watering fields are written, so a housemate's edit made at
       // the same time isn't overwritten.
-      const updatedPlant = await logWatering(
-        household.id,
-        userPlant,
-        { uid: user.uid, displayName: displayNameFor(user) },
-        frequency,
+      const waterer = { uid: user.uid, displayName: displayNameFor(user) };
+      const now = Date.now();
+      dispatch(
+        updatePlant({ ...userPlant, ...wateringFields(now, waterer, frequency) }),
       );
-
-      dispatch(updatePlant(updatedPlant));
       setShowSplash(true);
+
+      await logWatering(household.id, userPlant, waterer, frequency, {
+        now,
+        onWaiting: () => setWaitingToSync(true),
+        onSynced: () => setWaitingToSync(false),
+      });
 
       // The server plans the next reminder from the new watering date. A
       // housemate who joined and never added a plant is asked here instead.
       await registerForPush(user.uid, { prompt: true });
     } catch (error) {
+      // The server refused it: put the plant back as it was.
+      dispatch(updatePlant(userPlant));
+      setShowSplash(false);
+      setWaitingToSync(false);
       ErrorService.handleError(error, "Log Watering", {
         userMessage: "Failed to log watering. Please try again.",
       });
@@ -236,6 +248,11 @@ const PlantDetailsScreen = () => {
             customSchedule={userPlant.custom_watering_schedule ?? null}
             onLogWatering={handleLogWatering}
           />
+          {waitingToSync && (
+            <ThemedText type="caption" style={styles.syncNote}>
+              Saved on this phone. It will sync when you're online.
+            </ThemedText>
+          )}
 
           {hasHousemates && (
             <View style={cardStyle}>
@@ -293,6 +310,9 @@ const styles = StyleSheet.create({
     padding: Spacing.medium + 4,
     paddingTop: Spacing.large,
     gap: Spacing.medium,
+  },
+  syncNote: {
+    textAlign: "center",
   },
   scientific: {
     fontStyle: "italic",

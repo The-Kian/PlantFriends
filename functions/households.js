@@ -276,8 +276,53 @@ async function removeMemberHandler({ db, uid, data, now }) {
   return removeFromHousehold({ db, callerUid: uid, targetUid, now });
 }
 
+/**
+ * Changes the caller's display name everywhere housemates see it:
+ * `Users/{uid}`, their entry in the household's `members` map (the rules
+ * don't let a member write another member's entry, so it has to be done
+ * here), and the household's name if it is still the automatic
+ * "<their old name>'s home" they set up.
+ *
+ * @param data.displayName already trimmed and length-checked by the caller.
+ */
+async function updateDisplayNameHandler({ db, uid, data }) {
+  const displayName = data && data.displayName;
+  if (typeof displayName !== "string" || !displayName.trim()) {
+    throw new HttpsError("invalid-argument", "Enter a name.");
+  }
+
+  return db.runTransaction(async (transaction) => {
+    const userRef = db.doc(`Users/${uid}`);
+    const userSnap = await transaction.get(userRef);
+    const householdId = (userSnap.exists && userSnap.get("householdId")) || uid;
+    const householdRef = db.doc(`Households/${householdId}`);
+    const householdSnap = await transaction.get(householdRef);
+    const household = householdSnap.exists ? householdSnap.data() : null;
+    const isMember = Boolean(household && (household.memberIds || []).includes(uid));
+
+    transaction.set(userRef, { displayName }, { merge: true });
+    if (!isMember) return { householdId: null };
+
+    const oldName = household.members && household.members[uid] && household.members[uid].displayName;
+    const update = {
+      members: { ...(household.members || {}), [uid]: { ...(household.members || {})[uid], displayName } },
+    };
+    // Only the automatic name: one someone chose themselves stays as it is.
+    if (
+      household.createdBy === uid &&
+      oldName &&
+      household.name === `${oldName}'s home`
+    ) {
+      update.name = `${displayName}'s home`;
+    }
+    transaction.update(householdRef, update);
+    return { householdId };
+  });
+}
+
 module.exports = {
   MAX_MEMBERS,
+  updateDisplayNameHandler,
   createInviteHandler,
   joinHouseholdHandler,
   leaveHouseholdHandler,

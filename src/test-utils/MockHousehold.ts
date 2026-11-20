@@ -23,6 +23,7 @@ export function mockHouseholdContext(
     loading: false,
     error: null,
     notificationPrefs: {},
+    retry: jest.fn(),
     memberName: (uid) =>
       (uid && household?.members[uid]?.displayName) || null,
     ...overrides,

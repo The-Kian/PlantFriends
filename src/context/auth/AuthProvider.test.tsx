@@ -2,10 +2,11 @@
 
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
+import functions from "@react-native-firebase/functions";
 import * as Notifications from "expo-notifications";
 import React from "react";
 
-import { Alert } from "react-native";
+import { Alert, Text } from "react-native";
 
 import {
   fireEvent,
@@ -14,7 +15,7 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-import { AuthProvider } from "./AuthProvider";
+import { AuthContext, AuthProvider } from "./AuthProvider";
 import AuthTestComponent from "./test/AuthTestComponent";
 
 describe("AuthProvider", () => {
@@ -62,7 +63,9 @@ describe("AuthProvider", () => {
     });
   });
 
-  it("calls firebase updateProfile when update function is called", async () => {
+  it("renames through updateProfile and the updateDisplayName function", async () => {
+    const callable = jest.fn(async () => ({ data: {} }));
+    (functions as any)._mockHttpsCallable.mockReturnValueOnce(callable);
     render(
       <AuthProvider>
         <AuthTestComponent />
@@ -70,7 +73,10 @@ describe("AuthProvider", () => {
     );
     fireEvent.press(screen.getByTestId("update"));
     await waitFor(() => {
-      expect(auth().currentUser?.updateProfile).toHaveBeenCalled();
+      expect(auth().currentUser?.updateProfile).toHaveBeenCalledWith({
+        displayName: "New Name",
+      });
+      expect(callable).toHaveBeenCalledWith({ displayName: "New Name" });
     });
   });
 
@@ -99,7 +105,7 @@ describe("AuthProvider error handling", () => {
     console.error = jest.fn();
   });
 
-  it("shows alert for email already in use on registration", async () => {
+  it("shows ErrorService's message for email already in use on registration", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (auth().createUserWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
       code: "auth/email-already-in-use",
@@ -114,7 +120,9 @@ describe("AuthProvider error handling", () => {
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        "That email address is already in use!",
+        "Couldn't sign up",
+        "This email is already registered. Please log in or use a different email.",
+        expect.any(Array),
       );
     });
   });
@@ -133,14 +141,18 @@ describe("AuthProvider error handling", () => {
     fireEvent.press(screen.getByTestId("register"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("That email address is invalid!");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Couldn't sign up",
+        "Please enter a valid email address.",
+        expect.any(Array),
+      );
     });
   });
 
-  it("shows alert for user not found on login", async () => {
+  it("shows the friendly sign-in message for a wrong password or unknown email", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     (auth().signInWithEmailAndPassword as jest.Mock).mockRejectedValueOnce({
-      code: "auth/user-not-found",
+      code: "auth/invalid-credential",
     });
 
     render(
@@ -151,7 +163,11 @@ describe("AuthProvider error handling", () => {
     fireEvent.press(screen.getByTestId("login"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("User not found");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Couldn't log in",
+        expect.stringContaining("don't match an account"),
+        expect.any(Array),
+      );
     });
   });
 
@@ -186,15 +202,19 @@ describe("AuthProvider error handling", () => {
     fireEvent.press(screen.getByTestId("update"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Error updating profile:", "err0r");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Couldn't update your name",
+        expect.any(String),
+        expect.any(Array),
+      );
     });
   });
 
-  it("shows alert for update Firestore failed", async () => {
+  it("shows alert when the rename function fails", async () => {
     const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
-    (firestore as any)._mockSet.mockRejectedValueOnce({
-      message: "err0r",
-    });
+    (functions as any)._mockHttpsCallable.mockReturnValueOnce(
+      jest.fn().mockRejectedValue({ code: "functions/unavailable" }),
+    );
 
     render(
       <AuthProvider>
@@ -205,8 +225,9 @@ describe("AuthProvider error handling", () => {
 
     await waitFor(() => {
       expect(alertSpy).toHaveBeenCalledWith(
-        "Error updating Firestore:",
-        "err0r",
+        "Couldn't update your name",
+        expect.any(String),
+        expect.any(Array),
       );
     });
   });
@@ -225,7 +246,11 @@ describe("AuthProvider error handling", () => {
     fireEvent.press(screen.getByTestId("logout"));
 
     await waitFor(() => {
-      expect(alertSpy).toHaveBeenCalledWith("Error logging out:", "err0r");
+      expect(alertSpy).toHaveBeenCalledWith(
+        "Couldn't log out",
+        expect.any(String),
+        expect.any(Array),
+      );
     });
   });
 
@@ -247,5 +272,89 @@ describe("AuthProvider error handling", () => {
         expect.objectContaining({ code: "auth/unknown-error" }),
       );
     });
+  });
+});
+
+describe("AuthProvider sign-up", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    console.error = jest.fn();
+  });
+
+  /** Fires sign-in events by hand, instead of the mock's automatic one. */
+  const holdAuthEvents = () => {
+    let listener: (user: unknown) => void = () => {};
+    (auth().onAuthStateChanged as jest.Mock).mockImplementationOnce((cb) => {
+      listener = cb;
+      return jest.fn();
+    });
+    return (user: unknown) => listener(user);
+  };
+
+  const RegisterWithName = () => {
+    const { register, user } = React.useContext(AuthContext);
+    return (
+      <>
+        <Text testID="who">{user ? user.displayName ?? "no name" : "nobody"}</Text>
+        <Text
+          testID="register-sam"
+          onPress={() =>
+            register({ email: "sam@x.test", password: "secret1", displayName: " Sam " })
+          }
+        >
+          Register
+        </Text>
+      </>
+    );
+  };
+
+  it("puts the name on the account and profile before anyone sees the new user", async () => {
+    const fire = holdAuthEvents();
+    const updateProfile = jest.fn(async () => {
+      // Mid-setup, the new user must not have been published yet.
+      expect(screen.getByTestId("who")).toHaveTextContent("nobody");
+    });
+    const newUser = { uid: "u9", displayName: null, email: "sam@x.test", updateProfile };
+    (auth().createUserWithEmailAndPassword as jest.Mock).mockImplementationOnce(async () => {
+      fire(newUser); // Firebase signs the new account in straight away.
+      return { user: newUser };
+    });
+
+    render(
+      <AuthProvider>
+        <RegisterWithName />
+      </AuthProvider>,
+    );
+    fireEvent.press(screen.getByTestId("register-sam"));
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({ displayName: "Sam" });
+    });
+    expect((firestore as any)._mockSet).toHaveBeenCalledWith(
+      expect.objectContaining({ displayName: "Sam", email: "sam@x.test" }),
+    );
+    // Once set up, the user is shown (here the mock's currentUser).
+    await waitFor(() => {
+      expect(screen.getByTestId("who")).not.toHaveTextContent("nobody");
+    });
+  });
+
+  it("falls back to the email's first part when no name is given", async () => {
+    const newUser = { uid: "u9", displayName: null, email: "sam@x.test", updateProfile: jest.fn() };
+    (auth().createUserWithEmailAndPassword as jest.Mock).mockResolvedValueOnce({ user: newUser });
+
+    render(
+      <AuthProvider>
+        <AuthTestComponent />
+      </AuthProvider>,
+    );
+    fireEvent.press(screen.getByTestId("register"));
+
+    await waitFor(() => {
+      expect((firestore as any)._mockSet).toHaveBeenCalledWith(
+        expect.objectContaining({ displayName: "test" }),
+      );
+    });
+    expect(newUser.updateProfile).not.toHaveBeenCalled();
   });
 });

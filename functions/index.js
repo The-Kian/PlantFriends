@@ -24,6 +24,7 @@ const {
   joinHouseholdHandler,
   leaveHouseholdHandler,
   removeMemberHandler,
+  updateDisplayNameHandler,
 } = require("./households");
 
 admin.initializeApp();
@@ -408,6 +409,20 @@ exports.removeMember = functions
       context,
       { max: 20, windowMs: 60 * 60 * 1000 },
       (args) => removeMemberHandler({ ...args, data: { uid: targetUid } })
+    );
+  });
+
+/** updateDisplayName({ displayName }) — renames the caller for housemates. */
+exports.updateDisplayName = functions
+  .runWith({ maxInstances: MAX_INSTANCES })
+  .https.onCall((data, context) => {
+    requireCaller(context);
+    const displayName = requireString(data && data.displayName, "displayName", 50);
+    return runHouseholdCall(
+      "updateDisplayName",
+      context,
+      { max: 30, windowMs: 60 * 60 * 1000 },
+      (args) => updateDisplayNameHandler({ ...args, data: { displayName } })
     );
   });
 

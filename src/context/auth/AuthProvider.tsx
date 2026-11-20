@@ -6,7 +6,7 @@ import {
   setDoc,
 } from "@react-native-firebase/firestore";
 import functions from "@react-native-firebase/functions";
-import { useState, createContext, useEffect } from "react";
+import { useState, createContext, useEffect, useMemo, useRef } from "react";
 
 import { Alert, Platform } from "react-native";
 
@@ -17,6 +17,7 @@ import {
   hasProvider,
   signOutOfGoogle,
 } from "@/helpers/auth/socialAuth";
+import { updateDisplayName } from "@/helpers/household/invites";
 import { setCrashReportingUser } from "@/services/CrashReporting";
 import ErrorService from "@/services/ErrorService";
 import { cancelAllWateringReminders } from "@/services/NotificationService";
@@ -30,20 +31,35 @@ export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
 export const AuthProvider = ({ children }: ProviderProps) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [initializing, setInitializing] = useState<boolean>(true);
+  // While a new account is being set up (signed in, name not yet saved),
+  // sign-in events are held back. Otherwise the household would be created
+  // the moment the account exists, from an email address, before the name
+  // the person typed is on it.
+  const settingUp = useRef(false);
 
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged((userState) => {
-      setUser(userState);
       setCrashReportingUser(userState?.uid ?? null);
-
-      if (initializing) {
-        setInitializing(false);
+      if (!settingUp.current) {
+        setUser(userState);
       }
+      setInitializing(false);
     });
 
     // Unsubscribe on unmount
     return () => subscriber();
-  }, [initializing]);
+  }, []);
+
+  /** Runs `setup` with sign-in events held back, then shows the signed-in user. */
+  const whileSettingUp = async (setup: () => Promise<void>) => {
+    settingUp.current = true;
+    try {
+      await setup();
+    } finally {
+      settingUp.current = false;
+      setUser(auth().currentUser);
+    }
+  };
 
   const login = async ({
     email,
@@ -55,48 +71,54 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     try {
       await auth().signInWithEmailAndPassword(email, password);
     } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      if (nativeError.code === "auth/user-not-found") {
-        Alert.alert("User not found");
-      } else {
-        ErrorService.handleError(nativeError, "Login");
-      }
+      // Wrong email or password, too many tries, offline: ErrorService has
+      // a message for each.
+      ErrorService.handleError(error, "Login");
     }
   };
 
   const register = async ({
     email,
     password,
+    displayName,
   }: {
     email: string;
     password: string;
+    displayName?: string;
   }): Promise<void> => {
     try {
-      const userCredential = await auth().createUserWithEmailAndPassword(
-        email,
-        password,
-      );
-      const user = userCredential.user;
-      const db = getFirestore();
+      await whileSettingUp(async () => {
+        const userCredential = await auth().createUserWithEmailAndPassword(
+          email,
+          password,
+        );
+        const user = userCredential.user;
+        const name = displayName?.trim() || undefined;
 
-      // Merge: the household setup may already have written householdId.
-      await setDoc(
-        doc(collection(db, "Users"), user?.uid),
-        {
-          displayName: user?.displayName ?? email,
-          email: email,
-        },
-        { merge: true },
-      );
+        // The name goes on the account before anything reads it, so the
+        // household is "Sam's home" from the first load.
+        if (name) {
+          try {
+            await user.updateProfile({ displayName: name });
+          } catch (error) {
+            console.warn("Couldn't set the display name on sign-up", error);
+          }
+        }
+
+        // Merge: the household setup may already have written householdId.
+        await setDoc(
+          doc(collection(getFirestore(), "Users"), user?.uid),
+          {
+            displayName: name ?? user?.displayName ?? email.split("@")[0],
+            email: email,
+          },
+          { merge: true },
+        );
+      });
     } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      if (nativeError.code === "auth/email-already-in-use") {
-        Alert.alert("That email address is already in use!");
-      } else if (nativeError.code === "auth/invalid-email") {
-        Alert.alert("That email address is invalid!");
-      } else {
-        ErrorService.handleError(nativeError, "Registration");
-      }
+      // "Already in use", "invalid email" and the rest have their own
+      // messages in ErrorService.
+      ErrorService.handleError(error, "Registration");
     }
   };
 
@@ -108,25 +130,27 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     credential: FirebaseAuthTypes.AuthCredential,
     displayName: string | null = null,
   ) => {
-    const userCredential = await auth().signInWithCredential(credential);
-    if (!userCredential.additionalUserInfo?.isNewUser) {
-      return;
-    }
+    await whileSettingUp(async () => {
+      const userCredential = await auth().signInWithCredential(credential);
+      if (!userCredential.additionalUserInfo?.isNewUser) {
+        return;
+      }
 
-    const newUser = userCredential.user;
-    if (displayName && !newUser.displayName) {
-      await newUser.updateProfile({ displayName });
-    }
-    const db = getFirestore();
-    await setDoc(
-      doc(collection(db, "Users"), newUser.uid),
-      {
-        displayName: displayName ?? newUser.displayName ?? newUser.email ?? "",
-        email: newUser.email,
-      },
-      { merge: true },
-    );
-    setUser(auth().currentUser);
+      const newUser = userCredential.user;
+      if (displayName && !newUser.displayName) {
+        await newUser.updateProfile({ displayName });
+      }
+      const db = getFirestore();
+      await setDoc(
+        doc(collection(db, "Users"), newUser.uid),
+        {
+          displayName:
+            displayName ?? newUser.displayName ?? newUser.email ?? "",
+          email: newUser.email,
+        },
+        { merge: true },
+      );
+    });
   };
 
   const handleSocialSignInError = (error: unknown, context: string) => {
@@ -163,31 +187,16 @@ export const AuthProvider = ({ children }: ProviderProps) => {
 
   const update = async ({ displayName }: { displayName: string }) => {
     const user = auth().currentUser;
-    if (user) {
-      try {
-        await user.updateProfile({
-          displayName: displayName,
-        });
-      } catch (error) {
-        const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-        Alert.alert("Error updating profile:", nativeError.message);
-      }
-      try {
-        const db = getFirestore();
-        await setDoc(
-          doc(collection(db, "Users"), user.uid),
-          {
-            displayName: displayName ?? user?.email,
-            email: user.email,
-          },
-          { merge: true },
-        );
-      } catch (error) {
-        const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-        Alert.alert("Error updating Firestore:", nativeError.message);
-      } finally {
-        setUser(auth().currentUser);
-      }
+    if (!user) return;
+    try {
+      await user.updateProfile({ displayName });
+      // Housemates see the name from the household, which only the server can
+      // write for other members, so it goes through the function.
+      await updateDisplayName(displayName);
+    } catch (error) {
+      ErrorService.handleError(error, "Update profile");
+    } finally {
+      setUser(auth().currentUser);
     }
   };
 
@@ -197,14 +206,18 @@ export const AuthProvider = ({ children }: ProviderProps) => {
       // person who signs in on this device.
       const currentUser = auth().currentUser;
       if (currentUser) {
-        await unregisterForPush(currentUser.uid);
+        try {
+          await unregisterForPush(currentUser.uid);
+        } catch (error) {
+          // Offline, say. Logging out matters more than tidying the token.
+          console.warn("Couldn't unregister for push while logging out", error);
+        }
       }
       await cancelAllWateringReminders();
       await signOutOfGoogle();
       await auth().signOut();
     } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      Alert.alert("Error logging out:", nativeError.message);
+      ErrorService.handleError(error, "Log out");
     }
   };
 
@@ -251,19 +264,26 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     }
   };
 
-  const value: AuthContextType = {
-    initializing,
-    user,
-    setUser,
-    login,
-    register,
-    logout,
-    update,
-    resetPassword,
-    deleteAccount,
-    signInWithGoogle,
-    signInWithApple,
-  };
+  // The functions close over nothing that changes except `user`, so the
+  // context only changes when the signed-in user or `initializing` does.
+  /* eslint-disable react-hooks/exhaustive-deps */
+  const value: AuthContextType = useMemo(
+    () => ({
+      initializing,
+      user,
+      setUser,
+      login,
+      register,
+      logout,
+      update,
+      resetPassword,
+      deleteAccount,
+      signInWithGoogle,
+      signInWithApple,
+    }),
+    [initializing, user],
+  );
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

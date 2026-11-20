@@ -78,20 +78,18 @@ describe("PlantDetailsScreen watering", () => {
     jest.restoreAllMocks();
   });
 
-  it("waits for a successful write before updating Redux or showing the splash", async () => {
-    const updatedPlant = {
-      ...plant,
+  it("shows the watering at once, without waiting for the write", async () => {
+    const watering = {
       last_watered_date: now,
       next_watering_date: calculateNextWateringDate(now, 3),
       last_watered_by: mockUser.uid,
       last_watered_by_name: "Kian",
     };
-    let resolveWrite!: (watered: typeof updatedPlant) => void;
+    let resolveWrite!: (watered: unknown) => void;
     jest.mocked(logWatering).mockReturnValue(new Promise((resolve) => {
       resolveWrite = resolve;
     }));
     const { store } = renderDetails({ ...mockUser, displayName: "Kian" });
-    const dispatch = jest.spyOn(store, "dispatch");
 
     fireEvent.press(screen.getByText("Log First Watering"));
 
@@ -100,20 +98,35 @@ describe("PlantDetailsScreen watering", () => {
       plant,
       { uid: mockUser.uid, displayName: "Kian" },
       3,
+      expect.objectContaining({ now }),
     );
-    expect(store.getState().userPlants).toEqual([plant]);
-    expect(dispatch).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("watering-splash")).toBeNull();
+    // Offline, the write may take a while: the screen doesn't.
+    expect(store.getState().userPlants).toEqual([{ ...plant, ...watering }]);
+    expect(screen.getByTestId("watering-splash")).toBeTruthy();
 
     await act(async () => {
-      resolveWrite(updatedPlant);
+      resolveWrite({ ...plant, ...watering });
     });
-
-    expect(store.getState().userPlants).toEqual([updatedPlant]);
-    expect(dispatch).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("watering-splash")).toBeTruthy();
     expect(Alert.alert).not.toHaveBeenCalled();
     expect(ErrorService.handleError).not.toHaveBeenCalled();
+  });
+
+  it("says it will sync when the write is still waiting, and stops saying so once it has", async () => {
+    let hooks!: { onWaiting: () => void; onSynced: () => void };
+    jest.mocked(logWatering).mockImplementation(async (...args) => {
+      hooks = args[4] as typeof hooks;
+      return new Promise(() => {}); // never settles during the test
+    });
+    renderDetails();
+
+    fireEvent.press(screen.getByText("Log First Watering"));
+    expect(screen.queryByText(/sync when you're online/)).toBeNull();
+
+    act(() => hooks.onWaiting());
+    expect(screen.getByText(/sync when you're online/)).toBeTruthy();
+
+    act(() => hooks.onSynced());
+    expect(screen.queryByText(/sync when you're online/)).toBeNull();
   });
 
   it("shows which housemate did the last watering", () => {
@@ -131,17 +144,16 @@ describe("PlantDetailsScreen watering", () => {
     const error = new Error("Watering write rejected");
     jest.mocked(logWatering).mockRejectedValue(error);
     const { store } = renderDetails();
-    const dispatch = jest.spyOn(store, "dispatch");
 
     fireEvent.press(screen.getByText("Log First Watering"));
 
     expect(logWatering).toHaveBeenCalledTimes(1);
-    expect(store.getState().userPlants).toEqual([plant]);
-    expect(dispatch).not.toHaveBeenCalled();
-    expect(screen.queryByTestId("watering-splash")).toBeNull();
     await waitFor(() => {
       expect(ErrorService.handleError).toHaveBeenCalledTimes(1);
     });
+    // Shown at once, then put back when the server refuses it.
+    expect(store.getState().userPlants).toEqual([plant]);
+    expect(screen.queryByTestId("watering-splash")).toBeNull();
     expect(ErrorService.handleError).toHaveBeenCalledWith(
       error, "Log Watering",
       { userMessage: "Failed to log watering. Please try again." },

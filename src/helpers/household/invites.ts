@@ -72,6 +72,18 @@ export async function removeMember(
   return result.data;
 }
 
+/**
+ * Changes your name for your housemates too: your profile, your entry in the
+ * household's member list and, if it's still the automatic one, the
+ * household's name.
+ */
+export async function updateDisplayName(displayName: string): Promise<void> {
+  const callable = functions().httpsCallable<{ displayName: string }, unknown>(
+    "updateDisplayName",
+  );
+  await callable({ displayName });
+}
+
 /** "K7PXM3QH" becomes "K7PX-M3QH". */
 export function formatInviteCode(code: string): string {
   return `${code.slice(0, 4)}-${code.slice(4)}`;

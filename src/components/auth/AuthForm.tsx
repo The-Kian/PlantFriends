@@ -4,7 +4,6 @@ import { useState, useContext } from "react";
 
 import { View } from "react-native";
 
-import DatePickerField from "@/components/ui/Input/DatePickerField";
 import TextInputField from "@/components/ui/Input/TextInputField";
 import { ThemedView } from "@/components/ui/Views/ThemedView";
 import { AuthContext } from "@/context/auth/AuthProvider";
@@ -13,25 +12,24 @@ import { AuthProps } from "@/context/auth/AuthTypes";
 import ThemedButton from "../ui/Buttons/ThemedButton";
 
 const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
-  const isDevelopment = process.env.NODE_ENV === "development";
+  // Dev builds behave like release builds unless you ask for the test
+  // account to be filled in: set EXPO_PUBLIC_DEV_PREFILL=true in .env.local.
+  const prefill = __DEV__ && process.env.EXPO_PUBLIC_DEV_PREFILL === "true";
   const { user } = useContext(AuthContext);
   const [enteredEmail, setEnteredEmail] = useState(
-    user?.email ?? (isDevelopment ? "test@gmail.com" : ""),
+    user?.email ?? (prefill ? "test@gmail.com" : ""),
   );
   const [enteredConfirmEmail, setEnteredConfirmEmail] = useState(
-    isDevelopment ? "test@gmail.com" : "",
+    prefill ? "test@gmail.com" : "",
   );
   const [enteredPassword, setEnteredPassword] = useState(
-    isDevelopment ? "password" : "",
+    prefill ? "password" : "",
   );
   const [enteredConfirmPassword, setEnteredConfirmPassword] = useState(
-    isDevelopment ? "password" : "",
+    prefill ? "password" : "",
   );
   const [enteredDisplayName, setEnteredDisplayName] = useState(
-    user?.displayName ?? (isDevelopment ? "Test User" : ""),
-  );
-  const [enteredDateOfBirth, setEnteredDateOfBirth] = useState(
-    isDevelopment ? new Date("1997-12-12") : new Date(),
+    user?.displayName ?? (prefill ? "Test User" : ""),
   );
 
   const submitHandler = () => {
@@ -39,7 +37,6 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
       email: enteredEmail,
       password: enteredPassword,
       displayName: enteredDisplayName,
-      dateOfBirth: enteredDateOfBirth,
       confirmEmail: enteredConfirmEmail,
       confirmPassword: enteredConfirmPassword,
     });
@@ -71,11 +68,6 @@ const AuthForm = ({ authScreenType, onSubmit }: AuthProps) => {
               autoCorrect={false}
               autoComplete="email"
               textContentType="emailAddress"
-            />
-            <DatePickerField
-              label="Date of Birth"
-              date={enteredDateOfBirth}
-              onDateChange={setEnteredDateOfBirth}
             />
           </View>
         )}

@@ -19,6 +19,7 @@ import {
   IUserPlantMerged,
 } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
+import { errorCode } from "@/helpers/errors/friendlyErrors";
 import fetchFirebasePlantById from "@/helpers/firebase/fetchFirebasePlantById";
 import {
   householdDoc,
@@ -43,6 +44,8 @@ export interface HouseholdContextType {
   notificationPrefs: INotificationPrefs;
   /** A member's display name, or null if they aren't in the household. */
   memberName: (uid?: string | null) => string | null;
+  /** Tries setting up or loading the household again after an error. */
+  retry: () => void;
 }
 
 export const HouseholdContext = createContext<HouseholdContextType>({
@@ -51,35 +54,52 @@ export const HouseholdContext = createContext<HouseholdContextType>({
   error: null,
   notificationPrefs: {},
   memberName: () => null,
+  retry: () => {},
 });
 
 export const useHousehold = () => useContext(HouseholdContext);
 
 type BasePlantCache = Map<string, Promise<IPlant | null>>;
 
+// A species that couldn't be fetched (offline) is tried again this often, a
+// few times, rather than staying blank until the app restarts.
+const SPECIES_RETRY_MS = 20_000;
+const SPECIES_RETRY_LIMIT = 5;
+// After losing access to a household (leaving, being removed), the listener
+// for it fails before the profile points at the new one. Wait this long
+// before treating that as a real problem.
+const ACCESS_LOST_GRACE_MS = 5_000;
+
 // Adds species data (name, images, watering frequency) to each plant. Species
 // are cached by ID, so a change to one plant doesn't refetch every species.
+// A failed fetch is dropped from the cache, so the next call retries it, and
+// reported in `failed`.
 async function mergeWithBasePlants(
   plants: IUserPlant[],
   cache: BasePlantCache,
-): Promise<(IUserPlant | IUserPlantMerged)[]> {
-  return Promise.all(
+): Promise<{ merged: (IUserPlant | IUserPlantMerged)[]; failed: boolean }> {
+  let failed = false;
+  const merged = await Promise.all(
     plants.map(async (up) => {
       if (!up.plantId) return up;
+      const id = up.plantId;
       try {
-        if (!cache.has(up.plantId)) {
-          cache.set(up.plantId, fetchFirebasePlantById(up.plantId));
+        if (!cache.has(id)) {
+          const pending = fetchFirebasePlantById(id);
+          cache.set(id, pending);
+          pending.catch(() => cache.delete(id));
         }
-        const base = await cache.get(up.plantId);
+        const base = await cache.get(id);
         if (!base) return up;
         // Base fields first, then the user's own fields win.
         return { ...base, ...up, id: up.id } as IUserPlantMerged;
-      } catch (e) {
-        console.error("Error merging plant data:", e);
+      } catch {
+        failed = true;
         return up;
       }
     }),
   );
+  return { merged, failed };
 }
 
 /**
@@ -103,6 +123,55 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
   const settingUp = useRef(false);
   const migrating = useRef(false);
   const basePlantCache = useRef<BasePlantCache>(new Map());
+  // The household the profile points at now, for telling an expected
+  // "access lost" listener error from a real one.
+  const profileHouseholdId = useRef<string | null>(null);
+  // Bumped by retry() to run the set-up again.
+  const [attempt, setAttempt] = useState(0);
+
+  const retry = () => {
+    settingUp.current = false;
+    migrating.current = false;
+    setError(null);
+    setLoading(true);
+    setAttempt((n) => n + 1);
+  };
+
+  /**
+   * A listener failed. If it's permission-denied for a household the profile
+   * no longer points at, that's what leaving or being removed looks like for
+   * a moment: not an error. Otherwise report it.
+   */
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const onListenerError = (
+    label: string,
+    forHouseholdId: string,
+    e: unknown,
+    userMessage: string | null,
+  ) => {
+    const report = () => {
+      console.warn(`${label} failed:`, e);
+      recordHandledError(e, label);
+      if (userMessage) {
+        setError(userMessage);
+        setLoading(false);
+      }
+    };
+    if (errorCode(e) !== "permission-denied") return report();
+    if (profileHouseholdId.current !== forHouseholdId) return;
+    timers.current.push(
+      setTimeout(() => {
+        if (profileHouseholdId.current === forHouseholdId) report();
+      }, ACCESS_LOST_GRACE_MS),
+    );
+  };
+  useEffect(
+    () => () => {
+      timers.current.forEach(clearTimeout);
+      timers.current = [];
+    },
+    [],
+  );
 
   // 1. Follow the user's profile to find their household. Joining a household
   //    (the joinHousehold function) updates householdId here, and the app
@@ -116,6 +185,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       setNotificationPrefs({});
       settingUp.current = false;
       migrating.current = false;
+      profileHouseholdId.current = null;
       dispatch(setUserPlants([]));
       return;
     }
@@ -131,11 +201,13 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
           householdId?: string;
           plantsMigratedAt?: unknown;
           notificationPrefs?: INotificationPrefs;
+          displayName?: string;
         };
         setNotificationPrefs(profile.notificationPrefs ?? {});
+        profileHouseholdId.current = profile.householdId ?? null;
 
         if (!profile.householdId) {
-          setUpHousehold(user);
+          setUpHousehold(user, profile.displayName);
           return;
         }
         setHouseholdId(profile.householdId);
@@ -157,10 +229,13 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       },
     );
 
-    function setUpHousehold(signedIn: FirebaseAuthTypes.User) {
+    function setUpHousehold(
+      signedIn: FirebaseAuthTypes.User,
+      profileName?: string,
+    ) {
       if (settingUp.current) return;
       settingUp.current = true;
-      createSoloHousehold(signedIn).catch((e) => {
+      createSoloHousehold(signedIn, profileName).catch((e) => {
         settingUp.current = false;
         console.warn("createSoloHousehold failed:", e);
         recordHandledError(e, "Create household");
@@ -168,7 +243,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         setLoading(false);
       });
     }
-  }, [user, dispatch]);
+  }, [user, dispatch, attempt]);
 
   // 2. Follow the household itself (name and members).
   useEffect(() => {
@@ -179,10 +254,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         const data = snap?.data();
         setHousehold(data ? ({ ...data, id: householdId } as IHousehold) : null);
       },
-      (e) => {
-        console.warn("Household listener failed:", e);
-        recordHandledError(e, "Household listener");
-      },
+      (e) => onListenerError("Household listener", householdId, e, null),
     );
   }, [householdId]);
 
@@ -192,35 +264,51 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
     if (!householdId || !user) return;
 
     let latest = 0;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-    return onSnapshot(
+    const unsubscribe = onSnapshot(
       plantsCol(getFirestore(), householdId),
       async (snap) => {
         const run = ++latest;
+        clearTimeout(retryTimer);
         const plants: IUserPlant[] = (snap?.docs ?? []).map(
           (d: { data: () => unknown }) => d.data() as IUserPlant,
         );
 
-        const merged = await mergeWithBasePlants(
-          plants,
-          basePlantCache.current,
-        );
-        if (run !== latest) return; // a newer snapshot has arrived
-        dispatch(setUserPlants(merged));
-        setError(null);
-        setLoading(false);
+        // Species that couldn't be fetched (offline) are retried a few times.
+        let attempts = 0;
+        const show = async () => {
+          const { merged, failed } = await mergeWithBasePlants(
+            plants,
+            basePlantCache.current,
+          );
+          if (run !== latest) return; // a newer snapshot has arrived
+          dispatch(setUserPlants(merged));
+          setError(null);
+          setLoading(false);
+          if (failed && attempts++ < SPECIES_RETRY_LIMIT) {
+            retryTimer = setTimeout(show, SPECIES_RETRY_MS);
+          }
+        };
+        await show();
+        if (run !== latest) return;
 
         // Reminders come from the server. Once a plant is watered, on this
         // phone or a housemate's, its reminder here is out of date.
         dismissStaleReminders(plants);
       },
-      (e) => {
-        console.warn("Plants listener failed:", e);
-        recordHandledError(e, "Plants listener");
-        setError("Failed to load your plants. Please try again.");
-        setLoading(false);
-      },
+      (e) =>
+        onListenerError(
+          "Plants listener",
+          householdId,
+          e,
+          "Failed to load your plants. Please try again.",
+        ),
     );
+    return () => {
+      clearTimeout(retryTimer);
+      unsubscribe();
+    };
   }, [householdId, user, dispatch]);
 
   const value = useMemo<HouseholdContextType>(
@@ -231,7 +319,10 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       notificationPrefs,
       memberName: (uid) =>
         (uid && household?.members?.[uid]?.displayName) || null,
+      retry,
     }),
+    // retry only touches refs and state setters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [household, loading, error, notificationPrefs],
   );
 

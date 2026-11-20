@@ -36,7 +36,7 @@ describe("AuthForm Component", () => {
     expect(screen.getByText("Confirm Email Address")).toBeVisible();
     expect(screen.getByText("Password")).toBeVisible();
     expect(screen.getByText("Confirm Password")).toBeVisible();
-    expect(screen.getByText("Date of Birth")).toBeVisible();
+    expect(screen.queryByText("Date of Birth")).toBeNull();
     expect(screen.getByText("Sign Up")).toBeVisible();
   });
 
@@ -84,18 +84,12 @@ describe("AuthForm Component", () => {
       "New User",
     );
 
-    // Update dateOfBirth
-    const newDate = new Date("2000-01-01");
-    const datePicker = screen.getByText("Date of Birth");
-    fireEvent(datePicker, "onDateChange", newDate);
-
     fireEvent.press(screen.getByText("Sign Up"));
 
     expect(mockOnSubmit).toHaveBeenCalledWith({
       email: "new@example.com",
       password: "newpassword",
       displayName: "New User",
-      dateOfBirth: new Date("2000-01-01"),
       confirmEmail: "new@example.com",
       confirmPassword: "newpassword",
     });

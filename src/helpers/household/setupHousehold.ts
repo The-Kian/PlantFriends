@@ -42,13 +42,16 @@ export function deviceTimeZone(): string {
  */
 export async function createSoloHousehold(
   user: FirebaseAuthTypes.User,
+  profileName?: string,
 ): Promise<string> {
   const db = getFirestore();
   const householdId = user.uid;
   const ref = householdDoc(db, householdId);
 
   if (!docExists(await getDoc(ref))) {
-    const name = displayNameFor(user);
+    // The name they typed (saved on their profile at sign-up), then the
+    // account's, then the start of their email address.
+    const name = profileName?.trim() || displayNameFor(user);
     await setDoc(ref, {
       name: `${name}'s home`,
       memberIds: [user.uid],

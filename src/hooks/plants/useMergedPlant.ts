@@ -40,12 +40,15 @@ export default function useMergedPlant(userPlant: IUserPlant | null) {
       }
 
       setLoading(true);
-      const fetched = await fetchFirebasePlantById(id);
-      plantCache.set(id, fetched);
-      if (mounted) {
-        setMergedPlant(fetched);
-        setLoading(false);
+      try {
+        const fetched = await fetchFirebasePlantById(id);
+        plantCache.set(id, fetched);
+        if (mounted) setMergedPlant(fetched);
+      } catch {
+        // Offline, say. Not remembered, so the next render tries again.
+        if (mounted) setMergedPlant(null);
       }
+      if (mounted) setLoading(false);
     };
 
     void load();

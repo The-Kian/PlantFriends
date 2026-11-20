@@ -32,4 +32,11 @@ describe("RootLayout", () => {
     // Home is the first tab.
     expect(await screen.findByText("Plant Friends!")).toBeTruthy();
   });
+
+  it("shows neither the login nor the app until Firebase says who is signed in", () => {
+    renderRootLayout({ ...mockAuthContextValue, initializing: true, user: null });
+    expect(screen.getByTestId("activity-indicator")).toBeTruthy();
+    expect(screen.queryByText("Create a new user")).toBeNull();
+    expect(screen.queryByTestId("profile-button")).toBeNull();
+  });
 });

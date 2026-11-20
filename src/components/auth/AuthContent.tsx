@@ -1,6 +1,14 @@
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
-import { Alert, Image, ScrollView, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { RootStackParamList } from "@/components/navigation/types";
@@ -47,6 +55,11 @@ function AuthContent({ authScreenType, onSubmit, children }: AuthProps) {
 
   return (
     <ThemedView testID={"AuthContent-View"} style={styles.container}>
+      {/* So the keyboard doesn't cover Confirm Password and Sign Up. */}
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <ScrollView
         contentContainerStyle={[
           styles.content,
@@ -93,6 +106,7 @@ function AuthContent({ authScreenType, onSubmit, children }: AuthProps) {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }

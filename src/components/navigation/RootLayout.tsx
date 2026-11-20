@@ -2,6 +2,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import React from "react";
 import { useContext } from "react";
 
+import LoadingOverlay from "@/components/ui/Views/LoadingOverlay";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import LoginScreen from "@/screens/auth/login";
 import SignupScreen from "@/screens/auth/signup";
@@ -15,10 +16,18 @@ type RootLayoutProps = {
   initialRouteName?: string;
 };
 
-export default function RootLayout({ initialRouteName }: RootLayoutProps) {
-  const { user } = useContext(AuthContext);
+// Created once. Made inside the component it was a new navigator type on
+// every render, which can remount the whole stack.
+const Stack = createStackNavigator();
 
-  const Stack = createStackNavigator();
+export default function RootLayout({ initialRouteName }: RootLayoutProps) {
+  const { user, initializing } = useContext(AuthContext);
+
+  // Until Firebase says whether someone is signed in, showing the login
+  // screen would flash it at every cold start.
+  if (initializing) {
+    return <LoadingOverlay message="Loading..." />;
+  }
 
   return (
     <Stack.Navigator initialRouteName={initialRouteName}>

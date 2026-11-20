@@ -18,6 +18,7 @@ const {
   joinHouseholdHandler,
   leaveHouseholdHandler,
   removeMemberHandler,
+  updateDisplayNameHandler,
 } = require("./households");
 const { ALPHABET } = require("./inviteCode");
 
@@ -477,5 +478,59 @@ describe("leaving and removing", () => {
 
     expect(fake.store.get("Households/kian").memberIds).toEqual(["kian", "alex", "sam"]);
     expect(fake.store.has("Households/sam")).toBe(false);
+  });
+});
+
+describe("updateDisplayNameHandler", () => {
+  const rename = (uid, displayName) =>
+    updateDisplayNameHandler({ db, uid, data: { displayName }, now: NOW });
+
+  beforeEach(() => {
+    fake.store.set("Users/sam", { householdId: "flat", displayName: "sam.e2e" });
+    fake.store.set("Households/flat", {
+      name: "sam.e2e's home",
+      createdBy: "sam",
+      memberIds: ["sam", "kian"],
+      members: { sam: { displayName: "sam.e2e" }, kian: { displayName: "Kian" } },
+    });
+  });
+
+  it("updates the profile and the member list, leaving other members alone", async () => {
+    await rename("sam", "Sammy");
+    expect(fake.store.get("Users/sam")).toEqual({ householdId: "flat", displayName: "Sammy" });
+    expect(fake.store.get("Households/flat").members).toEqual({
+      sam: { displayName: "Sammy" },
+      kian: { displayName: "Kian" },
+    });
+  });
+
+  it("renames the automatic household name when they set it up", async () => {
+    await rename("sam", "Sam");
+    expect(fake.store.get("Households/flat").name).toBe("Sam's home");
+  });
+
+  it("keeps a household name someone chose, or one set up by someone else", async () => {
+    fake.store.set("Households/flat", { ...fake.store.get("Households/flat"), name: "The Flat" });
+    await rename("sam", "Sam");
+    expect(fake.store.get("Households/flat").name).toBe("The Flat");
+
+    fake.store.set("Households/flat", {
+      ...fake.store.get("Households/flat"),
+      name: "Sam's home",
+      createdBy: "kian",
+    });
+    await rename("sam", "Sammy");
+    expect(fake.store.get("Households/flat").name).toBe("Sam's home");
+  });
+
+  it("only writes the profile for someone who isn't in a household yet", async () => {
+    fake.store.set("Users/new", { email: "new@x.test" });
+    const result = await rename("new", "Newbie");
+    expect(result).toEqual({ householdId: null });
+    expect(fake.store.get("Users/new")).toEqual({ email: "new@x.test", displayName: "Newbie" });
+  });
+
+  it("rejects an empty name", async () => {
+    await rejectsWith(rename("sam", "  "), "invalid-argument");
   });
 });

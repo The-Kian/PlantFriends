@@ -2,29 +2,33 @@ import { getFirestore, updateDoc } from "@react-native-firebase/firestore";
 
 import { IUserPlant } from "@/constants/IPlant";
 import { plantDoc } from "@/helpers/firebase/householdPaths";
-import { queuedWrite } from "@/helpers/firebase/queuedWrite";
-import { calculateNextWateringDate } from "@/helpers/plants/wateringCalculations";
+import { QueuedWriteHooks, queuedWrite } from "@/helpers/firebase/queuedWrite";
+import { Waterer, wateringFields } from "@/helpers/firebase/wateringFields";
+
+interface LogWateringOptions extends QueuedWriteHooks {
+  /** When it happened, if the caller already showed the result. */
+  now?: number;
+}
 
 /**
  * Records a watering, and who did it. Writes only the watering fields, so
- * an edit a housemate makes at the same time isn't overwritten.
+ * an edit a housemate makes at the same time isn't overwritten. Resolves
+ * once the server has it, or after a short wait if the phone is offline (the
+ * write carries on in the background; see the hooks).
  */
 async function logWatering(
   householdId: string,
   plant: IUserPlant,
-  waterer: { uid: string; displayName: string | null },
+  waterer: Waterer,
   frequencyDays: number,
+  { now = Date.now(), onWaiting, onSynced }: LogWateringOptions = {},
 ): Promise<IUserPlant> {
-  const now = Date.now();
-  const watering = {
-    last_watered_date: now,
-    next_watering_date: calculateNextWateringDate(now, frequencyDays),
-    last_watered_by: waterer.uid,
-    last_watered_by_name: waterer.displayName,
-  };
+  const watering = wateringFields(now, waterer, frequencyDays);
   await queuedWrite(
     updateDoc(plantDoc(getFirestore(), householdId, plant.id), watering),
     "Log watering",
+    undefined,
+    { onWaiting, onSynced },
   );
   return { ...plant, ...watering };
 }

@@ -47,4 +47,13 @@ describe("logWatering", () => {
       logWatering("household1", mockUserPlant, { uid: "user1", displayName: "Kian" }, 3),
     ).rejects.toThrow("permission-denied");
   });
+
+  it("uses the time it was given, so the screen and the write agree", async () => {
+    await logWatering("household1", mockUserPlant, { uid: "user1", displayName: "Kian" }, 7, {
+      now: now - 5000,
+    });
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ last_watered_date: now - 5000 }),
+    );
+  });
 });

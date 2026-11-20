@@ -8,6 +8,8 @@ export type ErrorSeverity = "error" | "warning" | "info";
 
 interface ErrorConfig {
   severity: ErrorSeverity;
+  /** The alert's title. Defaults to a plain-language title for the context. */
+  title?: string;
   userMessage: string;
   technicalMessage?: string;
   actions?: { title: string; onPress: () => void }[];
@@ -23,6 +25,33 @@ const EXPECTED_USER_ERRORS = new Set([
   "auth/weak-password",
   "auth/too-many-requests",
 ]);
+
+// Alert titles by the context a caller passes. The context is also what shows
+// up in logs, so it stays terse; people see these.
+const TITLES: Record<string, string> = {
+  Login: "Couldn't log in",
+  Registration: "Couldn't sign up",
+  "Reset Password": "Couldn't reset your password",
+  "Delete Account": "Couldn't delete your account",
+  "Google Sign-In": "Couldn't sign in with Google",
+  "Apple Sign-In": "Couldn't sign in with Apple",
+  "Update profile": "Couldn't update your name",
+  "Log out": "Couldn't log out",
+  "Save Plant": "Couldn't save the plant",
+  "Update Plant": "Couldn't update the plant",
+  "Delete Plant": "Couldn't delete the plant",
+  "Remove Plant": "Couldn't delete the plant",
+  "Log Watering": "Couldn't log the watering",
+  "Share Plant": "Couldn't share the plant",
+  "Search Plants": "Couldn't search for plants",
+  "Notification Settings": "Couldn't change notifications",
+  "Leave household": "Couldn't leave the household",
+  "Remove housemate": "Couldn't remove them",
+  "Invite housemate": "Couldn't create an invite",
+  "Join a household": "Couldn't join the household",
+  "Share invite": "Couldn't share the invite",
+};
+const DEFAULT_TITLE = "Something went wrong";
 
 class ErrorService {
   private static errorMap: Record<string, ErrorConfig> = {
@@ -225,7 +254,7 @@ class ErrorService {
    * Show alert to user
    */
   private static showAlert(config: ErrorConfig, context?: string): void {
-    const title = context ? `${context}` : "Error";
+    const title = config.title ?? (context && TITLES[context]) ?? DEFAULT_TITLE;
 
     Alert.alert(title, config.userMessage, config.actions || [{ text: "OK", onPress: () => {} }]);
   }

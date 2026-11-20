@@ -42,7 +42,7 @@ export default function MyPlantsScreen() {
 
   const userPlants = useSelector((state: RootState) => state.userPlants);
   // Plants stay up to date through the household's live listener.
-  const { loading, error } = useHousehold();
+  const { loading, error, retry } = useHousehold();
   const { handleDeletePlant } = usePlantManagement();
 
   const navigateToPlantSearch = () => {
@@ -74,6 +74,7 @@ export default function MyPlantsScreen() {
           <ThemedText style={[styles.errorText, { color: colors.error }]}>
             {error}
           </ThemedText>
+          <ThemedButton title="Try again" variant="secondary" onPress={retry} />
         </View>
       )}
 
@@ -110,6 +111,7 @@ export default function MyPlantsScreen() {
 const styles = StyleSheet.create({
   errorBox: {
     padding: Spacing.medium,
+    gap: Spacing.small,
   },
   errorText: {
     textAlign: "center",
