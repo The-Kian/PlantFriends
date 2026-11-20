@@ -43,9 +43,10 @@ function collectionRef(path) {
     get: async () => ({ docs: childDocs(path) }),
     where: (field, op, value) => ({
       get: async () => ({
-        docs: childDocs(path).filter((s) =>
-          (s.data()[field] || []).includes(value)
-        ),
+        docs: childDocs(path).filter((s) => {
+          const found = s.data()[field];
+          return Array.isArray(found) ? found.includes(value) : found === value;
+        }),
       }),
     }),
   };
@@ -178,6 +179,18 @@ describe("deleteAccount", () => {
     await deleteAccount({}, { auth: { uid: "u1" } });
 
     expect(anonymousPlants()).toEqual(["AnonymousPlants/p1"]);
+  });
+
+  it("deletes the invite codes they made, and not other people's", async () => {
+    store.set("Users/u1", { householdId: "u1", plantsMigratedAt: 1 });
+    store.set("Households/u1", { memberIds: ["u1"], members: { u1: {} } });
+    store.set("Invites/MINEMINE", { householdId: "u1", createdBy: "u1" });
+    store.set("Invites/OTHERONE", { householdId: "u9", createdBy: "u9" });
+
+    await deleteAccount({}, { auth: { uid: "u1" } });
+
+    expect(store.has("Invites/MINEMINE")).toBe(false);
+    expect(store.has("Invites/OTHERONE")).toBe(true);
   });
 
   it("leaves a shared household and housemates' plants in place", async () => {

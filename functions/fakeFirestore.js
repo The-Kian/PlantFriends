@@ -51,6 +51,15 @@ function createFakeFirestore() {
       path,
       doc: (id) => docRef(`${path}/${id === undefined ? `auto${autoId++}` : id}`),
       get: async () => ({ docs: childDocs(path) }),
+      // Equality filters only, which is all the invite queries need.
+      where: (field, op, value) => {
+        if (op !== "==") throw new Error(`fake where() only supports ==, got ${op}`);
+        return {
+          get: async () => ({
+            docs: childDocs(path).filter((snap) => snap.get(field) === value),
+          }),
+        };
+      },
     };
   }
 

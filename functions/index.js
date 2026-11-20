@@ -269,6 +269,17 @@ exports.deleteAccount = functions
         await db.recursiveDelete(householdRef);
       }
 
+      // Codes they made must not outlive them.
+      const invites = await db
+        .collection("Invites")
+        .where("createdBy", "==", uid)
+        .get();
+      if (invites.docs.length > 0) {
+        const inviteWriter = db.bulkWriter();
+        invites.docs.forEach((invite) => inviteWriter.delete(invite.ref));
+        await inviteWriter.close();
+      }
+
       await db.recursiveDelete(userRef);
 
       try {

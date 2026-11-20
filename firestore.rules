@@ -2,8 +2,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // User profiles: each user can read and write only their own profile.
+    //
+    // The app may write only the keys listed here. `householdId` is changed by
+    // Cloud Functions (joining, leaving, removing), so the app may set it only
+    // to the user's own ID: the solo household it creates at first sign-in.
+    // Deleting the profile is done by the deleteAccount function.
+    function clientUserKeys() {
+      return ['displayName', 'email', 'householdId', 'notificationPrefs',
+              'timeZone', 'plantsMigratedAt'];
+    }
+
     match /Users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(clientUserKeys())
+        && request.resource.data.get('householdId', uid) == uid;
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(clientUserKeys())
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['householdId'])
+            || request.resource.data.householdId == uid);
     }
 
     // Devices registered for push notifications. The doc ID is the Expo push
@@ -27,6 +46,21 @@ service cloud.firestore {
     // Reminder bookkeeping written only by Cloud Functions (functions/reminders.js).
     function serverNotifyKeys() {
       return ['notify_at', 'notify_stage', 'notify_for', 'notify_sending', 'notify_lease'];
+    }
+
+    // Who may change or remove a household plant. A personal plant belongs to
+    // whoever added it and to its carers; a shared plant to the whole
+    // household for deleting. (A plant with no addedBy is old data: any member.)
+    function looksAfter(plant) {
+      return !('addedBy' in plant)
+        || request.auth.uid == plant.addedBy
+        || request.auth.uid in plant.get('carerIds', []);
+    }
+
+    // What any member may change on a shared plant they don't look after.
+    function wateringKeys() {
+      return ['last_watered_date', 'next_watering_date', 'last_watered_by',
+              'last_watered_by_name'];
     }
 
     function isMember(hid) {
@@ -93,12 +127,20 @@ service cloud.firestore {
           && !request.resource.data.keys().hasAny(serverNotifyKeys())
           && validHouseholdPlant(request.resource.data);
         // The notify_* keys are set by Cloud Functions; addedBy never changes.
+        // Whoever looks after a plant can edit it. Any other member can only
+        // log a watering, and only on a shared plant: a housemate's personal
+        // plant is theirs to change and delete.
         allow update: if isMember(hid)
           && !request.resource.data.diff(resource.data).affectedKeys()
                .hasAny(serverNotifyKeys().concat(['addedBy']))
           && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
-          && validHouseholdPlant(request.resource.data);
-        allow delete: if isMember(hid);
+          && validHouseholdPlant(request.resource.data)
+          && (looksAfter(resource.data)
+              || (resource.data.get('shared', false) == true
+                  && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(wateringKeys())));
+        allow delete: if isMember(hid)
+          && (looksAfter(resource.data) || resource.data.get('shared', false) == true);
       }
     }
 

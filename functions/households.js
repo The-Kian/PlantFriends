@@ -21,7 +21,38 @@ const { HttpsError } = functions.https;
 const isAlreadyExists = (error) =>
   Boolean(error) && (error.code === 6 || error.code === "already-exists");
 
-/** Makes a new invite code for the caller's household. */
+/** True for an invite that can still be used. */
+const isActive = (invite, now) =>
+  !invite.get("revokedAt") &&
+  Boolean(invite.get("expiresAt")) &&
+  invite.get("expiresAt").toMillis() > now;
+
+/**
+ * Marks a household's usable invites as revoked, optionally only those made
+ * by `createdBy`. A revoked code fails the same way an unknown one does.
+ * Reads and writes go through the transaction the caller passes, if any.
+ */
+async function revokeInvites({ db, transaction, householdId, createdBy, now }) {
+  const query = db.collection("Invites").where("householdId", "==", householdId);
+  const run = async (t) => {
+    const snap = await t.get(query);
+    const revoke = snap.docs.filter(
+      (invite) =>
+        isActive(invite, now) && (!createdBy || invite.get("createdBy") === createdBy),
+    );
+    revoke.forEach((invite) =>
+      t.update(invite.ref, { revokedAt: admin.Timestamp.fromMillis(now) }),
+    );
+    return revoke.length;
+  };
+  return transaction ? run(transaction) : db.runTransaction(run);
+}
+
+/**
+ * Makes a new invite code for the caller's household. The household's older
+ * codes stop working, so there is only ever one live code to pass around
+ * (it can be used by several people until it expires).
+ */
 async function createInviteHandler({ db, uid, now }) {
   const userSnap = await db.doc(`Users/${uid}`).get();
   const householdId = (userSnap.exists && userSnap.get("householdId")) || uid;
@@ -34,6 +65,8 @@ async function createInviteHandler({ db, uid, now }) {
   if (memberIds.length >= MAX_MEMBERS) {
     throw new HttpsError("resource-exhausted", "This household is full.");
   }
+
+  await revokeInvites({ db, householdId, now });
 
   const expiresAt = admin.Timestamp.fromMillis(now + INVITE_LIFETIME_MS);
   for (let attempt = 0; attempt < CODE_ATTEMPTS; attempt++) {
@@ -72,7 +105,11 @@ async function joinHouseholdHandler({ db, uid, authToken, data, now }) {
     // Firestore wants every read before any write.
     const inviteSnap = await transaction.get(db.doc(`Invites/${code}`));
     const invite = inviteSnap.exists ? inviteSnap.data() : null;
-    const expired = !invite || !invite.expiresAt || invite.expiresAt.toMillis() <= now;
+    const expired =
+      !invite ||
+      invite.revokedAt ||
+      !invite.expiresAt ||
+      invite.expiresAt.toMillis() <= now;
 
     const notFound = new HttpsError("not-found", "That code isn't valid or has expired.");
     if (expired) throw notFound;
@@ -182,6 +219,16 @@ async function removeFromHousehold({ db, callerUid, targetUid, now }) {
     const soloTaken =
       householdId === targetUid || (await transaction.get(soloRef)).exists;
     const newRef = soloTaken ? db.collection("Households").doc() : soloRef;
+
+    // The codes this person made stop working with them, so a code can't
+    // outlive the member who handed it out. (Reads come before writes.)
+    await revokeInvites({
+      db,
+      transaction,
+      householdId,
+      createdBy: targetUid,
+      now,
+    });
 
     const writes = unlinkWrites({ household, plants, uid: targetUid });
     transaction.update(householdRef, writes.household);

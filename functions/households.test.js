@@ -94,6 +94,19 @@ describe("createInviteHandler", () => {
     expect(fake.created).toHaveLength(2);
   });
 
+  it("stops the household's older codes working", async () => {
+    fake.store.set("Households/kian", { name: "Kian's home", ...members("kian") });
+    const old = await run();
+    const other = { householdId: "sam", createdBy: "sam", expiresAt: ts(NOW + DAY_MS) };
+    fake.store.set("Invites/SAMSCODE", other);
+
+    const fresh = await run();
+
+    expect(fake.store.get(`Invites/${old.code}`).revokedAt).toBeDefined();
+    expect(fake.store.get(`Invites/${fresh.code}`).revokedAt).toBeUndefined();
+    expect(fake.store.get("Invites/SAMSCODE")).toEqual(other); // another household's
+  });
+
   // Makes the first `taken` attempts fail as if the code already existed.
   function takeCodes(taken) {
     const realDoc = db.doc;
@@ -182,6 +195,12 @@ describe("joinHouseholdHandler", () => {
       expiresAt: ts(NOW),
     });
     await rejectsWith(join({ code: CODE }), "not-found", message);
+  });
+
+  it("treats a revoked code as not found", async () => {
+    const invite = fake.store.get(`Invites/${CODE}`);
+    fake.store.set(`Invites/${CODE}`, { ...invite, revokedAt: ts(NOW - 1) });
+    await rejectsWith(join({ code: CODE }), "not-found", "That code isn't valid or has expired.");
   });
 
   it("treats an invite for a deleted household as not found", async () => {
@@ -308,6 +327,40 @@ describe("leaving and removing", () => {
   const leave = (uid) => leaveHouseholdHandler({ db, uid, now: NOW });
   const remove = (uid, target) =>
     removeMemberHandler({ db, uid, data: { uid: target }, now: NOW });
+
+  describe("invite codes", () => {
+    const code = (createdBy, extra = {}) => ({
+      householdId: "kian",
+      createdBy,
+      expiresAt: ts(NOW + DAY_MS),
+      ...extra,
+    });
+    beforeEach(() => {
+      fake.store.set("Invites/SAMSCODE", code("sam"));
+      fake.store.set("Invites/KIANCODE", code("kian"));
+    });
+
+    it("a member who leaves takes their codes with them, not the others'", async () => {
+      await leave("sam");
+      expect(fake.store.get("Invites/SAMSCODE").revokedAt).toBeDefined();
+      expect(fake.store.get("Invites/KIANCODE").revokedAt).toBeUndefined();
+    });
+
+    it("a removed member's codes stop working", async () => {
+      await remove("kian", "sam");
+      expect(fake.store.get("Invites/SAMSCODE").revokedAt).toBeDefined();
+      expect(fake.store.get("Invites/KIANCODE").revokedAt).toBeUndefined();
+    });
+
+    it("leaves codes that are already expired or revoked as they were", async () => {
+      const revokedAt = ts(NOW - 5);
+      fake.store.set("Invites/OLDREVOK", code("sam", { revokedAt }));
+      fake.store.set("Invites/OLDEXPIR", code("sam", { expiresAt: ts(NOW - 1) }));
+      await leave("sam");
+      expect(fake.store.get("Invites/OLDREVOK").revokedAt).toBe(revokedAt);
+      expect(fake.store.get("Invites/OLDEXPIR").revokedAt).toBeUndefined();
+    });
+  });
 
   it("a member leaves for an empty household of their own", async () => {
     const result = await leave("sam");
