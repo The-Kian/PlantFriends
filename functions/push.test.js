@@ -123,6 +123,41 @@ describe("sendToUsers", () => {
     expect(db.deleted).toEqual(["ExponentPushToken[old]"]);
   });
 
+  it("still saves tickets, and doesn't throw, when removing a dead token fails", async () => {
+    const db = fakeDb({
+      users: { sam: {} },
+      devices: { sam: ["ExponentPushToken[old]", "ExponentPushToken[new]"] },
+    });
+    // The first device's delete fails.
+    const realCollection = db.collection;
+    db.collection = (path) => {
+      const collection = realCollection(path);
+      const get = collection.get;
+      collection.get = async () => {
+        const snap = await get();
+        snap.docs[0].ref.delete = async () => {
+          throw new Error("deadline exceeded");
+        };
+        return snap;
+      };
+      return collection;
+    };
+    const { fetchImpl } = fakeFetch([
+      { status: "error", details: { error: "DeviceNotRegistered" } },
+      { status: "ok", id: "ticket-2" },
+    ]);
+
+    await expect(
+      sendToUsers(db, ["sam"], message, "reminders", fetchImpl, 1000),
+    ).resolves.toBe(2);
+
+    expect(db.saved).toHaveProperty("ticket-2");
+    expect(logger.warn).toHaveBeenCalledWith(
+      "Couldn't remove dead push tokens",
+      expect.objectContaining({ failed: 1, of: 2 }),
+    );
+  });
+
   it("does nothing for nobody", async () => {
     const { calls, fetchImpl } = fakeFetch([]);
     expect(await sendToUsers(fakeDb({ users: {}, devices: {} }), [], message, "reminders", fetchImpl)).toBe(0);

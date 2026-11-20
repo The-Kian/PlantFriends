@@ -10,6 +10,7 @@ jest.mock(
 
 const { EXPO_PUSH_URL, sendToUsers } = require("./push");
 const {
+  LEASE_MS,
   needsPlan,
   nextStep,
   planReminder,
@@ -140,6 +141,13 @@ function fakeFetch() {
 }
 
 const LONDON = "Europe/London";
+const CLEARED = {
+  notify_at: null,
+  notify_stage: null,
+  notify_for: null,
+  notify_sending: null,
+  notify_lease: null,
+};
 
 describe("reminderPlan", () => {
   const now = at("2026-11-15T10:00:00Z");
@@ -149,6 +157,9 @@ describe("reminderPlan", () => {
     expect(reminderPlan({ next_watering_date: due }, now, LONDON)).toEqual({
       notify_at: due,
       notify_stage: "due",
+      notify_for: due,
+      notify_sending: null,
+      notify_lease: null,
     });
   });
 
@@ -170,7 +181,7 @@ describe("reminderPlan", () => {
     ["there's no due date", {}],
     ["the due date is null", { next_watering_date: null }],
   ])("clears the reminder when %s", (_, plant) => {
-    expect(reminderPlan(plant, now, LONDON)).toEqual({ notify_at: null, notify_stage: null });
+    expect(reminderPlan(plant, now, LONDON)).toEqual(CLEARED);
   });
 });
 
@@ -209,7 +220,7 @@ describe("planReminder", () => {
     fake.set("Households/h1/Plants/p1", after);
 
     const plan = await planReminder({ db: fake.db, ref: ref(), householdId: "h1", before, after, now });
-    expect(plan).toEqual({ notify_at: due, notify_stage: "due" });
+    expect(plan).toMatchObject({ notify_at: due, notify_stage: "due", notify_for: due });
     expect(fake.get("Households/h1/Plants/p1")).toMatchObject({ notify_at: due, notify_stage: "due" });
 
     // The trigger for that write: before and after differ only in notify_*.
@@ -232,7 +243,9 @@ describe("planReminder", () => {
   });
 
   it("doesn't write when the plan is already right", async () => {
-    fake.set("Households/h1/Plants/p1", { next_watering_date: due, notify_at: due, notify_stage: "due" });
+    fake.set("Households/h1/Plants/p1", {
+      next_watering_date: due, notify_at: due, notify_stage: "due", notify_for: due,
+    });
     fake.writes.length = 0;
     const plan = await planReminder({
       db: fake.db, ref: ref(), householdId: "h1",
@@ -240,6 +253,46 @@ describe("planReminder", () => {
     });
     expect(plan).toBeNull();
     expect(fake.writes).toEqual([]);
+  });
+
+  it("ignores a repeated trigger once the plant was reminded for that date", async () => {
+    // The due push went out (stage "nudge"); a late copy of the original
+    // trigger must not put the plant back to "due".
+    fake.set("Households/h1/Plants/p1", {
+      next_watering_date: due, notify_at: due + DAY_MS, notify_stage: "nudge", notify_for: due,
+    });
+    fake.writes.length = 0;
+    const plan = await planReminder({
+      db: fake.db, ref: ref(), householdId: "h1",
+      before: { next_watering_date: 1 }, after: { next_watering_date: due }, now,
+    });
+    expect(plan).toBeNull();
+    expect(fake.writes).toEqual([]);
+
+    // Same after the whole cycle finished (nudge sent, fields cleared).
+    fake.set("Households/h1/Plants/p1", {
+      next_watering_date: due, notify_at: null, notify_stage: null, notify_for: due,
+    });
+    expect(
+      await planReminder({
+        db: fake.db, ref: ref(), householdId: "h1",
+        before: { next_watering_date: 1 }, after: { next_watering_date: due }, now,
+      }),
+    ).toBeNull();
+  });
+
+  it("plans again when the due date really moves, or reminders come back on", async () => {
+    const watered = at("2026-11-25T12:00:00Z");
+    fake.set("Households/h1/Plants/p1", {
+      next_watering_date: watered, notify_at: null, notify_stage: null, notify_for: due,
+    });
+    await planReminder({
+      db: fake.db, ref: ref(), householdId: "h1",
+      before: { next_watering_date: due }, after: { next_watering_date: watered }, now,
+    });
+    expect(fake.get("Households/h1/Plants/p1")).toMatchObject({
+      notify_at: watered, notify_stage: "due", notify_for: watered,
+    });
   });
 
   it("clears the reminder when reminders are switched off", async () => {
@@ -278,7 +331,7 @@ describe("nextStep", () => {
 
   it("clears an unknown stage without sending", () => {
     expect(nextStep({ notify_at: 1 }, 2, LONDON)).toEqual({
-      update: { notify_at: null, notify_stage: null },
+      update: CLEARED,
       send: null,
     });
   });
@@ -405,5 +458,78 @@ describe("sendDueReminders", () => {
 
     const summary = await sendDueReminders({ db: fake.db, now: due, send: flaky });
     expect(summary).toMatchObject({ found: 2, failed: 1, due: 1 });
+  });
+
+  describe("when a push fails", () => {
+    const failing = async () => {
+      throw new Error("Expo push failed with status 500");
+    };
+
+    it("keeps the due stage, so the next run sends the first reminder", async () => {
+      const first = await sendDueReminders({ db: fake.db, now: due, send: failing });
+      expect(first).toMatchObject({ found: 1, failed: 1, due: 0 });
+      expect(fake.get(plantPath)).toMatchObject({
+        notify_stage: "due",
+        notify_at: due,
+        notify_sending: null,
+        notify_lease: null,
+      });
+
+      const retry = await run(due + 15 * 60 * 1000);
+      expect(retry).toMatchObject({ found: 1, due: 1, failed: 0 });
+      expect(fetch.calls).toHaveLength(1);
+      expect(fake.get(plantPath)).toMatchObject({ notify_stage: "nudge" });
+    });
+
+    it("retries a nudge that failed, not the due push", async () => {
+      fake.set(plantPath, { ...fake.get(plantPath), notify_stage: "nudge", notify_at: due });
+      await sendDueReminders({ db: fake.db, now: due, send: failing });
+      expect(fake.get(plantPath).notify_stage).toBe("nudge");
+      await run(due + 15 * 60 * 1000);
+      expect(fetch.calls[0].body[0].data.type).toBe("nudge");
+    });
+  });
+
+  describe("a claim left behind by a run that died", () => {
+    const dead = (lease) => ({
+      ...fake.get(plantPath),
+      notify_stage: "sending",
+      notify_sending: "due",
+      notify_lease: lease,
+    });
+
+    it("is left alone while its lease is fresh", async () => {
+      fake.set(plantPath, dead(due));
+      const summary = await run(due + 5 * 60 * 1000);
+      expect(summary).toMatchObject({ found: 1, skipped: 1, due: 0 });
+      expect(fetch.calls).toHaveLength(0);
+    });
+
+    it("is picked up as the stage it was sending once the lease has run out", async () => {
+      fake.set(plantPath, dead(due));
+      const summary = await run(due + LEASE_MS + 1000);
+      expect(summary).toMatchObject({ due: 1, failed: 0 });
+      expect(fetch.calls[0].body[0].data.type).toBe("due");
+      expect(fake.get(plantPath)).toMatchObject({ notify_stage: "nudge", notify_lease: null });
+    });
+  });
+
+  it("keeps a plan made while the push was going out", async () => {
+    const nextDue = due + 7 * DAY_MS;
+    const sendAndWater = async (...args) => {
+      // Someone waters the plant while Expo is being called.
+      fake.set(plantPath, {
+        ...fake.get(plantPath),
+        next_watering_date: nextDue,
+        notify_at: nextDue,
+        notify_stage: "due",
+        notify_for: nextDue,
+        notify_sending: null,
+        notify_lease: null,
+      });
+      return send(...args);
+    };
+    await sendDueReminders({ db: fake.db, now: due, send: sendAndWater });
+    expect(fake.get(plantPath)).toMatchObject({ notify_at: nextDue, notify_stage: "due" });
   });
 });

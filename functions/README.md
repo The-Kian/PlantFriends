@@ -32,7 +32,7 @@ Firebase Functions secrets (recommended) or as an env var in the deploy.
 | --- | --- |
 | `searchPlants` | Proxies plant searches to Trefle. Needs the `TREFLE_API_KEY` secret. |
 | `deleteAccount` | Deletes the caller's account and data. |
-| `onPlantWritten` | Tells carers when a housemate waters a plant, and plans the plant's next reminder (`notify_at`, `notify_stage`). |
+| `onPlantWritten` | Tells carers when a housemate waters a plant, and plans the plant's next reminder (`notify_at`, `notify_stage`, `notify_for`). Housemate pushes are dropped in quiet hours. |
 | `sendWateringReminders` | Every 15 minutes: sends "needs watering" to carers of plants that are due, and one "still thirsty" nudge a day later. Quiet hours 21:00 to 08:00 in the household's time zone (`notifyAt.js`). Needs the Cloud Scheduler API and the `Plants.notify_at` collection-group index (`firestore.indexes.json`). |
 | `createInvite` | A household member gets an invite code (8 characters, 7 days, up to 10 members per household). Writes `Invites/{code}`. |
 | `joinHousehold` | Joins the caller to the household a code belongs to, moving their plants across. `{ preview: true }` checks the code and writes nothing. |

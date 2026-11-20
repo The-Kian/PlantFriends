@@ -59,21 +59,27 @@ const onlyUnregistered = (errors) =>
  * Never stops a push: a failure here is only logged.
  */
 async function saveTickets(db, batch, tickets, now) {
-  try {
-    await Promise.all(
-      tickets.map((ticket, i) =>
-        ticket && ticket.status === "ok" && ticket.id && batch[i]
-          ? db
-              .doc(`PushTickets/${ticket.id}`)
-              .set({ device: batch[i].ref.path, createdAt: now })
-          : null,
-      ),
-    );
-  } catch (error) {
-    log.warn("Couldn't save push tickets", {
-      message: error && error.message,
-    });
-  }
+  const results = await Promise.allSettled(
+    tickets.map((ticket, i) =>
+      ticket && ticket.status === "ok" && ticket.id && batch[i]
+        ? db
+            .doc(`PushTickets/${ticket.id}`)
+            .set({ device: batch[i].ref.path, createdAt: now })
+        : null,
+    ),
+  );
+  logRejections("Couldn't save push tickets", results);
+}
+
+/** Logs how many of a Promise.allSettled batch failed, and why (the first). */
+function logRejections(what, results) {
+  const failed = results.filter((r) => r.status === "rejected");
+  if (failed.length === 0) return;
+  log.warn(what, {
+    failed: failed.length,
+    of: results.length,
+    message: failed[0].reason && failed[0].reason.message,
+  });
 }
 
 /**
@@ -135,11 +141,16 @@ async function sendToUsers(
         errors,
       });
     }
-    await Promise.all(
-      tickets.map((ticket, i) =>
-        ticket && ticket.details && ticket.details.error === "DeviceNotRegistered"
-          ? batch[i].ref.delete()
-          : null,
+    // Cleaning up dead tokens must not stop the tickets being saved, or fail
+    // a push Expo already accepted (a retry would send it twice).
+    logRejections(
+      "Couldn't remove dead push tokens",
+      await Promise.allSettled(
+        tickets.map((ticket, i) =>
+          ticket && ticket.details && ticket.details.error === "DeviceNotRegistered"
+            ? batch[i].ref.delete()
+            : null,
+        ),
       ),
     );
     await saveTickets(db, batch, tickets, now);

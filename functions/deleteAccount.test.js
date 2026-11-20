@@ -69,7 +69,7 @@ function applyUpdate(path, changes) {
 function bulkWriter() {
   const ops = [];
   return {
-    create: (ref, data) => ops.push(() => store.set(ref.path, data)),
+    set: (ref, data) => ops.push(() => store.set(ref.path, data)),
     delete: (ref) => ops.push(() => store.delete(ref.path)),
     update: (ref, data) => ops.push(() => applyUpdate(ref.path, data)),
     close: async () => ops.forEach((op) => op()),
@@ -163,6 +163,21 @@ describe("deleteAccount", () => {
 
     expect(anonymousPlants()).toHaveLength(2);
     expect(store.has("Users/u1")).toBe(false);
+  });
+
+  it("doesn't duplicate anonymised plants when a failed attempt is retried", async () => {
+    store.set("Users/u1", { householdId: "u1", plantsMigratedAt: 1 });
+    store.set("Households/u1", { memberIds: ["u1"], members: { u1: {} } });
+    store.set("Households/u1/Plants/p1", { plantId: "fern", addedBy: "u1" });
+
+    await deleteAccount({}, { auth: { uid: "u1" } });
+    // The first attempt died before it finished: its data is back.
+    store.set("Users/u1", { householdId: "u1", plantsMigratedAt: 1 });
+    store.set("Households/u1", { memberIds: ["u1"], members: { u1: {} } });
+    store.set("Households/u1/Plants/p1", { plantId: "fern", addedBy: "u1" });
+    await deleteAccount({}, { auth: { uid: "u1" } });
+
+    expect(anonymousPlants()).toEqual(["AnonymousPlants/p1"]);
   });
 
   it("leaves a shared household and housemates' plants in place", async () => {

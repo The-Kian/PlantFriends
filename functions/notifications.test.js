@@ -88,4 +88,17 @@ describe("notifyWatering", () => {
 
     expect(send).not.toHaveBeenCalled();
   });
+
+  it("sends nothing during quiet hours, but does in the daytime", async () => {
+    const send = jest.fn(async () => 1);
+    const args = { db, before, after: watered, householdId: "h1", plantId: "p1", send };
+
+    // Europe/London is on UTC in October after the 25th.
+    expect(await notifyWatering({ ...args, now: Date.parse("2026-11-05T22:30:00Z") })).toBe(0);
+    expect(await notifyWatering({ ...args, now: Date.parse("2026-11-05T06:59:00Z") })).toBe(0);
+    expect(send).not.toHaveBeenCalled();
+
+    expect(await notifyWatering({ ...args, now: Date.parse("2026-11-05T08:00:00Z") })).toBe(1);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
 });

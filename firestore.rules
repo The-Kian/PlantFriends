@@ -24,6 +24,11 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/Households/$(hid)).data.memberIds;
     }
 
+    // Reminder bookkeeping written only by Cloud Functions (functions/reminders.js).
+    function serverNotifyKeys() {
+      return ['notify_at', 'notify_stage', 'notify_for', 'notify_sending', 'notify_lease'];
+    }
+
     function isMember(hid) {
       return request.auth != null && request.auth.uid in householdMemberIds(hid);
     }
@@ -85,12 +90,12 @@ service cloud.firestore {
         allow create: if isMember(hid)
           && request.resource.data.addedBy == request.auth.uid
           && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
-          && !request.resource.data.keys().hasAny(['notify_at', 'notify_stage'])
+          && !request.resource.data.keys().hasAny(serverNotifyKeys())
           && validHouseholdPlant(request.resource.data);
-        // notify_at and notify_stage are set by Cloud Functions; addedBy never changes.
+        // The notify_* keys are set by Cloud Functions; addedBy never changes.
         allow update: if isMember(hid)
           && !request.resource.data.diff(resource.data).affectedKeys()
-               .hasAny(['notify_at', 'notify_stage', 'addedBy'])
+               .hasAny(serverNotifyKeys().concat(['addedBy']))
           && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
           && validHouseholdPlant(request.resource.data);
         allow delete: if isMember(hid);

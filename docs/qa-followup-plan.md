@@ -24,7 +24,7 @@ Line numbers are from `eb8721f` and will drift; search for the names given.
 | C | Edit a plant, notes, per-plant settings | none | M–L | Not started |
 | D | Watering history and undo | C (shares the details screen) | M | Not started |
 | E | Household plant rules and invite lifecycle | none | M | Not started |
-| F | Reliable reminders | none | M | Not started |
+| F | Reliable reminders | none | M | Done (Kian: deploy functions and rules, run section 3 of the test script) |
 | G | Start-up, offline and listener robustness | none | M | Not started |
 | H | Housekeeping: line endings, modular Firebase, test noise, deps | none | M (spread out) | Not started |
 | I | Features: snooze, photos, rooms, search and sort | C, D | L | Not started |

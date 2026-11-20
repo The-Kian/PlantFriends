@@ -13,6 +13,7 @@ const admin = require("./admin");
 const { MAX_INSTANCES } = require("./guards");
 const { logFor } = require("./log");
 const { basePlantName, householdTimeZone } = require("./lookups");
+const { notifyAt } = require("./notifyAt");
 const { sendToUsers } = require("./push");
 const { planReminder } = require("./reminders");
 const { plantName, isWatering, wateredMessages } = require("./plantMessages");
@@ -36,6 +37,10 @@ async function notifyWatering({
     householdTimeZone(db, householdId),
     basePlantName(db, after),
   ]);
+  // Quiet hours (21:00 to 08:00 in the household's time zone) apply here too.
+  // The push is dropped, not held back: "Sam watered it" at 08:00 would be
+  // old news, and the plant card already shows who watered.
+  if (notifyAt(now, timeZone) !== now) return 0;
   const messages = wateredMessages({
     plant: after,
     plantId,

@@ -27,7 +27,21 @@ const { logFor } = require("./log");
 
 const log = logFor("sendWateringReminders");
 
-const CLEAR = Object.freeze({ notify_at: null, notify_stage: null });
+// Everything the planner owns. `notify_for` is the due date the plan was made
+// for; `notify_sending` and `notify_lease` exist only while a push is going out.
+const CLEAR = Object.freeze({
+  notify_at: null,
+  notify_stage: null,
+  notify_for: null,
+  notify_sending: null,
+  notify_lease: null,
+});
+// The same without `notify_for`, so an update keeps the due date that was
+// handled and a duplicate trigger for it can't start the cycle again.
+const { notify_for: _handled, ...KEEP_FOR } = CLEAR;
+const DONE = Object.freeze(KEEP_FOR);
+// A "sending" claim older than this is treated as a send that never finished.
+const LEASE_MS = 10 * 60 * 1000;
 // Plants handled per run. Anything left over is picked up 15 minutes later.
 const BATCH_LIMIT = 500;
 
@@ -53,14 +67,15 @@ function reminderPlan(plant, now, timeZone) {
   }
   // An overdue plant is reminded about at the next sensible time.
   return {
+    ...CLEAR,
     notify_at: notifyAt(Math.max(due, now), timeZone),
     notify_stage: "due",
+    notify_for: due,
   };
 }
 
 const samePlan = (plant, plan) =>
-  (plant.notify_at ?? null) === plan.notify_at &&
-  (plant.notify_stage ?? null) === plan.notify_stage;
+  Object.keys(CLEAR).every((key) => (plant[key] ?? null) === plan[key]);
 
 /**
  * Plans the reminder for one write. It reads the plant again in a transaction
@@ -78,6 +93,11 @@ async function planReminder({ db, ref, householdId, before, after, now }) {
     if (!snap.exists) return null;
     const plant = snap.data();
     const plan = reminderPlan(plant, now, timeZone);
+    // Already planned (or already sent) for this due date: a late or repeated
+    // trigger must not start the cycle again and send one reminder too many.
+    if (plan.notify_for != null && plant.notify_for === plan.notify_for) {
+      return null;
+    }
     if (samePlan(plant, plan)) return null;
     transaction.update(ref, plan);
     return plan;
@@ -86,27 +106,37 @@ async function planReminder({ db, ref, householdId, before, after, now }) {
 
 /**
  * What to do with a plant whose `notify_at` has passed: the fields to write
- * and which push to send (or null for none).
+ * once the push is out, and which push to send (or null for none). A plant
+ * left in "sending" by a run that died is treated as still in the stage it
+ * was sending.
  */
 function nextStep(plant, now, timeZone) {
   if (plant.reminders_enabled === false) {
     return { update: { ...CLEAR }, send: null };
   }
-  if (plant.notify_stage === "due") {
+  const stage =
+    plant.notify_stage === "sending" ? plant.notify_sending : plant.notify_stage;
+  if (stage === "due") {
     // A day after the reminder went out, or a day from now if this run is
     // very late, so the nudge never follows straight on.
     let base = plant.notify_at + DAY_MS;
     if (!(base > now)) base = now + DAY_MS;
     return {
-      update: { notify_at: notifyAt(base, timeZone), notify_stage: "nudge" },
+      update: { ...DONE, notify_at: notifyAt(base, timeZone), notify_stage: "nudge" },
       send: "due",
     };
   }
-  if (plant.notify_stage === "nudge") {
-    return { update: { ...CLEAR }, send: "nudge" };
+  if (stage === "nudge") {
+    return { update: { ...DONE }, send: "nudge" };
   }
   return { update: { ...CLEAR }, send: null };
 }
+
+/** True while another run's claim on this plant is recent enough to trust. */
+const leaseIsFresh = (plant, now) =>
+  plant.notify_stage === "sending" &&
+  typeof plant.notify_lease === "number" &&
+  now - plant.notify_lease < LEASE_MS;
 
 /** Who gets a plant's reminders: its carers, or whoever added it. */
 function recipientsFor(plant) {
@@ -129,11 +159,28 @@ function householdIdOf(ref) {
 }
 
 /**
+ * Writes `changes` to a plant only if it is still in the "sending" state this
+ * run claimed. If the plant was replanned meanwhile (someone watered it), the
+ * newer plan is kept.
+ */
+function settleClaim(db, ref, lease, changes) {
+  return db.runTransaction(async (transaction) => {
+    const snap = await transaction.get(ref);
+    if (!snap.exists) return;
+    const plant = snap.data();
+    if (plant.notify_stage !== "sending" || plant.notify_lease !== lease) return;
+    transaction.update(ref, changes);
+  });
+}
+
+/**
  * One run of sendWateringReminders. Each plant is claimed first, by writing
- * its next stage with a `lastUpdateTime` precondition, and the push goes out
+ * as "sending" with a `lastUpdateTime` precondition, and the push goes out
  * only once the claim succeeds. So if someone waters the plant (or another
  * run gets there first) between the query and the write, the fresh plan is
- * kept and no stale reminder is sent.
+ * kept and no stale reminder is sent. The stage moves forward only after
+ * Expo accepted the push; if it failed the stage is put back, and a claim
+ * older than ten minutes counts as failed.
  *
  * @returns counts for the log line.
  */
@@ -176,18 +223,42 @@ async function sendDueReminders({
     }
     const plant = doc.data();
     try {
+      if (leaseIsFresh(plant, now)) {
+        // Another run is sending this one right now.
+        summary.skipped++;
+        continue;
+      }
       const step = nextStep(plant, now, await zoneFor(householdId));
+      if (!step.send) {
+        try {
+          await doc.ref.update(step.update, { lastUpdateTime: doc.updateTime });
+          summary.cleared++;
+        } catch (error) {
+          if (!isLostRace(error)) throw error;
+          summary.skipped++;
+        }
+        continue;
+      }
+
+      // 1. Claim. If someone waters the plant (or another run gets here
+      //    first) after the query, the precondition fails and we stop.
       try {
-        await doc.ref.update(step.update, { lastUpdateTime: doc.updateTime });
+        await doc.ref.update(
+          {
+            notify_stage: "sending",
+            notify_sending: step.send,
+            notify_lease: now,
+          },
+          { lastUpdateTime: doc.updateTime }
+        );
       } catch (error) {
         if (!isLostRace(error)) throw error;
         summary.skipped++;
         continue;
       }
-      if (!step.send) {
-        summary.cleared++;
-        continue;
-      }
+
+      // 2. Send. 3. Confirm (advance the stage) only once Expo accepted it;
+      //    otherwise put the stage back so the next run tries again.
       const name = plantName(plant, await basePlantName(db, plant));
       const message = reminderMessage({
         plant,
@@ -196,12 +267,22 @@ async function sendDueReminders({
         name,
         stage: step.send,
       });
-      summary.devices += await send(
-        db,
-        recipientsFor(plant),
-        message,
-        "reminders"
-      );
+      try {
+        summary.devices += await send(
+          db,
+          recipientsFor(plant),
+          message,
+          "reminders"
+        );
+      } catch (error) {
+        await settleClaim(db, doc.ref, now, {
+          notify_stage: step.send,
+          notify_sending: null,
+          notify_lease: null,
+        }).catch(() => {}); // the lease runs out and the next run retries
+        throw error;
+      }
+      await settleClaim(db, doc.ref, now, step.update);
       summary[step.send]++;
     } catch (error) {
       summary.failed++;
@@ -242,6 +323,7 @@ const sendWateringReminders = functions
 
 module.exports = {
   BATCH_LIMIT,
+  LEASE_MS,
   needsPlan,
   reminderPlan,
   planReminder,

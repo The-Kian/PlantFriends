@@ -158,6 +158,10 @@ describe("Household plants", () => {
     await assertFails(setDoc(p(ALICE, "p2"), plant({ notify_stage: "due" })));
     await assertFails(updateDoc(p(ALICE), { notify_at: 1 }));
     await assertFails(updateDoc(p(ALICE), { notify_stage: "nudge" }));
+    for (const key of ["notify_for", "notify_sending", "notify_lease"]) {
+      await assertFails(setDoc(p(ALICE, "p2"), plant({ [key]: 1 })));
+      await assertFails(updateDoc(p(ALICE), { [key]: 1 }));
+    }
   });
 
   test("carerIds can only include members", async () => {

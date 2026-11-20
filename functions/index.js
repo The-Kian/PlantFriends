@@ -29,6 +29,7 @@ const {
 admin.initializeApp();
 
 const TREFLE_BASE_URL = "https://trefle.io/api/v1";
+const TREFLE_TIMEOUT_MS = 8000;
 
 // Replicates the client-side `mapTreflePlantToIPlant` mapping so the client
 // receives IPlant objects directly.
@@ -110,8 +111,9 @@ exports.searchPlants = functions
     const log = logFor("searchPlants");
     const uid = requireCaller(context);
     const q = requireString(data && data.q, "q", 100);
-    await rateLimit(uid, "searchPlants", 30, 60 * 1000);
 
+    // Check the key first, so a misconfigured deploy doesn't use up the
+    // caller's search allowance on requests that can't work.
     const TREFLE_API_KEY = process.env.TREFLE_API_KEY;
     if (!TREFLE_API_KEY) {
       throw new functions.https.HttpsError(
@@ -119,12 +121,22 @@ exports.searchPlants = functions
         "Trefle API key is not configured."
       );
     }
+    await rateLimit(uid, "searchPlants", 30, 60 * 1000);
 
     try {
       const url = `${TREFLE_BASE_URL}/species/search?token=${encodeURIComponent(
         TREFLE_API_KEY
       )}&q=${encodeURIComponent(q)}&limit=20`;
-      const response = await fetch(url);
+      // Without a timeout a stuck Trefle holds the function open until it
+      // is killed. The app can retry; it can't if it never gets an answer.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), TREFLE_TIMEOUT_MS);
+      let response;
+      try {
+        response = await fetch(url, { signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
 
       if (response.status === 401) {
         throw new functions.https.HttpsError(
@@ -155,6 +167,13 @@ exports.searchPlants = functions
       if (error instanceof functions.https.HttpsError) {
         log.warn("searchPlants refused", { uid, code: error.code });
         throw error;
+      }
+      if (error && error.name === "AbortError") {
+        log.warn("searchPlants timed out", { uid });
+        throw new functions.https.HttpsError(
+          "deadline-exceeded",
+          "The plant search took too long. Please try again."
+        );
       }
       // The request URL holds the Trefle token, so never log the raw error.
       log.error("searchPlants failed", {
@@ -215,8 +234,15 @@ exports.deleteAccount = functions
         : (await userRef.collection("UserPlants").get()).docs;
 
       const writer = db.bulkWriter();
-      [...householdPlants, ...oldPlants].forEach((plantDoc) => {
-        writer.create(db.collection("AnonymousPlants").doc(), {
+      // The plant's own ID is the row's ID, and set() overwrites, so a retried
+      // deleteAccount rewrites the same rows instead of adding duplicates.
+      // (Old UserPlants IDs get a prefix: they can repeat household IDs.)
+      const anonymised = [
+        ...householdPlants.map((plantDoc) => ({ id: plantDoc.id, plantDoc })),
+        ...oldPlants.map((plantDoc) => ({ id: `old-${plantDoc.id}`, plantDoc })),
+      ];
+      anonymised.forEach(({ id, plantDoc }) => {
+        writer.set(db.collection("AnonymousPlants").doc(id), {
           ...anonymiseUserPlant(plantDoc.data()),
           anonymisedAt: admin.FieldValue.serverTimestamp(),
         });
