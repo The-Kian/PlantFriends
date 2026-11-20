@@ -73,7 +73,7 @@ beforeEach(async () => {
 describe("Users", () => {
   test("can read and write your own profile and devices", async () => {
     await assertSucceeds(getDoc(doc(db(ALICE), "Users/alice")));
-    await assertSucceeds(setDoc(doc(db(ALICE), "Users/alice"), { a: 1 }, { merge: true }));
+    await assertSucceeds(setDoc(doc(db(ALICE), "Users/alice"), { displayName: "A" }, { merge: true }));
     await assertSucceeds(getDoc(doc(db(ALICE), "Users/alice/Devices/tok")));
   });
 
@@ -120,6 +120,14 @@ describe("Users", () => {
   test("a new profile can't be created pointing at someone else's household", async () => {
     await assertFails(setDoc(doc(db(EVE), "Users/eve"), { householdId: "h1" }));
     await assertSucceeds(setDoc(doc(db(EVE), "Users/eve"), { displayName: "Eve" }));
+  });
+
+  test("can only write the keys the app writes, and can't delete the profile", async () => {
+    const ref = doc(db(ALICE), "Users/alice");
+    await assertFails(setDoc(ref, { isAdmin: true }, { merge: true }));
+    await assertFails(updateDoc(ref, { displayName: "A", extra: 1 }));
+    await assertFails(setDoc(doc(db(EVE), "Users/eve"), { displayName: "Eve", role: "x" }));
+    await assertFails(deleteDoc(ref));
   });
 
   test("can't read or write someone else's profile or devices", async () => {

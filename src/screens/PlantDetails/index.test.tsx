@@ -3,7 +3,7 @@ import React from "react";
 
 import { Alert, View } from "react-native";
 
-import { fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
 import { WateringSplash } from "@/components/watering/WateringSplash";
 import { AuthContext } from "@/context/auth/AuthProvider";
@@ -18,7 +18,7 @@ import { mockHousehold } from "@/test-utils/MockHousehold";
 import { mockPlant, mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
-import PlantDetailsScreen from "./index";
+import PlantDetailsScreen, { PLANT_ARRIVAL_MS } from "./index";
 
 jest.mock("@/helpers/notifications/registerWithExplanation", () => ({
   registerWithExplanation: jest.fn(async () => null),
@@ -99,7 +99,8 @@ describe("PlantDetailsScreen watering", () => {
       mockHousehold.id,
       plant,
       { uid: mockUser.uid, displayName: "Kian" },
-      3
+      3,
+      expect.objectContaining({ onWaiting: expect.any(Function) })
     );
     await waitFor(() => {
       expect(screen.getByTestId("watering-splash")).toBeTruthy();
@@ -145,6 +146,43 @@ describe("PlantDetailsScreen watering", () => {
       { userMessage: "Failed to log watering. Please try again." }
     );
     expect(Alert.alert).toHaveBeenCalledTimes(1);
+  });
+
+  it("says the watering will sync while the server hasn't confirmed it", async () => {
+    let hooks: { onWaiting?: () => void; onSynced?: () => void } = {};
+    jest.mocked(logWatering).mockImplementation((_h, p, _w, _f, given) => {
+      hooks = given ?? {};
+      return p;
+    });
+    renderDetails();
+
+    fireEvent.press(screen.getByText("Log First Watering"));
+    const note = "Saved on this phone. It will sync when you're online.";
+    expect(screen.queryByText(note)).toBeNull();
+
+    act(() => hooks.onWaiting?.());
+    expect(screen.getByText(note)).toBeTruthy();
+
+    act(() => hooks.onSynced?.());
+    expect(screen.queryByText(note)).toBeNull();
+  });
+
+  it("waits for a just-added plant before saying it isn't there", () => {
+    jest.useFakeTimers();
+    try {
+      jest.mocked(useRoute).mockReturnValue({
+        key: "details",
+        name: "PlantDetails",
+        params: { plantId: "not-arrived-yet" },
+      });
+      renderDetails();
+      expect(screen.queryByText("Plant not found")).toBeNull();
+
+      act(() => jest.advanceTimersByTime(PLANT_ARRIVAL_MS));
+      expect(screen.getByText("Plant not found")).toBeTruthy();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it("does not write or show success when unauthenticated", async () => {

@@ -3,6 +3,7 @@ import firestore from "@react-native-firebase/firestore";
 
 import { waitFor } from "@testing-library/react-native";
 
+import { QUEUED_WRITE_GRACE_MS } from "@/helpers/firebase/queuedWrite";
 import { calculateNextWateringDate } from "@/helpers/plants/wateringCalculations";
 import ErrorService from "@/services/ErrorService";
 import { mockUserPlant } from "@/test-utils/MockPlant";
@@ -77,5 +78,46 @@ describe("logWatering", () => {
         expect.objectContaining({ userMessage: expect.any(String) })
       );
     });
+  });
+
+  it("reports waiting after the grace period and synced once the server has it", async () => {
+    jest.useFakeTimers();
+    try {
+      let resolve: () => void = () => {};
+      mockUpdate.mockReturnValueOnce(new Promise<void>((r) => (resolve = r)));
+      const onWaiting = jest.fn();
+      const onSynced = jest.fn();
+
+      logWatering(
+        "household1",
+        mockUserPlant,
+        { uid: "user1", displayName: "Kian" },
+        3,
+        { onWaiting, onSynced }
+      );
+      jest.advanceTimersByTime(QUEUED_WRITE_GRACE_MS);
+      expect(onWaiting).toHaveBeenCalledTimes(1);
+      expect(onSynced).not.toHaveBeenCalled();
+
+      resolve();
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+      expect(onSynced).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it("never reports waiting when the server answers quickly", async () => {
+    const onWaiting = jest.fn();
+    logWatering(
+      "household1",
+      mockUserPlant,
+      { uid: "user1", displayName: "Kian" },
+      3,
+      { onWaiting }
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(onWaiting).not.toHaveBeenCalled();
   });
 });

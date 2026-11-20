@@ -8,6 +8,7 @@ export const mockPlant: IPlant = {
 export const mockUserPlant: IUserPlant = {
   id: "1",
   userId: "user1",
+  addedBy: "user1",
   plantId: "1",
   houseLocation: "Kitchen",
   custom_attributes: {
@@ -18,6 +19,7 @@ export const mockUserPlant: IUserPlant = {
 export const mockUserPlant2: IUserPlant = {
   id: "2",
   userId: "user2",
+  addedBy: "user2",
   plantId: "2",
   houseLocation: "Living Room",
   custom_attributes: {

@@ -157,7 +157,7 @@ describe("ProfileSettingsScreen", () => {
   it("points to the phone's settings when notifications are denied", async () => {
     jest
       .mocked(Notifications.getPermissionsAsync)
-      .mockResolvedValue({ status: "denied" } as never);
+      .mockResolvedValue({ status: "denied", canAskAgain: false } as never);
     const openSettings = jest
       .spyOn(Linking, "openSettings")
       .mockResolvedValue(undefined);
@@ -174,7 +174,7 @@ describe("ProfileSettingsScreen", () => {
   it("greys out the switches when notifications are denied", async () => {
     jest
       .mocked(Notifications.getPermissionsAsync)
-      .mockResolvedValue({ status: "denied" } as never);
+      .mockResolvedValue({ status: "denied", canAskAgain: false } as never);
     await renderWithPrefs();
 
     expect(screen.getByText(/turned off for PlantFriends/)).toBeVisible();
@@ -190,7 +190,7 @@ describe("ProfileSettingsScreen", () => {
   it("doesn't call it denied when the phone has never been asked", async () => {
     jest
       .mocked(Notifications.getPermissionsAsync)
-      .mockResolvedValue({ status: "undetermined" } as never);
+      .mockResolvedValue({ status: "denied", canAskAgain: true } as never);
     await renderWithPrefs();
 
     expect(screen.queryByText(/turned off for PlantFriends/)).toBeNull();

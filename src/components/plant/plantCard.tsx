@@ -7,6 +7,7 @@ import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { IUserPlant, IUserPlantMerged } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { useHousehold } from "@/context/household/HouseholdProvider";
+import { canRemovePlant } from "@/helpers/plants/permissions";
 import { getWateringProgress } from "@/helpers/plants/wateringProgress";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
@@ -24,7 +25,7 @@ interface PlantCardProps {
 
 const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
   const { colors, radius, shadow } = useTheme();
-  const { mergedPlant } = useMergedPlant(plant);
+  const { mergedPlant, unavailable } = useMergedPlant(plant);
   const { user } = useContext(AuthContext);
   const { household, memberName } = useHousehold();
   const [imageFailed, setImageFailed] = useState(false);
@@ -139,6 +140,14 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
         >
           {lastWateredText}
         </ThemedText>
+        {unavailable ? (
+          <ThemedText
+            style={[styles.meta, { color: colors.textMuted }]}
+            numberOfLines={1}
+          >
+            Details unavailable offline
+          </ThemedText>
+        ) : null}
         <View
           style={[
             styles.progressTrack,
@@ -153,31 +162,33 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
           />
         </View>
       </View>
-      <Pressable
-        accessibilityLabel={`Delete ${displayName}`}
-        accessibilityRole="button"
-        hitSlop={10}
-        onPress={() =>
-          Alert.alert(
-            `Delete ${displayName}?`,
-            "Its watering history goes too. This can't be undone.",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => onDelete(plant),
-              },
-            ]
-          )
-        }
-        style={({ pressed }) => [
-          styles.deleteButton,
-          pressed && styles.pressed,
-        ]}
-      >
-        <Ionicons name="trash-outline" size={20} color={colors.textMuted} />
-      </Pressable>
+      {canRemovePlant(plant, user?.uid) && (
+        <Pressable
+          accessibilityLabel={`Delete ${displayName}`}
+          accessibilityRole="button"
+          hitSlop={10}
+          onPress={() =>
+            Alert.alert(
+              `Delete ${displayName}?`,
+              "Its watering history goes too. This can't be undone.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete",
+                  style: "destructive",
+                  onPress: () => onDelete(plant),
+                },
+              ]
+            )
+          }
+          style={({ pressed }) => [
+            styles.deleteButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Ionicons name="trash-outline" size={20} color={colors.textMuted} />
+        </Pressable>
+      )}
     </Pressable>
   );
 };

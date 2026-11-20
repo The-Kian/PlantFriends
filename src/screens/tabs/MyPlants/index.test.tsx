@@ -7,6 +7,9 @@ import { Alert, Text } from "react-native";
 
 import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
+import { AuthContext } from "@/context/auth/AuthProvider";
+import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
+import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
@@ -17,14 +20,16 @@ describe("MyPlantsScreen", () => {
 
   const renderWithNavigation = () => {
     return renderWithProviders(
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{ animation: "none", headerShown: false }}
-        >
-          <Stack.Screen name="MyPlantsScreen" component={MyPlantsScreen} />
-          <Stack.Screen name="PlantSearch" component={MockScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>,
+      <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{ animation: "none", headerShown: false }}
+          >
+            <Stack.Screen name="MyPlantsScreen" component={MyPlantsScreen} />
+            <Stack.Screen name="PlantSearch" component={MockScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthContext.Provider>,
       {
         preloadedState: {
           userPlants: [

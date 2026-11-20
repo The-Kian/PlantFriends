@@ -2,7 +2,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // User profiles: each user can read and write only their own profile,
-    // except `householdId`. Cloud Functions change that (joining, leaving,
+    // only the keys in clientUserKeys, and never delete it. `householdId` is
+    // special: Cloud Functions change that (joining, leaving,
     // being removed). The one thing the app may do is point it at a household
     // it set up on its own and is the only member of: that is first-time
     // setup (src/helpers/household/setupHousehold.ts).
@@ -12,14 +13,25 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/Households/$(hid)).data.createdBy == uid;
     }
 
+    // The only profile keys the app writes (AuthProvider, setupHousehold,
+    // setNotificationPref, PushRegistration). Anything else is server-only.
+    function clientUserKeys() {
+      return ['displayName', 'email', 'householdId', 'notificationPrefs',
+              'timeZone', 'plantsMigratedAt'];
+    }
+
+    // Deleting the profile is done by the deleteAccount Cloud Function.
     match /Users/{uid} {
-      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
       allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(clientUserKeys())
         && (!('householdId' in request.resource.data)
           || ownSoloHousehold(uid, request.resource.data.householdId));
       allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(clientUserKeys())
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['householdId'])
           || ownSoloHousehold(uid, request.resource.data.get('householdId', null)));
+      allow delete: if false;
     }
 
     // Devices registered for push notifications. The doc ID is the Expo push

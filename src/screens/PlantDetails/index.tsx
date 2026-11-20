@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { type ComponentProps, useContext, useState } from "react";
+import { type ComponentProps, useContext, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { StyleSheet, ScrollView, Image, Alert, View } from "react-native";
@@ -33,6 +33,9 @@ type PlantDetailsScreenRouteProp = RouteProp<
   "PlantDetails"
 >;
 
+/** How long to wait for a just-added plant before saying it isn't there. */
+export const PLANT_ARRIVAL_MS = 4000;
+
 type Chip = { icon: ComponentProps<typeof Ionicons>["name"]; label: string };
 
 const PlantDetailsScreen = () => {
@@ -51,9 +54,19 @@ const PlantDetailsScreen = () => {
 
   const [showSplash, setShowSplash] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  // True while a watering is saved on this phone but not yet on the server.
+  const [waitingToSync, setWaitingToSync] = useState(false);
+  // A plant that was only just added reaches the list through the household's
+  // live listener a moment after this screen opens. Don't say "not found"
+  // until it has had a few seconds to arrive.
+  const [waitedForPlant, setWaitedForPlant] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setWaitedForPlant(true), PLANT_ARRIVAL_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Opened before the household's plants have loaded.
-  if (!userPlant && householdLoading) {
+  // Opened before the household's plants have loaded, or just after adding.
+  if (!userPlant && (householdLoading || !waitedForPlant)) {
     return (
       <ThemedView style={styles.screen}>
         <ScreenHeader />
@@ -105,7 +118,11 @@ const PlantDetailsScreen = () => {
         household.id,
         userPlant,
         { uid: user.uid, displayName: displayNameFor(user) },
-        frequency
+        frequency,
+        {
+          onWaiting: () => setWaitingToSync(true),
+          onSynced: () => setWaitingToSync(false),
+        }
       );
 
       dispatch(updatePlant(updatedPlant));
@@ -246,6 +263,11 @@ const PlantDetailsScreen = () => {
             customSchedule={userPlant.custom_watering_schedule ?? null}
             onLogWatering={handleLogWatering}
           />
+          {waitingToSync && (
+            <ThemedText type="caption">
+              Saved on this phone. It will sync when you're online.
+            </ThemedText>
+          )}
 
           {hasHousemates && (
             <View style={cardStyle}>

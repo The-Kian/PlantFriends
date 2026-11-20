@@ -4,6 +4,7 @@ import {
   cancelAllWateringReminders,
   dismissStaleReminders,
   getNotificationPermission,
+  requestNotificationPermissions,
 } from "@/services/NotificationService";
 import { mockUserPlant } from "@/test-utils/MockPlant";
 
@@ -54,9 +55,26 @@ describe("NotificationService", () => {
   it("reads the permission without asking", async () => {
     jest
       .mocked(Notifications.getPermissionsAsync)
-      .mockResolvedValueOnce({ status: "denied" } as never);
+      .mockResolvedValueOnce({ status: "denied", canAskAgain: false } as never);
 
     expect(await getNotificationPermission()).toBe("denied");
+    expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
+  });
+
+  it("treats denied-but-can-ask-again (never asked on Android 13+) as undetermined", async () => {
+    jest
+      .mocked(Notifications.getPermissionsAsync)
+      .mockResolvedValueOnce({ status: "denied", canAskAgain: true } as never);
+
+    expect(await getNotificationPermission()).toBe("undetermined");
+  });
+
+  it("doesn't ask when the phone won't show the question again", async () => {
+    jest
+      .mocked(Notifications.getPermissionsAsync)
+      .mockResolvedValueOnce({ status: "denied", canAskAgain: false } as never);
+
+    expect(await requestNotificationPermissions()).toBe(false);
     expect(Notifications.requestPermissionsAsync).not.toHaveBeenCalled();
   });
 });

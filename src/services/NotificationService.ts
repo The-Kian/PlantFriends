@@ -41,12 +41,12 @@ export async function requestNotificationPermissions(
   prompt: boolean = true
 ): Promise<boolean> {
   try {
-    const { status: existingStatus } =
-      await Notifications.getPermissionsAsync();
-    if (existingStatus === "granted") {
+    const existing = await Notifications.getPermissionsAsync();
+    if (existing.status === "granted") {
       return true;
     }
-    if (!prompt) {
+    // Refused for good: the phone won't show its question again.
+    if (!prompt || existing.canAskAgain === false) {
       return false;
     }
 
@@ -58,13 +58,17 @@ export async function requestNotificationPermissions(
   }
 }
 
-/** The current permission, without asking. */
+/**
+ * The current permission, without asking. "denied" means refused for good
+ * (the phone won't ask again). Android 13+ reports "denied" for a phone that
+ * was never asked, with `canAskAgain` true: that is "undetermined" here.
+ */
 export async function getNotificationPermission(): Promise<NotificationPermission> {
   try {
-    const { status } = await Notifications.getPermissionsAsync();
-    return status === "granted" || status === "denied"
-      ? status
-      : "undetermined";
+    const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+    if (status === "granted") return "granted";
+    if (status === "denied" && canAskAgain === false) return "denied";
+    return "undetermined";
   } catch (error) {
     console.warn("getNotificationPermission failed:", error);
     return "undetermined";

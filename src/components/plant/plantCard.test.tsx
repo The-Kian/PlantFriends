@@ -75,6 +75,27 @@ describe("PlantCard", () => {
     expect(screen.getByText("Sam's")).toBeTruthy();
   });
 
+  it("hides Delete on a housemate's personal plant", () => {
+    renderCard({
+      ...mockUserPlant,
+      custom_name: "Theirs",
+      addedBy: "user2",
+      carerIds: ["user2"],
+      shared: false,
+    });
+    expect(screen.queryByLabelText("Delete Theirs")).toBeNull();
+
+    renderCard({
+      ...mockUserPlant,
+      id: "2",
+      custom_name: "Ours",
+      addedBy: "user2",
+      carerIds: ["user2"],
+      shared: true,
+    });
+    expect(screen.getByLabelText("Delete Ours")).toBeTruthy();
+  });
+
   it("shows no badge when you live alone", () => {
     renderCard(
       { ...mockUserPlant, addedBy: "user1", shared: true },
