@@ -11,6 +11,7 @@ import { useHousehold } from "@/context/household/HouseholdProvider";
 import {
   createInvite,
   formatInviteCode,
+  formatInviteInput,
   joinErrorMessage,
   joinHousehold,
   leaveErrorMessage,
@@ -71,7 +72,7 @@ const HouseholdCard = () => {
     Alert.alert(
       `Leave ${household?.name ?? "this household"}?`,
       "You'll go back to a household of your own, with no plants. " +
-        "Plants here stay with your housemates.",
+        "Plants you added stay here, shared with your housemates.",
       [
         { text: "Cancel", style: "cancel" },
         { text: "Leave", style: "destructive", onPress: leave },
@@ -83,8 +84,8 @@ const HouseholdCard = () => {
     const name = nameOf(uid);
     Alert.alert(
       `Remove ${name}?`,
-      `${name} will go back to a household of their own. Plants only they ` +
-        "looked after will be shared with everyone left.",
+      `${name} will go back to a household of their own. The plants they ` +
+        "added stay here as shared plants, and any code they made stops working.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -207,7 +208,10 @@ const HouseholdCard = () => {
                 accessibilityRole="button"
                 accessibilityLabel={`Remove ${nameOf(uid)}`}
                 hitSlop={10}
-                style={({ pressed }) => pressed && styles.pressed}
+                style={({ pressed }) => [
+                  styles.removeButton,
+                  pressed && styles.pressed,
+                ]}
               >
                 <Ionicons
                   name="person-remove-outline"
@@ -249,7 +253,8 @@ const HouseholdCard = () => {
           </ThemedText>
           <ThemedText type="caption">
             Works until {invite.until}. Your housemate taps Join a household
-            and enters it. Press and hold the code to copy it.
+            and enters it. Press and hold the code to copy it. Making a new
+            code stops this one working.
           </ThemedText>
           <ThemedButton
             title="Share code"
@@ -279,7 +284,7 @@ const HouseholdCard = () => {
             label="Invite code"
             placeholder="XXXX-XXXX"
             value={code}
-            onChangeText={setCode}
+            onChangeText={(text) => setCode(formatInviteInput(text))}
             autoCapitalize="characters"
             autoCorrect={false}
             accessibilityLabel="Invite code"
@@ -323,7 +328,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 28,
+    minHeight: 48,
+  },
+  removeButton: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
   },
   memberName: {
     flex: 1,

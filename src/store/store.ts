@@ -8,7 +8,8 @@ const rootReducer = combineReducers({
 
 export function setupStore(preloadedState?: Partial<RootState>) {
   return configureStore({
-    devTools: true,
+    // The Redux devtools expose every action and the whole state: dev builds only.
+    devTools: __DEV__,
     reducer: rootReducer,
     preloadedState,
   });

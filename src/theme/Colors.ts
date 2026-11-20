@@ -18,7 +18,8 @@ export const Colors = {
     waterMuted: "#DCEBF4",
     border: "#E2E4DA",
     success: "#4E8A57",
-    warning: "#C4842A",
+    // 5.1:1 on the card surface, so it can be used for text.
+    warning: "#8A5A0E",
     error: "#C0473C",
     errorMuted: "#F7E1DE",
     overlay: "rgba(20, 28, 22, 0.55)",

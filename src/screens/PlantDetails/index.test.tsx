@@ -85,7 +85,7 @@ describe("PlantDetailsScreen watering", () => {
       last_watered_by: mockUser.uid,
       last_watered_by_name: "Kian",
     };
-    let resolveWrite!: (watered: unknown) => void;
+    let resolveWrite!: (watered: typeof plant) => void;
     jest.mocked(logWatering).mockReturnValue(new Promise((resolve) => {
       resolveWrite = resolve;
     }));
@@ -105,7 +105,7 @@ describe("PlantDetailsScreen watering", () => {
     expect(screen.getByTestId("watering-splash")).toBeTruthy();
 
     await act(async () => {
-      resolveWrite({ ...plant, ...watering });
+      resolveWrite({ ...plant, ...watering } as typeof plant);
     });
     expect(Alert.alert).not.toHaveBeenCalled();
     expect(ErrorService.handleError).not.toHaveBeenCalled();

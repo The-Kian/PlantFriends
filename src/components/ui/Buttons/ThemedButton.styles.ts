@@ -22,8 +22,16 @@ export const useThemedButtonStyles = () => {
       opacity: 0.8,
       transform: [{ scale: 0.98 }],
     },
+    // Clearly off, in every variant: a flat grey with muted text, plus a
+    // fade. A faded green button on a pale card looked almost enabled.
     buttonDisabled: {
-      opacity: 0.5,
+      opacity: 0.7,
+      backgroundColor: theme.colors.surfaceMuted,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    buttonTextDisabled: {
+      color: theme.colors.textMuted,
     },
     buttonText: {
       textAlign: "center",

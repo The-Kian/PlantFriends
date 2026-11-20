@@ -19,13 +19,13 @@ Line numbers are from `eb8721f` and will drift; search for the names given.
 
 | # | Session | Depends on | Size | Status |
 |---|---------|-----------|------|--------|
-| A | Leftover small fixes | none | S | Not started |
-| B | Names that stay right | none | M | Not started |
+| A | Leftover small fixes | none | S | Done in code (phone checks left; no Copy button, see notes) |
+| B | Names that stay right | none | M | Done in code (Kian: deploy functions, two-phone rename check) |
 | C | Edit a plant, notes, per-plant settings | none | M–L | Not started |
 | D | Watering history and undo | C (shares the details screen) | M | Not started |
-| E | Household plant rules and invite lifecycle | none | M | Not started |
+| E | Household plant rules and invite lifecycle | none | M | Done in code (Kian: deploy rules and functions, TTL policy; removed-member plants decision open) |
 | F | Reliable reminders | none | M | Done (Kian: deploy functions and rules, run section 3 of the test script) |
-| G | Start-up, offline and listener robustness | none | M | Not started |
+| G | Start-up, offline and listener robustness | none | M | Done in code (phone checks left) |
 | H | Housekeeping: line endings, modular Firebase, test noise, deps | none | M (spread out) | Not started |
 | I | Features: snooze, photos, rooms, search and sort | C, D | L | Not started |
 
@@ -63,31 +63,31 @@ In the PR that added this file:
 
 Each is a few lines. Do them as one PR.
 
-- [ ] **Remove date of birth from sign-up.** It's collected and never stored
+- [x] **Remove date of birth from sign-up.** It's collected and never stored
       or used (`AuthForm.tsx` around lines 42 and 159, `AuthTypes.tsx:16`
       `dateOfBirth`, the `DatePickerField` on the sign-up form). Remove the
       field, the type member and the tests that set it. Check
       `docs/PRIVACY_POLICY.md` and `docs/STORE_LISTING.md` don't mention it.
-- [ ] **Dev defaults on the auth form.** `AuthForm.tsx:14-31` pre-fills
+- [x] **Dev defaults on the auth form.** `AuthForm.tsx:14-31` pre-fills
       `test@gmail.com`, `password`, "Test User" and a 1997 birthday when
       `process.env.NODE_ENV === "development"`. Use `__DEV__`, and leave the
       fields empty unless an `EXPO_PUBLIC_DEV_PREFILL` flag is set, so dev
       builds behave like release builds by default.
-- [ ] **Dead branch in login.** `AuthProvider.tsx` `login()` has an
+- [x] **Dead branch in login.** `AuthProvider.tsx` `login()` has an
       `auth/user-not-found` branch with a bare `Alert.alert("User not
       found")`. Email enumeration protection means it never fires; route
       everything through `ErrorService`. Do the same for the bare alerts in
       `register`, `update` and `logout` (search `Alert.alert(` in that file).
-- [ ] **Alert titles.** `ErrorService.showAlert` uses the context string as
+- [x] **Alert titles.** `ErrorService.showAlert` uses the context string as
       the title ("Login", "Fetch Plant By ID", "Save Plant"). Give each context
       a human title ("Couldn't log in", "Couldn't save the plant"), or pass a
       title with the context.
-- [ ] **Keyboard on sign-up.** `AuthContent.tsx` uses a plain `ScrollView`.
+- [x] **Keyboard on sign-up.** `AuthContent.tsx` uses a plain `ScrollView`.
       Wrap it in `KeyboardAvoidingView` (behavior `"padding"` on iOS,
       `"height"` on Android) so Confirm Password and Sign Up aren't hidden.
       Add a show/hide toggle to password fields (an eye icon as a
       `TextInputField` right accessory).
-- [ ] **Invite code field.** In `HouseholdCard.tsx` the join field has the
+- [x] **Invite code field** (Copy button left out: see Notes). In `HouseholdCard.tsx` the join field has the
       placeholder `XXXX-XXXX`. Uppercase input as typed, insert the hyphen
       after 4 characters, and drop characters outside the code alphabet
       (`functions/inviteCode.js`: no 0, 1, I, L, O). Change the client
@@ -96,16 +96,16 @@ Each is a few lines. Do them as one PR.
       K7QM-3PXD." Add a **Copy** button next to the shown invite code
       (`expo-clipboard`, which needs a dev-client rebuild; otherwise
       `Share` is fine).
-- [ ] **Search empty states.** `PlantSearch/index.tsx` and
+- [x] **Search empty states.** `PlantSearch/index.tsx` and
       `PlantSearch/Results`: show a hint before typing ("Search by common or
       Latin name"), a "No plants match …" message with the "Add it yourself"
       button for no results, and don't search until 2 characters.
-- [ ] **De-duplicate search results.** The same species appears twice, once
+- [x] **De-duplicate search results.** The same species appears twice, once
       from the catalogue ("Monstera Deliciosa") and once from Trefle
       ("Fruit-salad-plant", scientific name *Monstera deliciosa*). In
       `useCombinedPlantSearch`, drop Trefle results whose first scientific
       name matches a catalogue plant's, ignoring case.
-- [ ] **Copy and contrast.**
+- [x] **Copy and contrast.**
       - `mapTreflePlantToIPlant.ts:116` builds "A Araceae species"; use
         "A plant in the Araceae family".
       - Make the watering copy consistent: "Water in 3 days" vs "Next
@@ -113,7 +113,7 @@ Each is a few lines. Do them as one PR.
       - The `warning` amber (`Colors.ts:21`, `#C4842A`) on the pale card is
         about 2.9:1. Darken it to reach 4.5:1 for text.
       - The disabled button style is nearly invisible.
-- [ ] **Visual bits.**
+- [x] **Visual bits.**
       - The "Watering Logged!" splash is see-through (`WateringSplash.tsx`
         uses hard-coded colours and `Colors.light`); give it the theme's
         `surface` background.
@@ -124,20 +124,40 @@ Each is a few lines. Do them as one PR.
       - The customisation modal close button is 36dp
         (`plantCustomization.styles.ts:50`) and the household remove icon has
         `minHeight: 28`; make both at least 48dp, or add `hitSlop`.
-- [ ] **Feedback.** Show "Saved" after renaming on Profile. Ask for
+- [x] **Feedback.** Show "Saved" after renaming on Profile. Ask for
       confirmation on Logout. After adding a plant, open its details rather
       than going to Home (`PlantSearch/index.tsx`
       `navigation.navigate("Tab")`).
-- [ ] **Notification prompt.** Before the system prompt
+- [x] **Notification prompt.** Before the system prompt
       (`PlantSearch/index.tsx` `registerForPush(..., { prompt: true })`,
       `usePlantManagement.ts:75`, `PlantDetails/index.tsx:115`), show one
       line saying why. On Profile, show "Notifications are turned off" only
       once permission has been denied, not when it has never been asked
       (`NotificationService.ts:45-72`), and grey out the switches while
       denied.
-- [ ] **Release config.** Redux `devTools: true` in `store/store.ts:11`:
+- [x] **Release config.** Redux `devTools: true` in `store/store.ts:11`:
       make it `__DEV__`. `index.js:5` imports `seedFakePlants`
       unconditionally: guard it with `if (__DEV__) require(...)`.
+
+**Notes (done):**
+
+- `pnpm validate` passes. The phone checks below are still to do.
+- **Copy button not added.** It needs `expo-clipboard`, which needs a
+  dev-client rebuild. The card has **Share code** and the code is selectable
+  (press and hold to copy), which the plan allowed.
+- Dev builds no longer pre-fill the sign-in form. To get the test account
+  back, set `EXPO_PUBLIC_DEV_PREFILL=true` in `.env.local`.
+- The permission explanation lives in `requestNotificationPermissions`
+  (`NotificationService.ts`), so all three places that ask get it. "Not now"
+  is remembered until the app restarts. `getNotificationPermission` reports
+  "denied" only when the phone says it won't ask again (`canAskAgain` false),
+  because an Android 13+ phone that was never asked can report "denied".
+- Colours: `warning` is now `#8A5A0E` in the light theme (5.1:1 on the
+  card). The disabled button is grey with muted text in every variant.
+- After adding a plant the app replaces the search screen with the plant's
+  details. The details screen waits up to 4 seconds for the plant to arrive
+  through the live listener before it says "not found".
+- Watering copy is now "Water in N days" throughout (was "Next watering in").
 
 Done when: `pnpm validate` passes, and each item has been checked on a
 phone or emulator (sign-up with the keyboard open, joining with a lowercase
@@ -198,6 +218,20 @@ production plan's "Found along the way").
 
 **Kian does.** Deploy functions. Run the rename part of `docs/TEST_SCRIPT.md`
 on two phones.
+
+**Notes (done):**
+
+- Went with holding back the sign-in event rather than reading the name
+  later: `AuthProvider` ignores `onAuthStateChanged` while `register` or a
+  social sign-in is setting the account up (`whileSettingUp`), saves the name
+  on the account and `Users/{uid}`, and only then publishes the user. So
+  `HouseholdProvider` never sees a nameless new user. As a safety net,
+  `createSoloHousehold` also takes the name from `Users/{uid}.displayName`.
+- `updateDisplayName` (callable, `functions/households.js`) updates
+  `Users/{uid}`, the member entry, and the household name if it is still
+  "<old name>'s home" and they created it. `AuthProvider.update` calls it and
+  now returns true or false so Profile can say "Saved".
+- Not done: a rules test (the rules didn't change for this).
 
 ---
 
@@ -339,6 +373,29 @@ what they were on both phones. History shows the last waterings with names.
 **Kian does.** Deploy rules with the "Deploy Firestore rules" workflow, deploy
 functions, set the TTL policy, and run section 4 of `docs/TEST_SCRIPT.md`.
 
+**Notes (done):**
+
+- Rules: a personal plant can be edited or deleted only by whoever added it
+  or its carers. Any member can delete a shared plant, and can log a
+  watering on one, but only carers edit it. A plant with no `addedBy` (old
+  data) stays open to any member. `src/helpers/plants/permissions.ts`
+  mirrors this, and the plant card hides Delete when the rules would refuse
+  it. There are no edit controls yet (session C): use `canEditPlant` there.
+- `Users/{uid}`: the app may write only `displayName`, `email`,
+  `householdId` (and only to its own uid), `notificationPrefs`, `timeZone`
+  and `plantsMigratedAt`, and can't delete it. **Check an old build** still
+  works before deploying the rules: anything that writes another key to the
+  profile will now be refused.
+- Invites: a new code revokes the household's older ones (so at most one
+  live code, which covers the "cap" in the plan). `leaveHousehold`,
+  `removeMember` revoke the leaver's codes (`revokedAt`), `deleteAccount`
+  deletes them. A revoked code fails like an unknown one.
+- **Decision for Kian (not changed):** when someone leaves or is removed,
+  the plants they added stay in the household as shared plants. The dialogs
+  now say so ("The plants they added stay here as shared plants"). If you'd
+  rather they take their personal plants with them, that's a change to
+  `unlinkWrites` and the callables.
+
 ---
 
 ## Session F: Reliable reminders
@@ -385,6 +442,27 @@ hours for watered pushes, and a duplicate trigger.
 
 **Kian does.** Deploy functions. Run section 3 of `docs/TEST_SCRIPT.md`.
 
+**Notes (done):**
+
+- Claim, send, confirm: `reminders.js` writes `notify_stage: "sending"` with
+  `notify_sending` (the stage being sent) and `notify_lease`, sends, then
+  advances in a transaction that checks the claim is still ours. A failed
+  send puts the stage back. A claim older than 10 minutes (`LEASE_MS`) is
+  retried as the stage it was sending. A reminder can still go out twice if
+  the process dies between Expo accepting it and the confirm write.
+- `notify_for` holds the due date a plan was made for and stays after the
+  cycle ends, so a late duplicate trigger for that date does nothing. Plants
+  already in a cycle before this deploys have no `notify_for`; a duplicate
+  trigger could reset one once. Harmless.
+- New server-only plant keys (`notify_for`, `notify_sending`,
+  `notify_lease`) are blocked in `firestore.rules`: **deploy the rules
+  before or with the functions**, or the app could write them.
+- Housemate "watered" pushes are dropped (not queued) during quiet hours.
+  The store listing and privacy policy already say nothing is sent then.
+- `push.js` uses `Promise.allSettled`; `searchPlants` has an 8 second
+  Trefle timeout and checks the key before spending a rate-limit slot;
+  anonymised rows use the plant ID (`old-<id>` for old `UserPlants`).
+
 ---
 
 ## Session G: Start-up, offline and listener robustness
@@ -428,6 +506,24 @@ hours for watered pushes, and a duplicate trigger.
 - A cold start of a signed-in app goes straight to Home.
 - Starting in airplane mode shows plants by nickname with no alerts.
 - Join and leave log no permission errors.
+
+**Notes (done in code; the three checks above are for a phone):**
+
+- `RootLayout` shows a spinner while `initializing`; the navigator is made
+  once at module level and the auth context value is memoised.
+- `fetchFirebasePlantById` no longer alerts or hides failures: it rejects.
+  `HouseholdProvider` drops failed species from its cache and retries every
+  20 seconds, 5 times; `useMergedPlant` doesn't cache failures. Cards show
+  "Details unavailable offline".
+- Listener `permission-denied` is ignored once the profile points at another
+  household, and reported only if the profile still points at that one after
+  5 seconds. Other listener errors are reported at once.
+- Household set-up failures show **Try again** on My Plants (`retry()` on
+  the household context). Logout carries on if unregistering for push fails.
+- Log Watering updates the screen at once (and puts it back if the server
+  refuses). If the write hasn't reached the server after 3 seconds, the
+  details screen says "Saved on this phone. It will sync when you're
+  online." until it does.
 
 ---
 

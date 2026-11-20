@@ -2,7 +2,6 @@ import "./src/setupCrashAlert";
 import { registerRootComponent } from "expo";
 
 import App from "./App";
-import { seedFakePlants } from "./src/dev/seedFakePlants";
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
 // It also ensures that whether you load the app in Expo Go or in a native build,
@@ -10,6 +9,9 @@ import { seedFakePlants } from "./src/dev/seedFakePlants";
 registerRootComponent(App);
 
 if (__DEV__) {
+	// Required here, not imported at the top, so release builds don't bundle it.
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { seedFakePlants } = require("./src/dev/seedFakePlants");
 	if (!global.seedPlants) {
 		global.seedPlants = async (options) => {
 			const result = await seedFakePlants(options ?? {});

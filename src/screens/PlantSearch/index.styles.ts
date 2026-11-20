@@ -14,6 +14,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.small,
     textAlign: "center",
   },
+  empty: {
+    gap: Spacing.small,
+  },
   results: {
     flex: 1,
   },

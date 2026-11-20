@@ -72,7 +72,7 @@ export function getWateringStatus(daysUntil: number): WateringStatus {
   }
 
   return {
-    message: `Next watering in ${daysUntil} days`,
+    message: `Water in ${daysUntil} days`,
     urgency: 'ok',
   };
 }

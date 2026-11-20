@@ -84,13 +84,30 @@ export async function updateDisplayName(displayName: string): Promise<void> {
   await callable({ displayName });
 }
 
+// Matches functions/inviteCode.js: no 0, 1, I, L or O, which look alike.
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const CODE_LENGTH = 8;
+
+/**
+ * Tidies what someone types into the code field: upper case, only characters
+ * a code can contain, at most 8 of them, with the hyphen after the fourth.
+ * "k7qm3p" becomes "K7QM-3P".
+ */
+export function formatInviteInput(text: string): string {
+  const code = [...text.toUpperCase()]
+    .filter((c) => CODE_ALPHABET.includes(c))
+    .slice(0, CODE_LENGTH)
+    .join("");
+  return code.length > 4 ? `${code.slice(0, 4)}-${code.slice(4)}` : code;
+}
+
 /** "K7PXM3QH" becomes "K7PX-M3QH". */
 export function formatInviteCode(code: string): string {
   return `${code.slice(0, 4)}-${code.slice(4)}`;
 }
 
 const JOIN_MESSAGES: Record<string, string> = {
-  "invalid-argument": "Codes are 8 letters and numbers.",
+  "invalid-argument": "Check the code: it's 8 characters, like K7QM-3PXD.",
   "not-found": "That code isn't valid or has expired.",
   "already-exists": "You're already in this household.",
   "failed-precondition": "Leave your current household first.",

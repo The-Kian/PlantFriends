@@ -1,12 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useContext } from 'react';
 
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 
+import { PlantImage } from '@/components/plant/PlantImage';
 import { ThemedText } from '@/components/ui/Text/ThemedText';
 import { IUserPlant, IUserPlantMerged } from '@/constants/IPlant';
 import { AuthContext } from '@/context/auth/AuthProvider';
 import { useHousehold } from '@/context/household/HouseholdProvider';
+import { canRemovePlant } from '@/helpers/plants/permissions';
 import { getWateringProgress } from '@/helpers/plants/wateringProgress';
 import useMergedPlant from '@/hooks/plants/useMergedPlant';
 import { useTheme } from '@/hooks/utils/useTheme';
@@ -25,7 +27,10 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
     const { user } = useContext(AuthContext);
     const { household, memberName } = useHousehold();
 
-    const displayName = plant.custom_name || mergedPlant?.name || "Unnamed Plant";
+    // The species couldn't be loaded (offline, say): show what we have, and say so.
+    const detailsMissing = !!plant.plantId && !mergedPlant && !(plant as IUserPlantMerged).name;
+    const displayName =
+        plant.custom_name || mergedPlant?.name || (detailsMissing ? "Your plant" : "Unnamed Plant");
     const imageUri = (plant as IUserPlantMerged).images?.[0] || mergedPlant?.images?.[0] || null;
     const { status, progressPercent, lastWatered } = getWateringProgress(plant, mergedPlant);
     const urgencyColor = getUrgencyColor(status.urgency, colors);
@@ -55,13 +60,11 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
                 pressed && styles.pressed,
             ]}
         >
-            {imageUri ? (
-                <Image source={{ uri: imageUri }} style={[styles.image, { borderRadius: radius.medium }]} />
-            ) : (
-                <View style={[styles.image, styles.imagePlaceholder, { backgroundColor: colors.primaryMuted, borderRadius: radius.medium }]}>
-                    <Ionicons name="leaf" size={26} color={colors.primary} />
-                </View>
-            )}
+            <PlantImage
+                uri={imageUri}
+                iconSize={26}
+                style={[styles.image, { borderRadius: radius.medium }]}
+            />
             <View style={styles.info}>
                 <View style={styles.nameRow}>
                     <ThemedText style={styles.plantName} numberOfLines={1}>{displayName}</ThemedText>
@@ -81,10 +84,16 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
                 <ThemedText style={[styles.meta, { color: colors.textMuted }]} numberOfLines={1}>
                     {lastWateredText}
                 </ThemedText>
+                {detailsMissing ? (
+                    <ThemedText style={[styles.meta, { color: colors.textMuted }]} numberOfLines={1}>
+                        Details unavailable offline
+                    </ThemedText>
+                ) : null}
                 <View style={[styles.progressTrack, { backgroundColor: colors.surfaceMuted }]}>
                     <View style={[styles.progressFill, { width: progressPercent, backgroundColor: urgencyColor }]} />
                 </View>
             </View>
+            {canRemovePlant(plant, user?.uid) ? (
             <Pressable
                 accessibilityLabel={`Delete ${displayName}`}
                 accessibilityRole="button"
@@ -103,6 +112,7 @@ const PlantCard = ({ plant, onPress, onDelete }: PlantCardProps) => {
             >
                 <Ionicons name="trash-outline" size={20} color={colors.textMuted} />
             </Pressable>
+            ) : null}
         </Pressable>
     );
 };
@@ -122,10 +132,6 @@ const styles = StyleSheet.create({
     image: {
         width: 56,
         height: 56,
-    },
-    imagePlaceholder: {
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     info: {
         flex: 1,

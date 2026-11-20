@@ -1,4 +1,4 @@
-import { NavigationProp } from "@react-navigation/native";
+import { NavigationProp, StackActions } from "@react-navigation/native";
 import React, { useState, useContext, useEffect } from "react";
 
 import { Alert, View } from "react-native";
@@ -18,7 +18,10 @@ import { AuthContext } from "@/context/auth/AuthProvider";
 import { useHousehold } from "@/context/household/HouseholdProvider";
 import { searchErrorMessage } from "@/helpers/errors/friendlyErrors";
 import savePlantToFirebase from "@/helpers/firebase/savePlantToFirebase";
-import { useCombinedPlantSearch } from "@/hooks/search/useCombinedPlantSearch";
+import {
+  MIN_QUERY_LENGTH,
+  useCombinedPlantSearch,
+} from "@/hooks/search/useCombinedPlantSearch";
 import { useTheme } from "@/hooks/utils/useTheme";
 import { registerForPush } from "@/services/PushRegistration";
 import { Spacing } from "@/theme/Spacing";
@@ -32,7 +35,8 @@ interface PlantSearchScreenProps {
 
 export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { plants, loading, error } = useCombinedPlantSearch(searchQuery);
+  const { plants, loading, error, searched } =
+    useCombinedPlantSearch(searchQuery);
   const [selectedPlant, setSelectedPlant] = useState<IPlant | null>(null);
   const { user } = useContext(AuthContext);
   const { household } = useHousehold();
@@ -91,7 +95,12 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
     }
 
     closeModal();
-    navigation.navigate("Tab");
+    // Open the plant just added, in place of this screen so Back goes to the
+    // list. It appears in the list a moment later through the household's
+    // live listener; the details screen waits for it.
+    navigation.dispatch(
+      StackActions.replace("PlantDetails", { plantId: userData.id }),
+    );
 
     // A good moment to ask for notifications: reminders for this plant, and
     // (from phase 4) hearing when a housemate waters it.
@@ -122,6 +131,24 @@ export const PlantSearchScreen = ({ navigation }: PlantSearchScreenProps) => {
           >
             {searchErrorMessage(error, plants.length > 0)}
           </ThemedText>
+        )}
+        {!loading && !error && searchQuery.trim().length < MIN_QUERY_LENGTH && (
+          <ThemedText style={[styles.status, { color: colors.textMuted }]}>
+            Search by common or Latin name, like "monstera" or "Ficus lyrata".
+          </ThemedText>
+        )}
+        {searched && !loading && !error && plants.length === 0 && (
+          <View style={styles.empty}>
+            <ThemedText style={[styles.status, { color: colors.textMuted }]}>
+              No plants match "{searchQuery.trim()}".
+            </ThemedText>
+            <ThemedButton
+              title="Add it yourself"
+              onPress={handleAddNewPlant}
+              icon="create-outline"
+              variant="secondary"
+            />
+          </View>
         )}
         <PlantSearchResults plants={plants} onSelectPlant={handleSelectPlant} />
       </View>

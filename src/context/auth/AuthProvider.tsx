@@ -185,16 +185,22 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     }
   };
 
-  const update = async ({ displayName }: { displayName: string }) => {
+  const update = async ({
+    displayName,
+  }: {
+    displayName: string;
+  }): Promise<boolean> => {
     const user = auth().currentUser;
-    if (!user) return;
+    if (!user) return false;
     try {
       await user.updateProfile({ displayName });
       // Housemates see the name from the household, which only the server can
       // write for other members, so it goes through the function.
       await updateDisplayName(displayName);
+      return true;
     } catch (error) {
       ErrorService.handleError(error, "Update profile");
+      return false;
     } finally {
       setUser(auth().currentUser);
     }

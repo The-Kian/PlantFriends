@@ -1,6 +1,7 @@
 import functions from "@react-native-firebase/functions";
 
 import {
+  formatInviteInput,
   createInvite,
   formatInviteCode,
   joinErrorMessage,
@@ -69,7 +70,7 @@ describe("invites", () => {
 
 describe("joinErrorMessage", () => {
   it.each([
-    ["invalid-argument", "Codes are 8 letters and numbers."],
+    ["invalid-argument", "Check the code: it's 8 characters, like K7QM-3PXD."],
     ["not-found", "That code isn't valid or has expired."],
     ["already-exists", "You're already in this household."],
     ["failed-precondition", "Leave your current household first."],
@@ -117,5 +118,26 @@ describe("leaveErrorMessage", () => {
 
   it("falls back for anything else", () => {
     expect(leaveErrorMessage({ code: "internal" }, "fallback")).toBe("fallback");
+  });
+});
+
+describe("formatInviteInput", () => {
+  it.each([
+    ["k7qm3pxd", "K7QM-3PXD"],
+    ["K7QM-3PXD", "K7QM-3PXD"],
+    ["k7qm", "K7QM"],
+    ["k7qm3", "K7QM-3"],
+    [" k7 qm 3p ", "K7QM-3P"],
+    ["", ""],
+  ])("turns %j into %j", (typed, shown) => {
+    expect(formatInviteInput(typed)).toBe(shown);
+  });
+
+  it("drops characters a code can't contain (0, 1, I, L, O and symbols)", () => {
+    expect(formatInviteInput("0o1il!K7QM")).toBe("K7QM");
+  });
+
+  it("stops at 8 characters", () => {
+    expect(formatInviteInput("ABCDEFGHJKMN")).toBe("ABCD-EFGH");
   });
 });

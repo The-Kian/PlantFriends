@@ -63,6 +63,23 @@ describe("PlantCard", () => {
     expect(screen.getByText("Watered 2 days ago")).toBeTruthy();
   });
 
+  it("shows the nickname, and says details are missing, when the species can't be loaded", () => {
+    renderCard({ ...mockUserPlant, plantId: "monstera", custom_name: "Monty", addedBy: "user1" });
+    expect(screen.getByText("Monty")).toBeTruthy();
+    expect(screen.getByText("Details unavailable offline")).toBeTruthy();
+  });
+
+  it("doesn't say 'Unnamed Plant' for a plant whose species is just not loaded yet", () => {
+    renderCard({ ...mockUserPlant, plantId: "monstera", custom_name: undefined, addedBy: "user1" });
+    expect(screen.queryByText("Unnamed Plant")).toBeNull();
+    expect(screen.getByText("Your plant")).toBeTruthy();
+  });
+
+  it("hides delete on a housemate's personal plant", () => {
+    renderCard({ ...mockUserPlant, addedBy: "user2", carerIds: ["user2"], shared: false });
+    expect(screen.queryByLabelText(/^Delete /)).toBeNull();
+  });
+
   it("badges a shared plant and a housemate's own plant", () => {
     renderCard({ ...mockUserPlant, addedBy: "user1", shared: true });
     expect(screen.getByText("Shared")).toBeTruthy();

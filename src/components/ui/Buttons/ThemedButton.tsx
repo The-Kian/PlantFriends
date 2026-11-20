@@ -58,7 +58,11 @@ function ThemedButton({
     variantTextStyle = buttonStyles.ghostButtonText;
   }
 
-  const textStyle = [buttonStyles.buttonText, variantTextStyle];
+  const textStyle = [
+    buttonStyles.buttonText,
+    variantTextStyle,
+    disabled && buttonStyles.buttonTextDisabled,
+  ];
 
   return (
     <Pressable

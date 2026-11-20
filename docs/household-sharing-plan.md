@@ -392,3 +392,20 @@ Reminders move off the phone, so they know about a housemate's watering.
     Plants only they looked after are now shared with you, and their name is
     gone from "watered by".
 - **Done when:** a housemate can leave without losing any plants.
+
+## Changes after the QA run (November 2026)
+
+See `docs/qa-followup-plan.md` sessions B, E and F for the detail.
+
+- **Who can change a plant.** A personal plant is changed or deleted only by
+  whoever added it or its carers. Any member may delete a shared plant or log
+  a watering on one; only carers edit it. `firestore.rules` and
+  `src/helpers/plants/permissions.ts` say the same thing.
+- **Invites.** A new code revokes the household's older ones. A member's
+  codes are revoked when they leave or are removed, and deleted with their
+  account.
+- **Names.** `updateDisplayName` changes the profile, the member entry and
+  the automatic household name together.
+- **Reminders.** `notify_stage` can be `"sending"` while a push is going out
+  (with `notify_sending` and `notify_lease`); `notify_for` is the due date a
+  plan was made for. Housemate "watered" pushes aren't sent in quiet hours.

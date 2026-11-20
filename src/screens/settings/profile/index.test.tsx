@@ -4,7 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as Notifications from "expo-notifications";
 
-import { Linking, Text } from "react-native";
+import { Alert, Linking, Text } from "react-native";
 
 import {
   fireEvent,
@@ -118,7 +118,7 @@ describe("ProfileSettingsScreen", () => {
   it("points to the phone's settings when notifications are denied", async () => {
     jest
       .mocked(Notifications.getPermissionsAsync)
-      .mockResolvedValue({ status: "denied" } as never);
+      .mockResolvedValue({ status: "denied", canAskAgain: false } as never);
     const openSettings = jest
       .spyOn(Linking, "openSettings")
       .mockResolvedValue(undefined);
@@ -127,6 +127,21 @@ describe("ProfileSettingsScreen", () => {
     fireEvent.press(await screen.findByText("Open settings"));
 
     expect(openSettings).toHaveBeenCalled();
+    // The switches can't do anything while it's off, so they look off too.
+    expect(screen.getByLabelText("Watering reminders")).toHaveProp("disabled", true);
+    jest
+      .mocked(Notifications.getPermissionsAsync)
+      .mockResolvedValue({ status: "granted" } as never);
+  });
+
+  it("doesn't say notifications are off when the phone was never asked", async () => {
+    jest
+      .mocked(Notifications.getPermissionsAsync)
+      .mockResolvedValue({ status: "undetermined", canAskAgain: true } as never);
+    renderWithPrefs();
+    await waitFor(() => expect(Notifications.getPermissionsAsync).toHaveBeenCalled());
+    expect(screen.queryByText("Open settings")).toBeNull();
+    expect(screen.getByLabelText("Watering reminders")).not.toHaveProp("disabled", true);
     jest
       .mocked(Notifications.getPermissionsAsync)
       .mockResolvedValue({ status: "granted" } as never);
@@ -173,12 +188,40 @@ describe("ProfileSettingsScreen", () => {
     expect(screen.getByText("Go To Profile")).toBeVisible();
   });
 
-  it("renders the Logout button and logs out", async () => {
+  it("asks before logging out", async () => {
+    const alert = jest.spyOn(Alert, "alert").mockImplementation(() => {});
     renderWithFullContext();
 
-    const logoutButton = await screen.findByText("Logout");
-    fireEvent.press(logoutButton);
+    fireEvent.press(await screen.findByText("Logout"));
+    expect(alert).toHaveBeenCalledWith(
+      "Log out?",
+      expect.any(String),
+      expect.any(Array),
+    );
+    expect(mockAuthContextValue.logout).not.toHaveBeenCalled();
 
+    const buttons = alert.mock.calls.at(-1)?.[2] ?? [];
+    buttons.find((b) => b.text === "Log out")?.onPress?.();
     expect(mockAuthContextValue.logout).toHaveBeenCalledTimes(1);
+  });
+
+  it("says when the new name is saved, and not when it isn't", async () => {
+    mockAuthContextValue.update.mockResolvedValueOnce(true);
+    renderWithFullContext();
+
+    fireEvent.changeText(screen.getByLabelText("Display Name input field"), "Sammy");
+    fireEvent.press(screen.getByText("Save name"));
+
+    expect(await screen.findByText(/Saved\. Your housemates will see/)).toBeVisible();
+    expect(mockAuthContextValue.update).toHaveBeenCalledWith({ displayName: "Sammy" });
+
+    // Editing again clears it.
+    fireEvent.changeText(screen.getByLabelText("Display Name input field"), "Sam");
+    expect(screen.queryByText(/Saved\./)).toBeNull();
+
+    mockAuthContextValue.update.mockResolvedValueOnce(false);
+    fireEvent.press(screen.getByText("Save name"));
+    await waitFor(() => expect(mockAuthContextValue.update).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText(/Saved\./)).toBeNull();
   });
 });

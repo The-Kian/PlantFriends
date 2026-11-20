@@ -62,15 +62,45 @@ describe("useCombinedPlantSearch", () => {
 
     expect(fetchFirebasePlants).toHaveBeenCalledWith("test");
     expect(fetchTreflePlants).toHaveBeenCalledWith("test");
-    expect(result.current).toEqual({ plants: [mockPlant], loading: false, error: null });
+    expect(result.current).toMatchObject({ plants: [mockPlant], loading: false, error: null });
   });
 
   it.each(["", "   "])("does not search a blank query (%j)", async (query) => {
     const { result } = renderSearch(query);
     await flushSearch(500);
-    expect(result.current).toEqual({ plants: [], loading: false, error: null });
+    expect(result.current).toMatchObject({ plants: [], loading: false, error: null });
     expect(fetchFirebasePlants).not.toHaveBeenCalled();
     expect(fetchTreflePlants).not.toHaveBeenCalled();
+  });
+
+  it("doesn't search for a single character", async () => {
+    const { result } = renderSearch("m");
+    await flushSearch(500);
+    expect(fetchFirebasePlants).not.toHaveBeenCalled();
+    expect(result.current).toMatchObject({ plants: [], searched: false });
+  });
+
+  it("says a search has finished, even with no matches, but not while typing", async () => {
+    const { result, rerender } = renderSearch("zzz");
+    expect(result.current.searched).toBe(false);
+    await flushSearch();
+    expect(result.current).toMatchObject({ plants: [], loading: false, searched: true });
+
+    rerender({ query: "zzzz" });
+    expect(result.current.searched).toBe(false);
+  });
+
+  it("drops a Trefle result for a species the catalogue already has (ignoring case)", async () => {
+    const catalogue = { ...mockPlant, id: "monstera", name: "Monstera Deliciosa", scientific_name: ["Monstera deliciosa"] };
+    const trefle = { ...mockPlant, id: "trefle-1", name: "Fruit-salad-plant", scientific_name: ["MONSTERA DELICIOSA"] };
+    const other = { ...mockPlant2, scientific_name: ["Epipremnum aureum"] };
+    jest.mocked(fetchFirebasePlants).mockResolvedValue([catalogue]);
+    jest.mocked(fetchTreflePlants).mockResolvedValue([trefle, other]);
+
+    const { result } = renderSearch("monstera");
+    await flushSearch();
+
+    expect(result.current.plants).toEqual([catalogue, other]);
   });
 
   it("keeps Firebase results when Trefle fails", async () => {
@@ -79,7 +109,7 @@ describe("useCombinedPlantSearch", () => {
     jest.mocked(fetchTreflePlants).mockRejectedValue(error);
     const { result } = renderSearch("test");
     await flushSearch();
-    expect(result.current).toEqual({ plants: [mockPlant], loading: false, error });
+    expect(result.current).toMatchObject({ plants: [mockPlant], loading: false, error });
     expect(ErrorService.handleError).not.toHaveBeenCalled();
   });
 
@@ -88,7 +118,7 @@ describe("useCombinedPlantSearch", () => {
     jest.mocked(fetchFirebasePlants).mockRejectedValue(error);
     const { result } = renderSearch("test");
     await flushSearch();
-    expect(result.current).toEqual({ plants: [], loading: false, error });
+    expect(result.current).toMatchObject({ plants: [], loading: false, error });
     expect(fetchTreflePlants).not.toHaveBeenCalled();
     expect(ErrorService.handleError).not.toHaveBeenCalled();
   });
@@ -133,7 +163,7 @@ describe("useCombinedPlantSearch", () => {
     await act(async () => {
       oldRequest.resolve([mockPlant]);
     });
-    expect(result.current).toEqual({ plants: [mockPlant2], loading: false, error: null });
+    expect(result.current).toMatchObject({ plants: [mockPlant2], loading: false, error: null });
   });
 
   it("does not let a stale rejection clear loading or set error for the current request", async () => {
@@ -156,7 +186,7 @@ describe("useCombinedPlantSearch", () => {
     await act(async () => {
       newRequest.resolve([mockPlant2]);
     });
-    expect(result.current).toEqual({ plants: [mockPlant2], loading: false, error: null });
+    expect(result.current).toMatchObject({ plants: [mockPlant2], loading: false, error: null });
   });
 
   it("invalidates a request before the next query finishes debouncing", async () => {
@@ -180,13 +210,13 @@ describe("useCombinedPlantSearch", () => {
     await flushSearch();
     expect(result.current.loading).toBe(true);
     rerender({ query });
-    expect(result.current).toEqual({ plants: [], loading: false, error: null });
+    expect(result.current).toMatchObject({ plants: [], loading: false, error: null });
 
     await act(async () => {
       pending.resolve([mockPlant]);
     });
     await flushSearch(500);
-    expect(result.current).toEqual({ plants: [], loading: false, error: null });
+    expect(result.current).toMatchObject({ plants: [], loading: false, error: null });
     expect(fetchFirebasePlants).toHaveBeenCalledTimes(1);
   });
 
@@ -198,7 +228,7 @@ describe("useCombinedPlantSearch", () => {
     expect(result.current.plants).toEqual([mockPlant]);
     expect(result.current.error).not.toBeNull();
     rerender({ query });
-    expect(result.current).toEqual({ plants: [], loading: false, error: null });
+    expect(result.current).toMatchObject({ plants: [], loading: false, error: null });
   });
 
   it("ignores a pending Trefle rejection after unmount", async () => {

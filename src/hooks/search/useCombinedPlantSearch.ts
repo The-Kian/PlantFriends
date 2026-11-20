@@ -4,11 +4,21 @@ import { IPlant } from "@/constants/IPlant";
 import fetchFirebasePlants from "@/helpers/firebase/fetchFirebasePlants";
 import { fetchTreflePlants } from "@/helpers/plants/plantAPI/fetchTreflePlants";
 
+/** One letter matches half the catalogue; wait for a second. */
+export const MIN_QUERY_LENGTH = 2;
+
+const firstScientificName = (plant: IPlant) =>
+  plant.scientific_name?.[0]?.trim().toLowerCase() || null;
+
 export const useCombinedPlantSearch = (searchQuery: string) => {
   const [plants, setPlants] = useState<IPlant[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const query = searchQuery.trim();
+  // True once a search for the current query has finished, so the screen can
+  // tell "no matches" from "still typing".
+  const [searched, setSearched] = useState(false);
+  const trimmed = searchQuery.trim();
+  const query = trimmed.length >= MIN_QUERY_LENGTH ? trimmed : "";
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   // Debounce logic: Update `debouncedQuery` after a delay
@@ -29,6 +39,7 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
       setPlants([]);
       setLoading(false);
       setError(null);
+      setSearched(false);
       setDebouncedQuery("");
       return;
     }
@@ -36,6 +47,7 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
     if (query !== debouncedQuery) {
       setLoading(false);
       setError(null);
+      setSearched(false);
       return;
     }
 
@@ -59,8 +71,19 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
         }
         if (!active) return;
 
+        // The same species can come from both: "Monstera Deliciosa" in the
+        // catalogue and "Fruit-salad-plant" (Monstera deliciosa) from Trefle.
+        // Keep the catalogue's, which is the one that gets saved and edited.
+        const catalogue = new Set(
+          firebasePlants.map(firstScientificName).filter(Boolean),
+        );
+        const newFromApi = apiPlants.filter((plant) => {
+          const scientific = firstScientificName(plant);
+          return !scientific || !catalogue.has(scientific);
+        });
+
         // Combine and deduplicate plants based on `id` or `name`
-        const combinedPlants = [...firebasePlants, ...apiPlants];
+        const combinedPlants = [...firebasePlants, ...newFromApi];
         const uniquePlants = combinedPlants.filter(
           (plant, index, self) =>
             index ===
@@ -73,7 +96,10 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
         // Reported by fetchFirebasePlants; the screen shows the message.
         setError(err as Error);
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          setSearched(true);
+        }
       }
     };
 
@@ -83,5 +109,5 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
     };
   }, [debouncedQuery, query]);
 
-  return { plants, loading, error };
+  return { plants, loading, error, searched };
 };

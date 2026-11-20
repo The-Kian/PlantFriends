@@ -86,6 +86,18 @@ describe("HouseholdCard", () => {
     await waitFor(() => expect(Share.share).toHaveBeenCalledTimes(2));
   });
 
+  it("tidies the code as it's typed: upper case, hyphen after four, no look-alike letters", () => {
+    renderCard();
+    fireEvent.press(screen.getByLabelText("Join a household"));
+    const field = screen.getByLabelText("Invite code");
+
+    fireEvent.changeText(field, "k7qm3");
+    expect(field.props.value).toBe("K7QM-3");
+
+    fireEvent.changeText(field, "0o1ik7qm3pxdextra");
+    expect(field.props.value).toBe("K7QM-3PXD");
+  });
+
   it("shows no code before an invite is made", () => {
     renderCard();
     expect(screen.queryByTestId("invite-code-box")).toBeNull();
@@ -118,7 +130,7 @@ describe("HouseholdCard", () => {
     fireEvent.press(screen.getByLabelText("Continue"));
 
     await waitFor(() => expect(Alert.alert).toHaveBeenCalled());
-    expect(previewInvite).toHaveBeenCalledWith("k7px m3qh");
+    expect(previewInvite).toHaveBeenCalledWith("K7PX-M3QH");
     expect(Alert.alert).toHaveBeenCalledWith(
       "Join The Flat?",
       "Your 3 plants will move with you. You'll see the plants this household shares.",
@@ -128,7 +140,7 @@ describe("HouseholdCard", () => {
 
     pressAlertButton("Join");
 
-    await waitFor(() => expect(joinHousehold).toHaveBeenCalledWith("k7px m3qh"));
+    await waitFor(() => expect(joinHousehold).toHaveBeenCalledWith("K7PX-M3QH"));
     await waitFor(() => expect(screen.queryByLabelText("Invite code")).toBeNull());
   });
 
@@ -172,7 +184,7 @@ describe("HouseholdCard", () => {
     ["already-exists", "You're already in this household."],
     ["failed-precondition", "Leave your current household first."],
     ["resource-exhausted", "This household is full."],
-    ["invalid-argument", "Codes are 8 letters and numbers."],
+    ["invalid-argument", "Check the code: it's 8 characters, like K7QM-3PXD."],
     ["internal", "Couldn't join. Check your connection and try again."],
   ])("shows the message for %s", async (code, message) => {
     jest.mocked(previewInvite).mockRejectedValue({ code });
@@ -183,7 +195,7 @@ describe("HouseholdCard", () => {
 
     await waitFor(() =>
       expect(Alert.alert).toHaveBeenCalledWith(
-        "Join a household",
+        "Couldn't join the household",
         message,
         expect.any(Array),
       ),
@@ -206,7 +218,7 @@ describe("HouseholdCard", () => {
 
     await waitFor(() =>
       expect(Alert.alert).toHaveBeenLastCalledWith(
-        "Join a household",
+        "Couldn\'t join the household",
         "This household is full.",
         expect.any(Array),
       ),
@@ -228,7 +240,7 @@ describe("HouseholdCard", () => {
 
       expect(Alert.alert).toHaveBeenCalledWith(
         "Leave The Flat?",
-        "You'll go back to a household of your own, with no plants. Plants here stay with your housemates.",
+        "You'll go back to a household of your own, with no plants. Plants you added stay here, shared with your housemates.",
         expect.any(Array),
       );
       expect(leaveHousehold).not.toHaveBeenCalled();
@@ -258,7 +270,7 @@ describe("HouseholdCard", () => {
 
       await waitFor(() =>
         expect(Alert.alert).toHaveBeenLastCalledWith(
-          "Leave household",
+          "Couldn't leave the household",
           "You're the only one in this household.",
           expect.any(Array),
         ),
@@ -274,7 +286,7 @@ describe("HouseholdCard", () => {
 
       expect(Alert.alert).toHaveBeenCalledWith(
         "Remove Sam?",
-        "Sam will go back to a household of their own. Plants only they looked after will be shared with everyone left.",
+        "Sam will go back to a household of their own. The plants they added stay here as shared plants, and any code they made stops working.",
         expect.any(Array),
       );
       expect(removeMember).not.toHaveBeenCalled();
@@ -297,7 +309,7 @@ describe("HouseholdCard", () => {
 
       await waitFor(() =>
         expect(Alert.alert).toHaveBeenLastCalledWith(
-          "Remove housemate",
+          "Couldn't remove them",
           "Only the person who set up the household can remove people.",
           expect.any(Array),
         ),

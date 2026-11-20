@@ -270,7 +270,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
       plantsCol(getFirestore(), householdId),
       async (snap) => {
         const run = ++latest;
-        clearTimeout(retryTimer);
+        if (retryTimer) clearTimeout(retryTimer);
         const plants: IUserPlant[] = (snap?.docs ?? []).map(
           (d: { data: () => unknown }) => d.data() as IUserPlant,
         );
@@ -306,7 +306,7 @@ export const HouseholdProvider = ({ children }: ProviderProps) => {
         ),
     );
     return () => {
-      clearTimeout(retryTimer);
+      if (retryTimer) clearTimeout(retryTimer);
       unsubscribe();
     };
   }, [householdId, user, dispatch]);

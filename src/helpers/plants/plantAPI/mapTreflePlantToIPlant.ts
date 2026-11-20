@@ -113,7 +113,7 @@ export const mapTreflePlantToIPlant = (plant: TreflePlant): IPlant => {
     slug: plant.slug || "",
     scientific_name: [plant.scientific_name],
     common_names: plant.synonyms || [],
-    description: description || `A ${plant.family} species`,
+    description: description || (plant.family ? `A plant in the ${plant.family} family` : ""),
     sun_requirements: plant.light || "",
     watering_frequency: wateringFrequency,
     fertilizer_needs: plant.soil || "",

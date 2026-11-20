@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 
-import { Image, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
+import { PlantImage } from "@/components/plant/PlantImage";
 import { ThemedText } from "@/components/ui/Text/ThemedText";
 import { IPlant } from "@/constants/IPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
@@ -35,22 +36,11 @@ const SearchResultComponent = ({
         pressed && styles.pressed,
       ]}
     >
-      {imageUri ? (
-        <Image
-          source={{ uri: imageUri }}
-          style={[styles.thumb, { borderRadius: radius.small }]}
-        />
-      ) : (
-        <View
-          style={[
-            styles.thumb,
-            styles.thumbPlaceholder,
-            { backgroundColor: colors.primaryMuted, borderRadius: radius.small },
-          ]}
-        >
-          <Ionicons name="leaf" size={18} color={colors.primary} />
-        </View>
-      )}
+      <PlantImage
+        uri={imageUri}
+        iconSize={18}
+        style={[styles.thumb, { borderRadius: radius.small }]}
+      />
       <View style={styles.text}>
         <ThemedText style={styles.name} numberOfLines={1}>
           {plant.name}

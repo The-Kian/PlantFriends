@@ -92,6 +92,9 @@ describe("PlantSearchScreen", () => {
 
   // Mock screens to test navigation TO and FROM
   const MockTabScreen = () => <Text>You are on the Tab screen</Text>;
+  const MockDetailsScreen = ({ route }: any) => (
+    <Text>{`Details of ${route.params.plantId}`}</Text>
+  );
   const InitialTestScreen = ({ navigation }: any) => (
     <Button
       title="Go to Search"
@@ -110,6 +113,7 @@ describe("PlantSearchScreen", () => {
             <Stack.Screen name="Initial" component={InitialTestScreen} />
             <Stack.Screen name="PlantSearch" component={PlantSearchScreen} />
             <Stack.Screen name="Tab" component={MockTabScreen} />
+            <Stack.Screen name="PlantDetails" component={MockDetailsScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </AuthContext.Provider>,
@@ -154,6 +158,30 @@ describe("PlantSearchScreen", () => {
     ).toBeTruthy();
   });
 
+  it("gives a hint before anything is typed", () => {
+    renderComponent();
+    expect(screen.getByText(/Search by common or Latin name/)).toBeVisible();
+  });
+
+  it("says nothing matched, and offers to add it by hand", async () => {
+    (useCombinedPlantSearch as jest.Mock).mockReturnValue({
+      plants: [],
+      loading: false,
+      error: null,
+      searched: true,
+    });
+    renderComponent();
+    fireEvent.changeText(screen.getByLabelText("Search for a plant input field"), "zzzz");
+
+    expect(screen.getByText('No plants match "zzzz".')).toBeVisible();
+    expect(screen.queryByText(/Search by common or Latin name/)).toBeNull();
+
+    fireEvent.press(screen.getByText("Add it yourself"));
+    await waitFor(() => {
+      expect(screen.getByText("Mock Customization Modal")).toBeVisible();
+    });
+  });
+
   it("opens modal with user data when a plant is selected", async () => {
     (useCombinedPlantSearch as jest.Mock).mockReturnValue({
       plants: [mockPlant],
@@ -189,7 +217,7 @@ describe("PlantSearchScreen", () => {
     });
   });
 
-  it("navigates to Tab screen after saving a selected plant", async () => {
+  it("opens the new plant after saving a selected plant", async () => {
     (savePlantToFirebase as jest.Mock).mockResolvedValueOnce({ id: "saved" });
     (useCombinedPlantSearch as jest.Mock).mockReturnValue({
       plants: [mockPlant],
@@ -208,10 +236,10 @@ describe("PlantSearchScreen", () => {
         mockHousehold,
       );
     });
-    expect(screen.getByText("You are on the Tab screen")).toBeVisible();
+    expect(await screen.findByText(/^Details of /)).toBeVisible();
   });
 
-  it("navigates to Tab screen after saving a new plant", async () => {
+  it("opens the new plant after saving a new plant", async () => {
     (savePlantToFirebase as jest.Mock).mockResolvedValueOnce({ id: "saved" });
     renderComponent();
 
@@ -229,7 +257,7 @@ describe("PlantSearchScreen", () => {
         mockHousehold,
       );
     });
-    expect(screen.getByText("You are on the Tab screen")).toBeVisible();
+    expect(await screen.findByText(/^Details of /)).toBeVisible();
   });
 
   it("keeps the form open when the save fails", async () => {
@@ -244,7 +272,7 @@ describe("PlantSearchScreen", () => {
 
     await waitFor(() => expect(savePlantToFirebase).toHaveBeenCalled());
     expect(screen.getByText("Mock Customization Modal")).toBeVisible();
-    expect(screen.queryByText("You are on the Tab screen")).toBeNull();
+    expect(screen.queryByText(/^Details of /)).toBeNull();
   });
 
   it("navigates back when the header back button is pressed", async () => {

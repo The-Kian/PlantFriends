@@ -30,6 +30,7 @@ const ProfileSettingsScreen = () => {
   const { user, logout, update, deleteAccount } = useContext(AuthContext);
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { colors, radius, shadow } = useTheme();
   const { notificationPrefs } = useHousehold();
   const [permission, setPermission] =
@@ -69,8 +70,20 @@ const ProfileSettingsScreen = () => {
       return;
     }
     setIsSaving(true);
-    await update({ displayName: displayName.trim() });
-    setIsSaving(false);
+    setSaved(false);
+    try {
+      // On failure `update` has already shown why.
+      setSaved(await update({ displayName: displayName.trim() }));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogout = () => {
+    Alert.alert("Log out?", "You'll need to sign in again to see your plants.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Log out", style: "destructive", onPress: () => logout() },
+    ]);
   };
 
   const handleDeleteAccount = () => {
@@ -129,12 +142,14 @@ const ProfileSettingsScreen = () => {
             label="Watering reminders"
             description="When a plant is due, and a nudge the next day if it's still thirsty."
             value={notificationPrefs.reminders !== false}
+            disabled={permission === "denied"}
             onValueChange={(value) => handlePrefChange("reminders", value)}
           />
           <SwitchField
             label="When a housemate waters my plants"
             description="So you know it's done and don't water it twice."
             value={notificationPrefs.housemateActivity !== false}
+            disabled={permission === "denied"}
             onValueChange={(value) => handlePrefChange("housemateActivity", value)}
           />
         </View>
@@ -156,7 +171,10 @@ const ProfileSettingsScreen = () => {
           <TextInputField
             label="Display Name"
             value={displayName}
-            onChangeText={setDisplayName}
+            onChangeText={(text) => {
+              setDisplayName(text);
+              setSaved(false);
+            }}
           />
           <ThemedButton
             onPress={handleSaveName}
@@ -164,6 +182,15 @@ const ProfileSettingsScreen = () => {
             disabled={isSaving}
             additionalStyle={styles.saveButton}
           />
+          {saved ? (
+            <ThemedText
+              type="caption"
+              accessibilityLiveRegion="polite"
+              style={styles.savedNote}
+            >
+              Saved. Your housemates will see the new name.
+            </ThemedText>
+          ) : null}
         </View>
 
         {PRIVACY_POLICY_URL ? (
@@ -176,7 +203,7 @@ const ProfileSettingsScreen = () => {
           />
         ) : null}
         <ThemedButton
-          onPress={logout}
+          onPress={handleLogout}
           title="Logout"
           icon="log-out-outline"
           variant="secondary"
@@ -225,6 +252,9 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: 0,
+  },
+  savedNote: {
+    marginTop: Spacing.small,
   },
   spaced: {
     marginTop: Spacing.large,

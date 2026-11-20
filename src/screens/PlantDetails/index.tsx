@@ -1,11 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { type ComponentProps, useContext, useState } from "react";
+import { type ComponentProps, useContext, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
-import { StyleSheet, ScrollView, Image, Alert, View } from "react-native";
+import { StyleSheet, ScrollView, Alert, View } from "react-native";
 
 import { RootStackParamList } from "@/components/navigation/types";
+import { PlantImage } from "@/components/plant/PlantImage";
 import { EmptyState } from "@/components/ui/EmptyState";
 import SwitchField from "@/components/ui/Input/SwitchField";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -17,8 +18,8 @@ import { WateringSplash } from "@/components/watering/WateringSplash";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import { useHousehold } from "@/context/household/HouseholdProvider";
 import logWatering from "@/helpers/firebase/logWatering";
-import { wateringFields } from "@/helpers/firebase/wateringFields";
 import setPlantSharing from "@/helpers/firebase/setPlantSharing";
+import { wateringFields } from "@/helpers/firebase/wateringFields";
 import { displayNameFor } from "@/helpers/household/setupHousehold";
 import { getWateringFrequencyInDays } from "@/helpers/plants/wateringCalculations";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
@@ -51,11 +52,19 @@ const PlantDetailsScreen = () => {
   const { mergedPlant, loading } = useMergedPlant(userPlant || null);
 
   const [showSplash, setShowSplash] = useState(false);
+  // A plant that was only just added reaches the list through the household's
+  // live listener a moment after this screen opens. Don't say "not found"
+  // until it has had a few seconds to arrive.
+  const [waitedForPlant, setWaitedForPlant] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setWaitedForPlant(true), 4000);
+    return () => clearTimeout(timer);
+  }, []);
   // True while a watering is saved on this phone but not yet on the server.
   const [waitingToSync, setWaitingToSync] = useState(false);
 
-  // Opened before the household's plants have loaded.
-  if (!userPlant && householdLoading) {
+  // Opened before the household's plants have loaded, or just after adding.
+  if (!userPlant && (householdLoading || !waitedForPlant)) {
     return (
       <ThemedView style={styles.screen}>
         <ScreenHeader />
@@ -191,19 +200,7 @@ const PlantDetailsScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.hero} />
-        ) : (
-          <View
-            style={[
-              styles.hero,
-              styles.heroPlaceholder,
-              { backgroundColor: colors.primaryMuted },
-            ]}
-          >
-            <Ionicons name="leaf" size={96} color={colors.primary} />
-          </View>
-        )}
+        <PlantImage uri={imageUri} iconSize={96} style={styles.hero} />
 
         <View style={[styles.body, { backgroundColor: colors.background }]}>
           <View>
@@ -298,10 +295,6 @@ const styles = StyleSheet.create({
   hero: {
     width: "100%",
     height: 280,
-  },
-  heroPlaceholder: {
-    justifyContent: "center",
-    alignItems: "center",
   },
   body: {
     marginTop: -Spacing.large,

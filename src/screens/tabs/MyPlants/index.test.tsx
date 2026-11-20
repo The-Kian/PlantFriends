@@ -7,6 +7,9 @@ import { Alert, Text } from "react-native";
 
 import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 
+import { AuthContext } from "@/context/auth/AuthProvider";
+import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
+import mockUser from "@/test-utils/MockFirebaseUser";
 import { mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
@@ -16,16 +19,20 @@ import MyPlantsScreen from "./";
 describe("MyPlantsScreen", () => {
   const Stack = createStackNavigator();
 
+  // The signed-in user (user1) added the Living Room plant; their housemate
+  // (user2) added the Kitchen one, for themselves.
   const renderWithNavigation = () => {
     return renderWithProviders(
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{ animation: "none", headerShown: false }}
-        >
-          <Stack.Screen name="MyPlantsScreen" component={MyPlantsScreen} />
-          <Stack.Screen name="PlantSearch" component={MockScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>,
+      <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{ animation: "none", headerShown: false }}
+          >
+            <Stack.Screen name="MyPlantsScreen" component={MyPlantsScreen} />
+            <Stack.Screen name="PlantSearch" component={MockScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthContext.Provider>,
       {
         preloadedState: {
           userPlants: [
@@ -33,11 +40,18 @@ describe("MyPlantsScreen", () => {
               ...mockUserPlant,
               houseLocation: "Living Room",
               custom_name: "Living Room Plant",
+              addedBy: "user1",
+              carerIds: ["user1"],
+              shared: false,
             },
             {
               ...mockUserPlant,
+              id: "2",
               houseLocation: "Kitchen",
               custom_name: "Kitchen Plant",
+              addedBy: "user2",
+              carerIds: ["user2"],
+              shared: false,
             },
           ],
         },
@@ -76,6 +90,14 @@ describe("MyPlantsScreen", () => {
 
     const mockScreen = await screen.findByText("Go To SubmitPlantScreen");
     expect(mockScreen).toBeVisible();
+  });
+
+  it("offers delete only for plants you may remove, not a housemate's personal plant", async () => {
+    renderWithNavigation();
+    await screen.findByText("Kitchen Plant");
+
+    expect(screen.getByLabelText("Delete Living Room Plant")).toBeTruthy();
+    expect(screen.queryByLabelText("Delete Kitchen Plant")).toBeNull();
   });
 
   it("should delete a plant", async () => {
