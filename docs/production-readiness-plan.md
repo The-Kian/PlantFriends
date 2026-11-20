@@ -43,6 +43,8 @@ Rules for whoever does the session:
 | 9 | End-to-end test and manual test script | 1, 2, 4 | Done and merged (Kian: run the flows and the script) |
 | 10 | Privacy policy, store listing, release | all | Code and docs done (Kian: screenshots, Play, rollout) |
 
+**What's left is now tracked in `docs/release-plan.md`.**
+
 All ten sessions are written. What's left is Kian's: the **two-phone
 checkpoint** (below session 4), the Maestro flows and the manual test script
 (`docs/TEST_SCRIPT.md`), the session 8 console steps (alerts, backups, a test
