@@ -11,7 +11,12 @@ import usePlantCustomizations from "@/hooks/plants/usePlantCustomizations";
 import usePlantPersistence from "@/hooks/plants/usePlantPersistence";
 import ErrorService from "@/services/ErrorService";
 import { registerForPush } from "@/services/PushRegistration";
-import { addPlant, deletePlant, updatePlant } from "@/store/userPlantsSlice";
+import {
+  addPlant,
+  deletePlant,
+  updatePlant,
+  upsertPlant,
+} from "@/store/userPlantsSlice";
 
 export const usePlantManagement = () => {
   const { user } = useContext(AuthContext);
@@ -34,7 +39,7 @@ export const usePlantManagement = () => {
       const userPlantData = await getUserPlantData(
         household.id,
         user.uid,
-        plant.id,
+        plant.id
       );
       setUserPlant(userPlantData || null);
     }
@@ -42,7 +47,7 @@ export const usePlantManagement = () => {
 
   const handleUserDataChange = <K extends keyof IUserPlant>(
     field: K,
-    value: IUserPlant[K],
+    value: IUserPlant[K]
   ) => {
     setUserPlant((prevUserData) => {
       const updatedUserData = prevUserData || {
@@ -61,7 +66,7 @@ export const usePlantManagement = () => {
 
   const handleSavePlant = async (
     updatedUserPlant: IUserPlant,
-    plant: IPlant,
+    plant: IPlant
   ) => {
     try {
       const savedPlant = await persistSavePlant(updatedUserPlant, plant);
@@ -89,18 +94,21 @@ export const usePlantManagement = () => {
 
       // Properly await backend removal with error handling and rollback
       const removed = await persistDeletePlant(plant.id);
-      
+
       if (!removed) {
         // Rollback the optimistic update if Firebase delete failed
-        dispatch(addPlant(plant));
-        ErrorService.handleError("Failed to remove plant from firebase", "Delete Plant");
+        dispatch(upsertPlant(plant));
+        ErrorService.handleError(
+          "Failed to remove plant from firebase",
+          "Delete Plant"
+        );
         return false;
       }
 
       return true;
     } catch (error) {
       // Rollback the optimistic update on error
-      dispatch(addPlant(plant));
+      dispatch(upsertPlant(plant));
       ErrorService.handleError(error, "Delete Plant");
       return false;
     }
@@ -110,7 +118,10 @@ export const usePlantManagement = () => {
     try {
       const updated = await persistUpdatePlant(updatedPlant);
       if (!updated) {
-        ErrorService.handleError("Failed to update plant in firebase", "Update Plant");
+        ErrorService.handleError(
+          "Failed to update plant in firebase",
+          "Update Plant"
+        );
         return false;
       }
 

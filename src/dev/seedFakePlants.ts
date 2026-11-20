@@ -1,4 +1,4 @@
-import auth from "@react-native-firebase/auth";
+import { getAuth, signInAnonymously } from "@react-native-firebase/auth";
 
 import { IPlant, IUserPlant } from "@/constants/IPlant";
 import saveBasePlantToFirebase from "@/helpers/firebase/saveToFirebase/saveBasePlantToFirebase";
@@ -428,14 +428,16 @@ const buildUserPlants = (userId: string): IUserPlant[] => [
 
 export async function seedFakePlants(options: SeedOptions = {}) {
   const { baseLimit = 8, userLimit = 8 } = options;
-  let user = auth().currentUser;
+  let user = getAuth().currentUser;
 
   if (!user) {
     try {
-      const creds = await auth().signInAnonymously();
+      const creds = await signInAnonymously(getAuth());
       user = creds.user;
     } catch (error) {
-      console.warn("seedFakePlants: sign-in failed; ensure auth is configured.");
+      console.warn(
+        "seedFakePlants: sign-in failed; ensure auth is configured."
+      );
       throw error;
     }
   }

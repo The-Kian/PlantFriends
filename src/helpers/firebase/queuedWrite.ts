@@ -16,7 +16,7 @@ export const QUEUED_WRITE_GRACE_MS = 3000;
 export async function queuedWrite(
   write: Promise<unknown>,
   context: string,
-  graceMs: number = QUEUED_WRITE_GRACE_MS,
+  graceMs: number = QUEUED_WRITE_GRACE_MS
 ): Promise<void> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let gaveUp = false;
@@ -34,7 +34,7 @@ export async function queuedWrite(
     (error: unknown) => {
       if (!gaveUp) throw error;
       recordHandledError(error, `${context} (after going offline)`);
-    },
+    }
   );
 
   try {

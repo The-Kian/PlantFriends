@@ -16,11 +16,14 @@ describe("indexRequests", () => {
       queryScope: "COLLECTION_GROUP",
       fields: [{ fieldPath: "notify_at", order: "ASCENDING" }],
     });
-    // The overrides replace the field's defaults, so those are kept too.
+    // The overrides replace the field's defaults, so the ascending and
+    // descending ones are kept. Nothing queries notify_at with array-contains,
+    // so that index is gone.
     expect(field.body.indexConfig.indexes).toContainEqual({
       queryScope: "COLLECTION",
-      fields: [{ fieldPath: "notify_at", arrayConfig: "CONTAINS" }],
+      fields: [{ fieldPath: "notify_at", order: "ASCENDING" }],
     });
+    expect(JSON.stringify(field.body)).not.toContain("CONTAINS");
   });
 
   it("creates composite indexes, tolerating ones that exist", () => {

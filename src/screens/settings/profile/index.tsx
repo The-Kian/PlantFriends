@@ -30,6 +30,7 @@ const ProfileSettingsScreen = () => {
   const { user, logout, update, deleteAccount } = useContext(AuthContext);
   const [displayName, setDisplayName] = useState(user?.displayName ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { colors, radius, shadow } = useTheme();
   const { notificationPrefs } = useHousehold();
   const [permission, setPermission] =
@@ -46,12 +47,12 @@ const ProfileSettingsScreen = () => {
       return () => {
         active = false;
       };
-    }, []),
+    }, [])
   );
 
   const handlePrefChange = async (
     key: "reminders" | "housemateActivity",
-    value: boolean,
+    value: boolean
   ) => {
     if (!user) return;
     try {
@@ -69,8 +70,17 @@ const ProfileSettingsScreen = () => {
       return;
     }
     setIsSaving(true);
-    await update({ displayName: displayName.trim() });
+    setSaved(false);
+    const ok = await update({ displayName: displayName.trim() });
     setIsSaving(false);
+    setSaved(ok);
+  };
+
+  const handleLogout = () => {
+    Alert.alert("Log out?", "You'll need to log in again to see your plants.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Log out", style: "destructive", onPress: () => logout() },
+    ]);
   };
 
   const handleDeleteAccount = () => {
@@ -84,7 +94,7 @@ const ProfileSettingsScreen = () => {
           style: "destructive",
           onPress: () => deleteAccount(),
         },
-      ],
+      ]
     );
   };
 
@@ -115,7 +125,7 @@ const ProfileSettingsScreen = () => {
             <View style={styles.hint}>
               <ThemedText type="caption">
                 Notifications are turned off for PlantFriends in your phone's
-                settings, so these switches have no effect.
+                settings, so reminders can't reach you.
               </ThemedText>
               <ThemedButton
                 onPress={openNotificationSettings}
@@ -130,12 +140,16 @@ const ProfileSettingsScreen = () => {
             description="When a plant is due, and a nudge the next day if it's still thirsty."
             value={notificationPrefs.reminders !== false}
             onValueChange={(value) => handlePrefChange("reminders", value)}
+            disabled={permission === "denied"}
           />
           <SwitchField
             label="When a housemate waters my plants"
             description="So you know it's done and don't water it twice."
             value={notificationPrefs.housemateActivity !== false}
-            onValueChange={(value) => handlePrefChange("housemateActivity", value)}
+            onValueChange={(value) =>
+              handlePrefChange("housemateActivity", value)
+            }
+            disabled={permission === "denied"}
           />
         </View>
 
@@ -156,8 +170,16 @@ const ProfileSettingsScreen = () => {
           <TextInputField
             label="Display Name"
             value={displayName}
-            onChangeText={setDisplayName}
+            onChangeText={(text) => {
+              setDisplayName(text);
+              setSaved(false);
+            }}
           />
+          {saved ? (
+            <ThemedText style={styles.saved} accessibilityLiveRegion="polite">
+              Saved
+            </ThemedText>
+          ) : null}
           <ThemedButton
             onPress={handleSaveName}
             title={isSaving ? "Saving..." : "Save name"}
@@ -176,7 +198,7 @@ const ProfileSettingsScreen = () => {
           />
         ) : null}
         <ThemedButton
-          onPress={logout}
+          onPress={handleLogout}
           title="Logout"
           icon="log-out-outline"
           variant="secondary"
@@ -225,6 +247,10 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: 0,
+  },
+  saved: {
+    marginBottom: Spacing.small,
+    fontWeight: "600",
   },
   spaced: {
     marginTop: Spacing.large,

@@ -11,7 +11,7 @@ describe("Collapsible", () => {
     return render(
       <Collapsible title="Test Title">
         <ThemedText>Test Content</ThemedText>
-      </Collapsible>,
+      </Collapsible>
     );
   };
 
@@ -42,19 +42,19 @@ describe("Collapsible", () => {
 
     // Initially, the icon should be 'chevron-forward-outline'
     expect(screen.getByTestId("collapsible-icon").props.name).toBe(
-      "chevron-forward-outline",
+      "chevron-forward-outline"
     );
 
     // Press to open
     fireEvent.press(titleElement);
     expect(screen.getByTestId("collapsible-icon").props.name).toBe(
-      "chevron-down",
+      "chevron-down"
     );
 
     // Press to close
     fireEvent.press(titleElement);
     expect(screen.getByTestId("collapsible-icon").props.name).toBe(
-      "chevron-forward-outline",
+      "chevron-forward-outline"
     );
   });
 });

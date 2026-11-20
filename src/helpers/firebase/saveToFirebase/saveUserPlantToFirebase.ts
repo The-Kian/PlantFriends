@@ -35,7 +35,7 @@ const CREATE_ONLY_FIELDS = [
 
 function pick<K extends keyof IUserPlant>(
   source: IUserPlant,
-  fields: readonly K[],
+  fields: readonly K[]
 ): Partial<IUserPlant> {
   const result: Partial<IUserPlant> = {};
   for (const field of fields) {
@@ -50,7 +50,7 @@ function pick<K extends keyof IUserPlant>(
 export function carersFor(
   shared: boolean,
   addedBy: string,
-  household: Pick<IHousehold, "memberIds">,
+  household: Pick<IHousehold, "memberIds">
 ): string[] {
   return shared ? [...household.memberIds] : [addedBy];
 }
@@ -63,7 +63,7 @@ export function carersFor(
 const saveUserPlantToFirebase = async (
   userPlant: IUserPlant,
   user: FirebaseAuthTypes.User,
-  household: Pick<IHousehold, "id" | "memberIds">,
+  household: Pick<IHousehold, "id" | "memberIds">
 ): Promise<boolean> => {
   const userPlantId = userPlant.id ?? uuid.v4().toString();
 
@@ -109,7 +109,7 @@ const saveUserPlantToFirebase = async (
   } catch (error) {
     console.error(
       "saveUserPlantToFirebase: Error saving user plant data: ",
-      error,
+      error
     );
     recordHandledError(error, "Save user plant");
     return false;

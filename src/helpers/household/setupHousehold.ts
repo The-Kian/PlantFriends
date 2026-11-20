@@ -19,10 +19,31 @@ import {
 // Firestore allows 500 writes per batch; leave room for the user doc write.
 const BATCH_SIZE = 400;
 
-/** A short name for the person, for "Kian's home" and "watered by Kian". */
-export function displayNameFor(user: FirebaseAuthTypes.User): string {
+// The name saved on the user's profile document, unless it's just their email
+// (older sign-ups saved that).
+function usableProfileName(
+  user: FirebaseAuthTypes.User,
+  profileName?: string | null
+): string {
+  const name = profileName?.trim();
+  if (!name || name === user.email) return "";
+  return name;
+}
+
+/**
+ * A short name for the person, for "Kian's home" and "watered by Kian".
+ * Prefers the name on their `Users` document, then their account's display
+ * name, then the start of their email.
+ */
+export function displayNameFor(
+  user: FirebaseAuthTypes.User,
+  profileName?: string | null
+): string {
   return (
-    user.displayName?.trim() || user.email?.split("@")[0] || "Plant friend"
+    usableProfileName(user, profileName) ||
+    user.displayName?.trim() ||
+    user.email?.split("@")[0] ||
+    "Plant friend"
   );
 }
 
@@ -41,14 +62,20 @@ export function deviceTimeZone(): string {
  * Housemates are linked by hand for now: see docs/household-sharing-plan.md.
  */
 export async function createSoloHousehold(
-  user: FirebaseAuthTypes.User,
+  user: FirebaseAuthTypes.User
 ): Promise<string> {
   const db = getFirestore();
   const householdId = user.uid;
   const ref = householdDoc(db, householdId);
 
   if (!docExists(await getDoc(ref))) {
-    const name = displayNameFor(user);
+    // Sign-up writes the entered name to the Users document, so it wins over
+    // an account that hasn't picked up its display name yet.
+    const profile = await getDoc(userDoc(db, user.uid));
+    const name = displayNameFor(
+      user,
+      (profile?.data?.() as { displayName?: string } | undefined)?.displayName
+    );
     await setDoc(ref, {
       name: `${name}'s home`,
       memberIds: [user.uid],
@@ -70,11 +97,11 @@ export async function createSoloHousehold(
  */
 export async function migrateUserPlants(
   user: FirebaseAuthTypes.User,
-  householdId: string,
+  householdId: string
 ): Promise<number> {
   const db = getFirestore();
   const oldPlants = await getDocs(
-    collection(userDoc(db, user.uid), "UserPlants"),
+    collection(userDoc(db, user.uid), "UserPlants")
   );
   const docs = oldPlants.docs ?? [];
 
@@ -91,7 +118,7 @@ export async function migrateUserPlants(
           carerIds: [user.uid],
           shared: false,
         },
-        { merge: true },
+        { merge: true }
       );
     }
     await batch.commit();
@@ -100,7 +127,7 @@ export async function migrateUserPlants(
   await setDoc(
     userDoc(db, user.uid),
     { plantsMigratedAt: serverTimestamp() },
-    { merge: true },
+    { merge: true }
   );
   return docs.length;
 }

@@ -13,7 +13,7 @@ interface UserDataSectionProps {
   userData: IUserPlant;
   onUserDataChange: <K extends keyof IUserPlant>(
     field: K,
-    value: IUserPlant[K],
+    value: IUserPlant[K]
   ) => void;
 }
 
@@ -79,7 +79,7 @@ const UserDataSection = ({
           const found = scheduleOptions.find((o) => o.label === label);
           onUserDataChange(
             "custom_watering_schedule",
-            found ? (found.days as number | null) : null,
+            found ? (found.days as number | null) : null
           );
         }}
         options={scheduleLabels}

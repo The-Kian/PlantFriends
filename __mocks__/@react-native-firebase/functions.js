@@ -1,12 +1,13 @@
 // __mocks__/@react-native-firebase/functions.js
+// Mirrors the modular API (getFunctions, httpsCallable).
 
-const _mockHttpsCallable = jest.fn(() => jest.fn(async () => ({ data: { plants: [] } })));
+// Tests override this to control the callable a name resolves to. It's
+// called with just the function name.
+export const _mockHttpsCallable = jest.fn(() =>
+  jest.fn(async () => ({ data: { plants: [] } })),
+);
 
-const functions = jest.fn(() => ({
-  httpsCallable: _mockHttpsCallable,
-}));
-
-// Expose helpers for tests to override the callable result.
-functions._mockHttpsCallable = _mockHttpsCallable;
-
-export default functions;
+export const getFunctions = jest.fn(() => ({}));
+export const httpsCallable = jest.fn((_functions, name) =>
+  _mockHttpsCallable(name),
+);

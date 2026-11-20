@@ -2,7 +2,12 @@ import * as AppleAuthentication from "expo-apple-authentication";
 
 import { Platform } from "react-native";
 
-import { fireEvent, render, screen } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
 
 import { AuthContext } from "@/context/auth/AuthProvider";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
@@ -13,7 +18,7 @@ const renderButtons = () =>
   render(
     <AuthContext.Provider value={mockAuthContextValue}>
       <SocialSignInButtons />
-    </AuthContext.Provider>,
+    </AuthContext.Provider>
   );
 
 describe("SocialSignInButtons", () => {
@@ -27,17 +32,23 @@ describe("SocialSignInButtons", () => {
     Platform.OS = originalPlatform;
   });
 
-  it("calls signInWithGoogle when the Google button is pressed", () => {
+  it("calls signInWithGoogle when the Google button is pressed", async () => {
     renderButtons();
     fireEvent.press(screen.getByTestId("google-sign-in"));
-    expect(mockAuthContextValue.signInWithGoogle).toHaveBeenCalled();
+    await waitFor(() =>
+      expect(mockAuthContextValue.signInWithGoogle).toHaveBeenCalled()
+    );
   });
 
   it("shows the Apple button on iOS when available", async () => {
     Platform.OS = "ios";
+    jest.mocked(AppleAuthentication.isAvailableAsync).mockResolvedValue(true);
     renderButtons();
-    fireEvent.press(await screen.findByTestId("apple-sign-in"));
-    expect(mockAuthContextValue.signInWithApple).toHaveBeenCalled();
+    const button = await screen.findByTestId("apple-sign-in");
+    fireEvent.press(button);
+    await waitFor(() =>
+      expect(mockAuthContextValue.signInWithApple).toHaveBeenCalled()
+    );
   });
 
   it("hides the Apple button on Android", () => {

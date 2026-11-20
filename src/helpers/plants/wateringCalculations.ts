@@ -2,7 +2,7 @@
 export const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
 export const SOON_THRESHOLD_DAYS = 3; // within 3 days is considered "soon"
 
-export type WateringUrgency = 'overdue' | 'urgent' | 'soon' | 'ok';
+export type WateringUrgency = "overdue" | "urgent" | "soon" | "ok";
 
 export interface WateringStatus {
   message: string;
@@ -45,35 +45,35 @@ export function getWateringStatus(daysUntil: number): WateringStatus {
   if (daysUntil < 0) {
     const overdueDays = Math.abs(daysUntil);
     return {
-      message: `Overdue by ${overdueDays} day${overdueDays === 1 ? '' : 's'}`,
-      urgency: 'overdue',
+      message: `Overdue by ${overdueDays} day${overdueDays === 1 ? "" : "s"}`,
+      urgency: "overdue",
     };
   }
 
   if (daysUntil === 0) {
     return {
-      message: 'Water today!',
-      urgency: 'urgent',
+      message: "Water today!",
+      urgency: "urgent",
     };
   }
 
   if (daysUntil === 1) {
     return {
-      message: 'Water tomorrow',
-      urgency: 'urgent',
+      message: "Water tomorrow",
+      urgency: "urgent",
     };
   }
 
   if (daysUntil <= SOON_THRESHOLD_DAYS) {
     return {
       message: `Water in ${daysUntil} days`,
-      urgency: 'soon',
+      urgency: "soon",
     };
   }
 
   return {
-    message: `Next watering in ${daysUntil} days`,
-    urgency: 'ok',
+    message: `Water in ${daysUntil} days`,
+    urgency: "ok",
   };
 }
 

@@ -1,12 +1,29 @@
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {
+  FirebaseAuthTypes,
+  createUserWithEmailAndPassword,
+  getAuth,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "@react-native-firebase/auth";
 import {
   collection,
   doc,
   getFirestore,
   setDoc,
 } from "@react-native-firebase/firestore";
-import functions from "@react-native-firebase/functions";
-import { useState, createContext, useEffect } from "react";
+import { getFunctions, httpsCallable } from "@react-native-firebase/functions";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  createContext,
+} from "react";
 
 import { Alert, Platform } from "react-native";
 
@@ -24,205 +41,225 @@ import { unregisterForPush } from "@/services/PushRegistration";
 
 import { AuthContextType, defaultAuthContext } from "./AuthTypes";
 
-
 export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
+
+/** A short name to fall back on: the part of the email before the "@". */
+function emailName(email: string): string {
+  return email.split("@")[0] || email;
+}
 
 export const AuthProvider = ({ children }: ProviderProps) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [initializing, setInitializing] = useState<boolean>(true);
 
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged((userState) => {
+  // While a sign-up is setting the new user's name, the auth listener must not
+  // publish the user. Otherwise the household would be created (and named)
+  // from an account that has no display name yet.
+  const holdingUser = useRef(false);
+
+  const publishUser = useCallback(
+    (userState: FirebaseAuthTypes.User | null) => {
       setUser(userState);
       setCrashReportingUser(userState?.uid ?? null);
+    },
+    []
+  );
 
-      if (initializing) {
-        setInitializing(false);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(getAuth(), (userState) => {
+      if (!holdingUser.current) {
+        publishUser(userState);
       }
+      setInitializing(false);
     });
 
     // Unsubscribe on unmount
-    return () => subscriber();
-  }, [initializing]);
+    return () => unsubscribe();
+  }, [publishUser]);
 
-  const login = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
-    try {
-      await auth().signInWithEmailAndPassword(email, password);
-    } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      if (nativeError.code === "auth/user-not-found") {
-        Alert.alert("User not found");
-      } else {
-        ErrorService.handleError(nativeError, "Login");
+  const login = useCallback(
+    async ({ email, password }: { email: string; password: string }) => {
+      try {
+        await signInWithEmailAndPassword(getAuth(), email, password);
+      } catch (error) {
+        ErrorService.handleError(error, "Login");
       }
-    }
-  };
+    },
+    []
+  );
 
-  const register = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }): Promise<void> => {
-    try {
-      const userCredential = await auth().createUserWithEmailAndPassword(
-        email,
-        password,
-      );
-      const user = userCredential.user;
-      const db = getFirestore();
+  const register = useCallback(
+    async ({
+      email,
+      password,
+      displayName,
+    }: {
+      email: string;
+      password: string;
+      displayName?: string;
+    }): Promise<void> => {
+      holdingUser.current = true;
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          getAuth(),
+          email,
+          password
+        );
+        const newUser = userCredential.user;
+        const name = displayName?.trim() || emailName(email);
 
-      // Merge: the household setup may already have written householdId.
-      await setDoc(
-        doc(collection(db, "Users"), user?.uid),
-        {
-          displayName: user?.displayName ?? email,
-          email: email,
-        },
-        { merge: true },
-      );
-    } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      if (nativeError.code === "auth/email-already-in-use") {
-        Alert.alert("That email address is already in use!");
-      } else if (nativeError.code === "auth/invalid-email") {
-        Alert.alert("That email address is invalid!");
-      } else {
-        ErrorService.handleError(nativeError, "Registration");
+        // The name is set before anything can read it: the user isn't
+        // published until this finishes.
+        try {
+          await updateProfile(newUser, { displayName: name });
+        } catch (error) {
+          // The Users document below still carries the name.
+          console.warn("Couldn't set the display name on the account:", error);
+        }
+
+        // Merge: the household setup may already have written householdId.
+        await setDoc(
+          doc(collection(getFirestore(), "Users"), newUser.uid),
+          { displayName: name, email },
+          { merge: true }
+        );
+      } catch (error) {
+        ErrorService.handleError(error, "Registration");
+      } finally {
+        holdingUser.current = false;
+        // Publish whoever is signed in now (nobody, if sign-up failed).
+        publishUser(getAuth().currentUser);
       }
-    }
-  };
+    },
+    [publishUser]
+  );
 
   /**
    * Signs in to Firebase with a Google/Apple credential and creates the
    * user's profile document the first time they sign in.
    */
-  const completeSocialSignIn = async (
-    credential: FirebaseAuthTypes.AuthCredential,
-    displayName: string | null = null,
-  ) => {
-    const userCredential = await auth().signInWithCredential(credential);
-    if (!userCredential.additionalUserInfo?.isNewUser) {
-      return;
-    }
+  const completeSocialSignIn = useCallback(
+    async (
+      credential: FirebaseAuthTypes.AuthCredential,
+      displayName: string | null = null
+    ) => {
+      holdingUser.current = true;
+      try {
+        const userCredential = await signInWithCredential(
+          getAuth(),
+          credential
+        );
+        if (!userCredential.additionalUserInfo?.isNewUser) {
+          return;
+        }
 
-    const newUser = userCredential.user;
-    if (displayName && !newUser.displayName) {
-      await newUser.updateProfile({ displayName });
-    }
-    const db = getFirestore();
-    await setDoc(
-      doc(collection(db, "Users"), newUser.uid),
-      {
-        displayName: displayName ?? newUser.displayName ?? newUser.email ?? "",
-        email: newUser.email,
-      },
-      { merge: true },
-    );
-    setUser(auth().currentUser);
-  };
+        const newUser = userCredential.user;
+        if (displayName && !newUser.displayName) {
+          await updateProfile(newUser, { displayName });
+        }
+        await setDoc(
+          doc(collection(getFirestore(), "Users"), newUser.uid),
+          {
+            displayName:
+              displayName ??
+              newUser.displayName ??
+              (newUser.email ? emailName(newUser.email) : ""),
+            email: newUser.email,
+          },
+          { merge: true }
+        );
+      } finally {
+        holdingUser.current = false;
+        publishUser(getAuth().currentUser);
+      }
+    },
+    [publishUser]
+  );
 
-  const handleSocialSignInError = (error: unknown, context: string) => {
-    const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-    if (nativeError.code === "auth/account-exists-with-different-credential") {
-      Alert.alert(
-        "Account already exists",
-        "An account with this email already exists. Sign in with the method you used before.",
-      );
-    } else {
-      ErrorService.handleError(nativeError, context);
-    }
-  };
-
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     try {
       const credential = await getGoogleCredential();
       if (!credential) return;
       await completeSocialSignIn(credential);
     } catch (error) {
-      handleSocialSignInError(error, "Google Sign-In");
+      ErrorService.handleError(error, "Google Sign-In");
     }
-  };
+  }, [completeSocialSignIn]);
 
-  const signInWithApple = async () => {
+  const signInWithApple = useCallback(async () => {
     try {
       const result = await getAppleCredential();
       if (!result) return;
       await completeSocialSignIn(result.credential, result.displayName);
     } catch (error) {
-      handleSocialSignInError(error, "Apple Sign-In");
+      ErrorService.handleError(error, "Apple Sign-In");
     }
-  };
+  }, [completeSocialSignIn]);
 
-  const update = async ({ displayName }: { displayName: string }) => {
-    const user = auth().currentUser;
-    if (user) {
+  /**
+   * Renames the signed-in user. The server updates their profile, their
+   * entry in the household's member list (which only it may write), and the
+   * household's name if it's still the automatic one.
+   */
+  const update = useCallback(
+    async ({ displayName }: { displayName: string }) => {
+      const currentUser = getAuth().currentUser;
+      if (!currentUser) return false;
       try {
-        await user.updateProfile({
-          displayName: displayName,
+        const callable = httpsCallable<
+          { displayName: string },
+          { displayName: string; householdName?: string }
+        >(getFunctions(), "updateDisplayName");
+        const result = await callable({ displayName });
+        await updateProfile(currentUser, {
+          displayName: result.data?.displayName ?? displayName,
         });
+        return true;
       } catch (error) {
-        const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-        Alert.alert("Error updating profile:", nativeError.message);
-      }
-      try {
-        const db = getFirestore();
-        await setDoc(
-          doc(collection(db, "Users"), user.uid),
-          {
-            displayName: displayName ?? user?.email,
-            email: user.email,
-          },
-          { merge: true },
-        );
-      } catch (error) {
-        const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-        Alert.alert("Error updating Firestore:", nativeError.message);
+        ErrorService.handleError(error, "Update Profile");
+        return false;
       } finally {
-        setUser(auth().currentUser);
+        publishUser(getAuth().currentUser);
       }
-    }
-  };
+    },
+    [publishUser]
+  );
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       // Notifications belong to this account; don't send them to the next
-      // person who signs in on this device.
-      const currentUser = auth().currentUser;
+      // person who signs in on this device. If this fails (say, offline),
+      // signing out still goes ahead.
+      const currentUser = getAuth().currentUser;
       if (currentUser) {
-        await unregisterForPush(currentUser.uid);
+        try {
+          await unregisterForPush(currentUser.uid);
+        } catch (error) {
+          console.warn("Couldn't unregister this device from push:", error);
+        }
       }
       await cancelAllWateringReminders();
       await signOutOfGoogle();
-      await auth().signOut();
+      await signOut(getAuth());
     } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      Alert.alert("Error logging out:", nativeError.message);
+      ErrorService.handleError(error, "Logout");
     }
-  };
+  }, []);
 
-  const resetPassword = async ({ email }: { email: string }) => {
+  const resetPassword = useCallback(async ({ email }: { email: string }) => {
     try {
-      await auth().sendPasswordResetEmail(email);
+      await sendPasswordResetEmail(getAuth(), email);
       Alert.alert(
         "Password reset email sent",
-        "Check your inbox for instructions to reset your password.",
+        "Check your inbox for instructions to reset your password."
       );
     } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      ErrorService.handleError(nativeError, "Reset Password");
+      ErrorService.handleError(error, "Reset Password");
     }
-  };
+  }, []);
 
-  const deleteAccount = async () => {
-    const currentUser = auth().currentUser;
+  const deleteAccount = useCallback(async () => {
+    const currentUser = getAuth().currentUser;
     if (!currentUser) return;
 
     try {
@@ -233,37 +270,50 @@ export const AuthProvider = ({ children }: ProviderProps) => {
         const appleResult = await getAppleCredential();
         if (!appleResult) return;
         if (appleResult.authorizationCode) {
-          await auth().revokeToken(appleResult.authorizationCode);
+          await getAuth().revokeToken(appleResult.authorizationCode);
         }
       }
 
       // The Cloud Function anonymises the user's plants, deletes their
       // Firestore data and deletes the auth user with the Admin SDK.
-      await functions().httpsCallable("deleteAccount")();
+      await httpsCallable(getFunctions(), "deleteAccount")();
 
       await cancelAllWateringReminders();
       await signOutOfGoogle();
-      await auth().signOut();
+      await signOut(getAuth());
       Alert.alert("Account deleted", "Your account has been removed.");
     } catch (error) {
-      const nativeError = error as FirebaseAuthTypes.NativeFirebaseAuthError;
-      ErrorService.handleError(nativeError, "Delete Account");
+      ErrorService.handleError(error, "Delete Account");
     }
-  };
+  }, []);
 
-  const value: AuthContextType = {
-    initializing,
-    user,
-    setUser,
-    login,
-    register,
-    logout,
-    update,
-    resetPassword,
-    deleteAccount,
-    signInWithGoogle,
-    signInWithApple,
-  };
+  const value = useMemo<AuthContextType>(
+    () => ({
+      initializing,
+      user,
+      setUser,
+      login,
+      register,
+      logout,
+      update,
+      resetPassword,
+      deleteAccount,
+      signInWithGoogle,
+      signInWithApple,
+    }),
+    [
+      initializing,
+      user,
+      login,
+      register,
+      logout,
+      update,
+      resetPassword,
+      deleteAccount,
+      signInWithGoogle,
+      signInWithApple,
+    ]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -16,6 +16,12 @@ jest.mock("@react-navigation/native", () => {
   };
 });
 
+// The cards would fetch their species after the test has finished.
+jest.mock("@/hooks/plants/useMergedPlant", () => ({
+  __esModule: true,
+  default: () => ({ mergedPlant: null, loading: false }),
+}));
+
 describe("HomeScreen", () => {
   const renderHome = () => renderWithProviders(<HomeScreen />);
 

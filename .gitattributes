@@ -1,0 +1,15 @@
+# Store and check out text files with LF, matching .prettierrc (endOfLine: lf),
+# so Windows checkouts with core.autocrlf pass format:check.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.jar binary
+*.keystore binary
+*.jks binary

@@ -9,7 +9,7 @@ export const MIN_PASSWORD_LENGTH = 6;
  */
 function validateCredentials(
   credentials: CredentialsType,
-  authScreenType: string,
+  authScreenType: string
 ): { isValid: boolean; message?: string } {
   let { email, password } = credentials;
   const { confirmEmail, confirmPassword } = credentials;
@@ -28,7 +28,10 @@ function validateCredentials(
   }
   if (authScreenType === "signUp") {
     if (email !== confirmEmail?.trim()) {
-      return { isValid: false, message: "The two email addresses don't match." };
+      return {
+        isValid: false,
+        message: "The two email addresses don't match.",
+      };
     }
     if (password !== confirmPassword?.trim()) {
       return { isValid: false, message: "The two passwords don't match." };

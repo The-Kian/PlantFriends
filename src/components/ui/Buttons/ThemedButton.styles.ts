@@ -23,7 +23,12 @@ export const useThemedButtonStyles = () => {
       transform: [{ scale: 0.98 }],
     },
     buttonDisabled: {
-      opacity: 0.5,
+      backgroundColor: theme.colors.surfaceMuted,
+      borderWidth: 1.5,
+      borderColor: theme.colors.border,
+    },
+    buttonTextDisabled: {
+      color: theme.colors.textMuted,
     },
     buttonText: {
       textAlign: "center",

@@ -21,28 +21,32 @@ describe("usePlantPersistence", () => {
   describe("persistSavePlant", () => {
     it("should call savePlantToFirebase with user when user exists", async () => {
       (savePlantToFirebase as jest.Mock).mockResolvedValue(mockUserPlant);
-      const { result } = renderHook(() => usePlantPersistence(mockUser, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(mockUser, mockHousehold)
+      );
 
       const savedPlant = await result.current.persistSavePlant(
         mockUserPlant,
-        mockPlant,
+        mockPlant
       );
 
       expect(savePlantToFirebase).toHaveBeenCalledWith(
         mockUserPlant,
         mockPlant,
         mockUser,
-        mockHousehold,
+        mockHousehold
       );
       expect(savedPlant).toEqual(mockUserPlant);
     });
 
     it("should return null when user is null", async () => {
-      const { result } = renderHook(() => usePlantPersistence(null, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(null, mockHousehold)
+      );
 
       const savedPlant = await result.current.persistSavePlant(
         mockUserPlant,
-        mockPlant,
+        mockPlant
       );
 
       expect(savePlantToFirebase).not.toHaveBeenCalled();
@@ -52,10 +56,12 @@ describe("usePlantPersistence", () => {
     it("should propagate error from savePlantToFirebase", async () => {
       const error = new Error("Firebase save failed");
       (savePlantToFirebase as jest.Mock).mockRejectedValue(error);
-      const { result } = renderHook(() => usePlantPersistence(mockUser, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(mockUser, mockHousehold)
+      );
 
       await expect(
-        result.current.persistSavePlant(mockUserPlant, mockPlant),
+        result.current.persistSavePlant(mockUserPlant, mockPlant)
       ).rejects.toThrow("Firebase save failed");
     });
   });
@@ -63,20 +69,24 @@ describe("usePlantPersistence", () => {
   describe("persistDeletePlant", () => {
     it("should call removeUserPlantFromFirebase with user when user exists", async () => {
       (removeUserPlantFromFirebase as jest.Mock).mockResolvedValue(true);
-      const { result } = renderHook(() => usePlantPersistence(mockUser, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(mockUser, mockHousehold)
+      );
 
       const removed = await result.current.persistDeletePlant(mockUserPlant.id);
 
       expect(removeUserPlantFromFirebase).toHaveBeenCalledWith(
         mockUserPlant.id,
         mockUser,
-        mockHousehold.id,
+        mockHousehold.id
       );
       expect(removed).toBe(true);
     });
 
     it("should return false when user is null", async () => {
-      const { result } = renderHook(() => usePlantPersistence(null, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(null, mockHousehold)
+      );
 
       const removed = await result.current.persistDeletePlant(mockUserPlant.id);
 
@@ -87,10 +97,12 @@ describe("usePlantPersistence", () => {
     it("should propagate error from removeUserPlantFromFirebase", async () => {
       const error = new Error("Firebase delete failed");
       (removeUserPlantFromFirebase as jest.Mock).mockRejectedValue(error);
-      const { result } = renderHook(() => usePlantPersistence(mockUser, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(mockUser, mockHousehold)
+      );
 
       await expect(
-        result.current.persistDeletePlant(mockUserPlant.id),
+        result.current.persistDeletePlant(mockUserPlant.id)
       ).rejects.toThrow("Firebase delete failed");
     });
   });
@@ -98,20 +110,24 @@ describe("usePlantPersistence", () => {
   describe("persistUpdatePlant", () => {
     it("should call saveUserPlantToFirebase with user when user exists", async () => {
       (saveUserPlantToFirebase as jest.Mock).mockResolvedValue(true);
-      const { result } = renderHook(() => usePlantPersistence(mockUser, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(mockUser, mockHousehold)
+      );
 
       const updated = await result.current.persistUpdatePlant(mockUserPlant);
 
       expect(saveUserPlantToFirebase).toHaveBeenCalledWith(
         mockUserPlant,
         mockUser,
-        mockHousehold,
+        mockHousehold
       );
       expect(updated).toBe(true);
     });
 
     it("should return false when user is null", async () => {
-      const { result } = renderHook(() => usePlantPersistence(null, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(null, mockHousehold)
+      );
 
       const updated = await result.current.persistUpdatePlant(mockUserPlant);
 
@@ -122,10 +138,12 @@ describe("usePlantPersistence", () => {
     it("should propagate error from saveUserPlantToFirebase", async () => {
       const error = new Error("Firebase update failed");
       (saveUserPlantToFirebase as jest.Mock).mockRejectedValue(error);
-      const { result } = renderHook(() => usePlantPersistence(mockUser, mockHousehold));
+      const { result } = renderHook(() =>
+        usePlantPersistence(mockUser, mockHousehold)
+      );
 
       await expect(
-        result.current.persistUpdatePlant(mockUserPlant),
+        result.current.persistUpdatePlant(mockUserPlant)
       ).rejects.toThrow("Firebase update failed");
     });
   });

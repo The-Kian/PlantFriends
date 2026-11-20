@@ -16,12 +16,16 @@ export function errorCode(error: unknown): string {
   return typeof error === "object" && error !== null && "code" in error
     ? String((error as { code: unknown }).code).replace(
         /^(functions|firestore|auth)\//,
-        "",
+        ""
       )
     : "";
 }
 
-const OFFLINE_CODES = ["unavailable", "deadline-exceeded", "network-request-failed"];
+const OFFLINE_CODES = [
+  "unavailable",
+  "deadline-exceeded",
+  "network-request-failed",
+];
 
 /** True when a call failed because the phone couldn't reach the server. */
 export function isOfflineError(error: unknown): boolean {
@@ -41,7 +45,10 @@ export function isRateLimited(error: unknown): boolean {
 }
 
 /** What to show under the search box when a search failed. */
-export function searchErrorMessage(error: unknown, hasResults: boolean): string {
+export function searchErrorMessage(
+  error: unknown,
+  hasResults: boolean
+): string {
   if (isOfflineError(error)) {
     return "You're offline. Searching needs a connection.";
   }
