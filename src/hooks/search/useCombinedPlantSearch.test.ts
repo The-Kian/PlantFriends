@@ -6,7 +6,10 @@ import { fetchTreflePlants } from "@/helpers/plants/plantAPI/fetchTreflePlants";
 import ErrorService from "@/services/ErrorService";
 import { mockPlant, mockPlant2 } from "@/test-utils/MockPlant";
 
-import { useCombinedPlantSearch } from "./useCombinedPlantSearch";
+import {
+  combineResults,
+  useCombinedPlantSearch,
+} from "./useCombinedPlantSearch";
 
 jest.mock("@/helpers/plants/plantAPI/fetchTreflePlants", () => ({
   fetchTreflePlants: jest.fn(),
@@ -141,6 +144,18 @@ describe("useCombinedPlantSearch", () => {
     const { result } = renderSearch("monstera");
     await flushSearch();
     expect(result.current.plants).toEqual([catalogue, other]);
+  });
+
+  it("drops a Trefle plant whose scientific name is a catalogue plant's name", () => {
+    // Seen on the emulator: the catalogue entry has no scientific_name.
+    const catalogue = { ...mockPlant, id: "c1", name: "Monstera Deliciosa" };
+    const duplicate = {
+      ...mockPlant2,
+      id: "t1",
+      name: "Fruit-salad-plant",
+      scientific_name: ["Monstera deliciosa"],
+    };
+    expect(combineResults([catalogue], [duplicate])).toEqual([catalogue]);
   });
 
   it("doesn't search for a single character", async () => {

@@ -13,14 +13,21 @@ const firstScientificName = (plant: IPlant) =>
 /**
  * The catalogue's plants first, then Trefle's, without repeats: by id or name,
  * and without a Trefle plant whose scientific name is one a catalogue plant
- * already has ("Fruit-salad-plant" next to "Monstera Deliciosa").
+ * already has ("Fruit-salad-plant" next to "Monstera Deliciosa"). Some
+ * catalogue plants only carry the species as their name, with no
+ * scientific_name, so the names count too.
  */
 export function combineResults(
   catalogue: IPlant[],
   trefle: IPlant[]
 ): IPlant[] {
   const known = new Set(
-    catalogue.map(firstScientificName).filter((name) => name !== "")
+    catalogue
+      .flatMap((plant) => [
+        firstScientificName(plant),
+        plant.name?.trim().toLowerCase() ?? "",
+      ])
+      .filter((name) => name !== "")
   );
   const extra = trefle.filter((plant) => {
     const name = firstScientificName(plant);

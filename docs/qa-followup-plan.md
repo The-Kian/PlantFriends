@@ -17,17 +17,17 @@ Line numbers are from `eb8721f` and will drift; search for the names given.
 
 ## Status
 
-| # | Session | Depends on | Size | Status |
-|---|---------|-----------|------|--------|
-| A | Leftover small fixes | none | S | Done (no Copy button: expo-clipboard is not a dependency) |
-| B | Names that stay right | none | M | Done (Kian: deploy functions, two-phone rename check) |
-| C | Edit a plant, notes, per-plant settings | none | M–L | Not started |
-| D | Watering history and undo | C (shares the details screen) | M | Not started |
-| E | Household plant rules and invite lifecycle | none | M | Done; what a leaving member keeps unchanged (Kian: run rules tests on JDK 21, deploy, TTL) |
-| F | Reliable reminders | none | M | Done (Kian: deploy functions, delete old index) |
-| G | Start-up, offline and listener robustness | none | M | Done except the offline notes in the UI (see Found along the way) |
-| H | Housekeeping: line endings, modular Firebase, test noise, deps | none | M (spread out) | Done except the dependency upgrades and audit overrides |
-| I | Features: snooze, photos, rooms, search and sort | C, D | L | Not started |
+| #   | Session                                                        | Depends on                    | Size           | Status                                                                                     |
+| --- | -------------------------------------------------------------- | ----------------------------- | -------------- | ------------------------------------------------------------------------------------------ |
+| A   | Leftover small fixes                                           | none                          | S              | Done (no Copy button: expo-clipboard is not a dependency)                                  |
+| B   | Names that stay right                                          | none                          | M              | Done (Kian: deploy functions, two-phone rename check)                                      |
+| C   | Edit a plant, notes, per-plant settings                        | none                          | M–L            | Not started                                                                                |
+| D   | Watering history and undo                                      | C (shares the details screen) | M              | Not started                                                                                |
+| E   | Household plant rules and invite lifecycle                     | none                          | M              | Done; what a leaving member keeps unchanged (Kian: run rules tests on JDK 21, deploy, TTL) |
+| F   | Reliable reminders                                             | none                          | M              | Done (Kian: deploy functions, delete old index)                                            |
+| G   | Start-up, offline and listener robustness                      | none                          | M              | Done; checked on an emulator 21 Nov (see `docs/release-plan.md`)                           |
+| H   | Housekeeping: line endings, modular Firebase, test noise, deps | none                          | M (spread out) | Done except the dependency upgrades and audit overrides                                    |
+| I   | Features: snooze, photos, rooms, search and sort               | C, D                          | L              | Not started                                                                                |
 
 A, B, E, F, G and H don't touch the same files much and can run in parallel.
 C before D; I last.
@@ -75,7 +75,7 @@ Each is a few lines. Do them as one PR.
       builds behave like release builds by default.
 - [ ] **Dead branch in login.** `AuthProvider.tsx` `login()` has an
       `auth/user-not-found` branch with a bare `Alert.alert("User not
-      found")`. Email enumeration protection means it never fires; route
+    found")`. Email enumeration protection means it never fires; route
       everything through `ErrorService`. Do the same for the bare alerts in
       `register`, `update` and `logout` (search `Alert.alert(` in that file).
 - [ ] **Alert titles.** `ErrorService.showAlert` uses the context string as
@@ -102,28 +102,20 @@ Each is a few lines. Do them as one PR.
       button for no results, and don't search until 2 characters.
 - [x] **De-duplicate search results.** The same species appears twice, once
       from the catalogue ("Monstera Deliciosa") and once from Trefle
-      ("Fruit-salad-plant", scientific name *Monstera deliciosa*). In
+      ("Fruit-salad-plant", scientific name _Monstera deliciosa_). In
       `useCombinedPlantSearch`, drop Trefle results whose first scientific
       name matches a catalogue plant's, ignoring case.
-- [x] **Copy and contrast.**
-      - `mapTreflePlantToIPlant.ts:116` builds "A Araceae species"; use
-        "A plant in the Araceae family".
-      - Make the watering copy consistent: "Water in 3 days" vs "Next
-        watering in 6 days" (`getWateringStatus`).
-      - The `warning` amber (`Colors.ts:21`, `#C4842A`) on the pale card is
-        about 2.9:1. Darken it to reach 4.5:1 for text.
-      - The disabled button style is nearly invisible.
-- [x] **Visual bits.**
-      - The "Watering Logged!" splash is see-through (`WateringSplash.tsx`
-        uses hard-coded colours and `Colors.light`); give it the theme's
-        `surface` background.
-      - Switches use the system teal; set `trackColor` and `thumbColor` from
-        the theme.
-      - Plant cards and the details hero need an `onError` fallback to the
-        leaf placeholder (seen with "Watermelon").
-      - The customisation modal close button is 36dp
-        (`plantCustomization.styles.ts:50`) and the household remove icon has
-        `minHeight: 28`; make both at least 48dp, or add `hitSlop`.
+- [x] **Copy and contrast.** - `mapTreflePlantToIPlant.ts:116` builds "A Araceae species"; use
+      "A plant in the Araceae family". - Make the watering copy consistent: "Water in 3 days" vs "Next
+      watering in 6 days" (`getWateringStatus`). - The `warning` amber (`Colors.ts:21`, `#C4842A`) on the pale card is
+      about 2.9:1. Darken it to reach 4.5:1 for text. - The disabled button style is nearly invisible.
+- [x] **Visual bits.** - The "Watering Logged!" splash is see-through (`WateringSplash.tsx`
+      uses hard-coded colours and `Colors.light`); give it the theme's
+      `surface` background. - Switches use the system teal; set `trackColor` and `thumbColor` from
+      the theme. - Plant cards and the details hero need an `onError` fallback to the
+      leaf placeholder (seen with "Watermelon"). - The customisation modal close button is 36dp
+      (`plantCustomization.styles.ts:50`) and the household remove icon has
+      `minHeight: 28`; make both at least 48dp, or add `hitSlop`.
 - [x] **Feedback.** Show "Saved" after renaming on Profile. Ask for
       confirmation on Logout. After adding a plant, open its details rather
       than going to Home (`PlantSearch/index.tsx`
@@ -153,6 +145,7 @@ and the member list says "pf.e2e.b.85390". Renaming on Profile updates only
 production plan's "Found along the way").
 
 **Cause.**
+
 1. `signup.tsx` calls `register({ email, password })` and then
    `update({ displayName })`.
 2. `createUserWithEmailAndPassword` fires `onAuthStateChanged` straight away
@@ -166,8 +159,9 @@ production plan's "Found along the way").
    `Users/{uid}.displayName`.
 
 **Plan.**
+
 1. Pass `displayName` into `register`. After the account is created, call
-   `updateProfile(user, { displayName })` *before* anything reads the name,
+   `updateProfile(user, { displayName })` _before_ anything reads the name,
    and write `Users/{uid}.displayName` with the entered name rather than the
    email.
 2. Make household setup wait for the name: in `HouseholdProvider`, when the
@@ -186,12 +180,14 @@ production plan's "Found along the way").
 4. Call it from `AuthProvider.update`.
 
 **Tests.**
+
 - Jest for `register` passing the name through.
 - `HouseholdProvider` choosing the right name.
 - `functions/households.test.js` for the callable, using `fakeFirestore`.
 - A rules test if the rules change.
 
 **Done when.**
+
 - A fresh sign-up as "Sam" shows "Sam's home" and "Sam (you)" on first load.
 - Renaming to "Sammy" updates the other phone's member list within a few
   seconds.
@@ -204,6 +200,7 @@ on two phones.
 ## Session C: Edit a plant, notes, per-plant settings
 
 **Problem.**
+
 - Once added, a plant can't be changed. The only action is delete.
 - Plant details has only Back and Log Watering.
 - The details screen has a "Your Notes" card (`PlantDetails/index.tsx`
@@ -217,6 +214,7 @@ on two phones.
   isn't rewritten. Only "Custom Name" sticks.
 
 **Plan.**
+
 1. Add an **Edit** button on Plant details that opens the existing
    customisation modal and `PlantForm` in edit mode, pre-filled from the
    `IUserPlant`.
@@ -242,11 +240,13 @@ on two phones.
    `queuedWrite` for the delete so it doesn't hang offline.
 
 **Tests.**
+
 - `PlantForm` in edit mode.
 - `usePlantManagement` update and delete rollback.
 - Rules tests for editing allowed and forbidden keys.
 
 **Done when.**
+
 - You can rename a plant, move its room, change its schedule, add notes,
   and switch reminders and sharing off and on from details.
 - All of it survives an app restart and shows on the other phone.
@@ -259,6 +259,7 @@ on two phones.
 history view.
 
 **Plan.**
+
 1. Check how `logWatering.ts` stores waterings today: it sets
    `last_watered_date` and `last_watered_by`. Add a `Waterings` subcollection
    under the household plant (`{ at, by, byName }`), written in the same
@@ -284,6 +285,7 @@ what they were on both phones. History shows the last waterings with names.
 ## Session E: Household plant rules and invite lifecycle
 
 **Problem.**
+
 1. Any household member can update or delete any household plant, including
    a housemate's personal one (`firestore.rules`,
    `/Households/{hid}/Plants/{plantId}`: `allow delete: if isMember(hid)`,
@@ -303,6 +305,7 @@ what they were on both phones. History shows the last waterings with names.
    but it's broader than needed.
 
 **Plan.**
+
 1. Rules for household plants:
    - Delete only if `resource.data.addedBy == request.auth.uid`, or the plant
      is `shared == true`, or the user is in `carerIds`.
@@ -330,6 +333,7 @@ what they were on both phones. History shows the last waterings with names.
    the name write server-side.
 
 **Done when.**
+
 - Rules tests cover each case.
 - On two phones, B can't delete A's personal plant (no button, and the rule
   denies it).
@@ -344,6 +348,7 @@ functions, set the TTL policy, and run section 4 of `docs/TEST_SCRIPT.md`.
 ## Session F: Reliable reminders
 
 **Problem.**
+
 1. `reminders.js` (around 181-204) moves a plant's `notify_stage` forward
    before the push is accepted. If `push.js` fails, the first reminder is
    lost.
@@ -362,6 +367,7 @@ functions, set the TTL policy, and run section 4 of `docs/TEST_SCRIPT.md`.
      duplicates them (around 219-224); use the plant ID.
 
 **Plan.**
+
 1. Claim, then send, then confirm:
    - The claim writes `notify_stage: "sending"` with a lease timestamp.
    - On success, advance the stage.
@@ -390,6 +396,7 @@ hours for watered pushes, and a duplicate trigger.
 ## Session G: Start-up, offline and listener robustness
 
 **Problem.**
+
 1. `AuthProvider`'s `initializing` is never read, so signed-in users see
    Login briefly on every cold start.
 2. `RootLayout.tsx` (around 290) calls `createStackNavigator()` inside the
@@ -412,6 +419,7 @@ hours for watered pushes, and a duplicate trigger.
    a small "Will sync when you're online" note.
 
 **Plan.**
+
 1. Show the splash or a spinner while `initializing`.
 2. Move the navigator to module scope and `useMemo` the context value.
 3. Don't cache fetch failures (retry on the next render or on reconnect).
@@ -425,6 +433,7 @@ hours for watered pushes, and a duplicate trigger.
 6. Watering: show the splash optimistically.
 
 **Done when.**
+
 - A cold start of a signed-in app goes straight to Home.
 - Starting in airplane mode shows plants by nickname with no alerts.
 - Join and leave log no permission errors.
@@ -442,25 +451,17 @@ Split this into small PRs.
       `format:check` to CI.
 - [ ] **React Native Firebase modular API.** Each flow logs dozens of
       "namespaced API deprecated" warnings, and v23+ removes the namespaced
-      API. Call sites:
-      - `AuthProvider.tsx`: about 13 `auth()`, 1 `functions()`, and
-        `user.updateProfile`.
-      - `socialAuth.ts`: `auth.GoogleAuthProvider`, `auth.AppleAuthProvider`.
-      - `helpers/household/invites.ts`: `functions()` ×5.
-      - `fetchTreflePlants.ts`: `functions()`.
-      - `services/AppCheck.ts`.
-      - `dev/seedFakePlants.ts`.
+      API. Call sites: - `AuthProvider.tsx`: about 13 `auth()`, 1 `functions()`, and
+      `user.updateProfile`. - `socialAuth.ts`: `auth.GoogleAuthProvider`, `auth.AppleAuthProvider`. - `helpers/household/invites.ts`: `functions()` ×5. - `fetchTreflePlants.ts`: `functions()`. - `services/AppCheck.ts`. - `dev/seedFakePlants.ts`.
       Migrate one file per commit and update the `__mocks__` to match.
 - [x] **Test noise.** 22 `act()` warnings (SocialSignInButtons 11,
       HookContainer 4, ProfileSettingsScreen 4, StackView 3) and 2
       InteractionManager deprecation warnings. Fix the awaits so `pnpm test`
       prints nothing on a pass.
-- [ ] **Dependencies.**
-      - `pnpm audit --prod` shows 6 high and 4 moderate advisories (picomatch,
-        glob, minimatch, uuid), mostly build-time via the Expo font and icon
-        tree. Add pnpm overrides where safe.
-      - Plan the Expo SDK 55 → 58 / React Native 0.83 → 0.88 / RN Firebase
-        22 → 27 upgrade as its own session after the modular migration.
+- [ ] **Dependencies.** - `pnpm audit --prod` shows 6 high and 4 moderate advisories (picomatch,
+      glob, minimatch, uuid), mostly build-time via the Expo font and icon
+      tree. Add pnpm overrides where safe. - Plan the Expo SDK 55 → 58 / React Native 0.83 → 0.88 / RN Firebase
+      22 → 27 upgrade as its own session after the modular migration.
 - [ ] `useFirebasePlantSearch` looks unused (already logged); remove it if so.
 - [ ] Remove the unused `notify_at` CONTAINS index from
       `firestore.indexes.json` if nothing queries it (check `reminders.js`
@@ -511,6 +512,16 @@ short design note before coding.
 
 ## Found along the way
 
+- (Emulator, 21 November 2026) The add-plant form's Save button stays
+  behind the keyboard, and Back or Escape with the keyboard closed dismisses
+  the whole form, losing what was typed. Close the keyboard with its ✓ key
+  first. Worth a KeyboardAvoidingView and a "discard?" check.
+- (Emulator) Catalogue plants such as `monstera-deliciosa` have no
+  `scientific_name`, only `name` and `slug`. Search now matches on the name
+  as well.
+- (Emulator) The Profile Display Name field starts empty rather than
+  showing the current name.
+
 - ~~Invite join error message~~ Fixed: `invites.ts` uses the same text.
 - ~~Profile "Saved" after a failed rename~~ Fixed: `update` returns whether it worked.
 - `PlantCacheService.test.ts` prints a `console.warn` on a passing test; mock it
@@ -519,7 +530,7 @@ short design note before coding.
   household listener hasn't delivered the plant yet the screen briefly shows
   "Plant not found".
 - ~~Rules tests picked up by Jest in a worktree~~ Fixed in `jest.config.js`.
-- The "Details unavailable offline" and "Will sync when you're online" notes (session G) aren't built; `useMergedPlant` returns `unavailable` for the first.
+- ~~The "Details unavailable offline" and "Will sync" notes~~ Built on `release-prep` (ported from the parallel branch).
 - Rules tests for session E were written but not run: the emulator needs JDK 21 and this machine has 17.
 - Session H dependency work (audit overrides, Expo 58 / RN 0.88 / RN Firebase 27) is left for its own session.
 

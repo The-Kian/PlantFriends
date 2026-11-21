@@ -25,20 +25,44 @@ each step says who does it. Tick items in the PR that finishes them.
 
 ## Step 1: One QA branch (Claude, then Kian reviews)
 
-- [ ] Choose the base. Recommended: `qa-followups` (larger, newer, has the
+- [x] Choose the base. Recommended: `qa-followups` (larger, newer, has the
       CI and Jest fixes). Diff `ccr-9604bb5d-44qfha` against it and bring
       over only what it lacks, then retire the ccr branch.
-- [ ] Settle the reminders index: `qa-followups` drops the `notify_at`
+- [x] Settle the reminders index: `qa-followups` drops the `notify_at`
       index, so confirm `sendWateringReminders`' query works without it (or
       keep it) before deploying.
-- [ ] `pnpm validate`, `cd functions && npm test`, rules tests. The rules
+- [x] `pnpm validate`, `cd functions && npm test`, rules tests. The rules
       tests need **JDK 21** locally (Kian: install it, or rely on CI).
-- [ ] Old-build check: list every client write to `Users/{uid}` and plant
+- [x] Old-build check: list every client write to `Users/{uid}` and plant
       docs, and confirm the new rules accept what the **current tester
       build** writes. Merging deploys rules and functions automatically
       (`docs/RELEASE.md`), so a rule that refuses old builds must wait until
       testers have the new build.
 - [ ] Open one PR to `main` (Kian approves opening it).
+
+## Step 1 notes (21 November 2026, branch `release-prep`)
+
+- `release-prep` is `main` + `qa-followups` (main's #99 is identical to
+  `qa-followups`' first commit, so conflicts were taken from `qa-followups`)
+  - this plan. From `ccr-9604bb5d-44qfha` it adds what `qa-followups`
+    lacked: the `Users/{uid}` key allowlist and no client delete, Delete
+    hidden where the rules refuse it (`helpers/plants/permissions.ts`), the
+    "Saved on this phone" and "Details unavailable offline" notes, waiting
+    4 s for a just-added plant, and `canAskAgain` for notification
+    permission. The ccr branch can be deleted once this merges.
+- Index: `qa-followups` only drops an unused `CONTAINS` entry; the
+  `notify_at` collection-group index stays. It has **never deployed**
+  (every Deploy on merge run skipped the indexes job, because
+  `firestore.indexes.json` hadn't changed). This branch changes the file,
+  so merging deploys it. `sendWateringReminders` itself did deploy on
+  15 November (run 43754384744), so the scheduler permission is fixed.
+- Old builds: every client write to `Users/{uid}`, on `main` and on this
+  branch, uses only `displayName`, `email`, `householdId` (own solo
+  household), `notificationPrefs`, `timeZone`, `plantsMigratedAt`, and no
+  build deletes the profile. Nothing a current tester build does is
+  refused by the new rules.
+- `pnpm validate` and the functions tests pass. Rules tests not run
+  locally (JDK 17 here; CI runs them).
 
 ## Step 2: Phone check before merge (Kian, Claude can drive an emulator)
 
@@ -47,24 +71,33 @@ check the QA follow-up items:
 
 - [ ] Sign up with a display name, keyboard open: household is
       "<Name>'s home", member list shows "<Name> (you)". Password show/hide.
-- [ ] Cold start while signed in goes straight to Home, no Login flash.
-- [ ] Search: hint before typing, nothing under 2 characters, "No plants
+- [x] Cold start while signed in goes straight to Home, no Login flash.
+- [x] Search: hint before typing, nothing under 2 characters, "No plants
       match" with "Add it yourself", no duplicate species.
-- [ ] Adding a plant opens its details.
-- [ ] Log Watering: instant splash; offline shows the "Saved on this phone"
+- [x] Adding a plant opens its details.
+- [x] Log Watering: instant splash; offline shows the "Saved on this phone"
       message, which clears once back online.
-- [ ] Starting offline shows plants by nickname with no alerts.
+- [x] Starting offline shows plants by nickname with no alerts.
 - [ ] Profile: rename shows "Saved"; Logout confirms; invite code field
       uppercases and adds the hyphen; notification switches grey out only
       after a permanent refusal.
 
 Fix what fails in the same PR, with tests.
 
+Run on the Android emulator on 21 November 2026 (signed in as the `test`
+account): cold start, search, add, watering online and offline, start
+offline, Logout, invite code field and the notification switches all pass.
+Search showed Monstera deliciosa twice (catalogue entry with no
+`scientific_name`); fixed. Not done yet: sign-up (needs a new account),
+and rename "Saved", which fails with NOT_FOUND until `updateDisplayName`
+is deployed (re-check after Step 3). The invite field drops 0, 1, I, L
+and O on purpose (not in the code alphabet).
+
 ## Step 3: Merge and deploy (Kian)
 
 - [ ] Merge the PR. **Deploy on merge** deploys functions, rules and
       indexes. Watch the run.
-- [ ] Confirm `sendWateringReminders` and its Cloud Scheduler job exist.
+- [x] Confirm `sendWateringReminders` and its Cloud Scheduler job exist.
       If the deploy fails on `cloudscheduler.jobs.update`, give the deploy
       service account the Cloud Scheduler Admin role and re-run.
 - [ ] Confirm the Firestore index (if kept) shows as built.
