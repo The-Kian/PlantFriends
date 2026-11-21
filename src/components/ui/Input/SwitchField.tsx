@@ -29,7 +29,15 @@ const SwitchField = ({
   const { colors } = useTheme();
 
   return (
-    <View style={[inputStyles.fieldContainer, styles.row]}>
+    <View
+      testID={`switch-field-${label}`}
+      // Android keeps the custom track colour when disabled, so fade the row.
+      style={[
+        inputStyles.fieldContainer,
+        styles.row,
+        disabled && styles.disabled,
+      ]}
+    >
       <View style={styles.text}>
         <ThemedText style={[inputStyles.inputLabel, styles.label]}>
           {label}
@@ -65,6 +73,9 @@ const styles = StyleSheet.create({
   },
   label: {
     marginBottom: 2,
+  },
+  disabled: {
+    opacity: 0.45,
   },
   description: {
     fontSize: 13,

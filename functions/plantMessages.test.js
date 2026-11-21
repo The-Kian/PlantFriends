@@ -75,6 +75,12 @@ describe("wateredMessages", () => {
     expect(messages[0].message.body).toBe("No need to water it. Next due 15 Oct.");
   });
 
+  it("uses a nickname without \"the\" or \"your\"", () => {
+    const monty = { ...sharedPothos, custom_name: "Monty" };
+    const messages = wateredMessages({ plant: monty, name: "Monty", ...ids });
+    expect(messages[0].message.title).toBe("Kian watered Monty 💧");
+  });
+
   it("sends nothing when you water a plant only you look after", () => {
     const own = { ...samsMonstera, addedBy: "kian", carerIds: ["kian"] };
     expect(wateredMessages({ plant: own, name: "Cactus", ...ids })).toEqual([]);

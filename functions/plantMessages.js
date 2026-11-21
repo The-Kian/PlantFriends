@@ -61,19 +61,23 @@ function wateredMessages({ plant, plantId, householdId, name, now, timeZone }) {
   const body = `No need to water it.${nextDue}`;
 
   // On someone's own plant it's "your Monstera"; on a shared one, "the Monstera".
+  // A nickname takes no article: "Sam watered Monty".
+  const nickname = Boolean(plant.custom_name && plant.custom_name.trim());
+  const yours = nickname ? name : `your ${name}`;
+  const the = nickname ? name : `the ${name}`;
   const owner = !plant.shared ? plant.addedBy : null;
   const messages = [];
   if (owner && others.includes(owner)) {
     messages.push({
       uids: [owner],
-      message: { title: `${waterer} watered your ${name} 💧`, body, data },
+      message: { title: `${waterer} watered ${yours} 💧`, body, data },
     });
   }
   const rest = others.filter((uid) => uid !== owner);
   if (rest.length > 0) {
     messages.push({
       uids: rest,
-      message: { title: `${waterer} watered the ${name} 💧`, body, data },
+      message: { title: `${waterer} watered ${the} 💧`, body, data },
     });
   }
   return messages;

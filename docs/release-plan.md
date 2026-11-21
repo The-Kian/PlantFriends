@@ -94,6 +94,25 @@ yet: rename "Saved", which fails with NOT_FOUND until `updateDisplayName`
 is deployed (re-check after Step 3). The invite field drops 0, 1, I, L
 and O on purpose (not in the code alphabet).
 
+## Two-emulator run (21 November 2026, after the deploy)
+
+A = test account C (Robin), B = test account B (Sam), two emulators, dev build
+from `main`:
+
+- Join: a wrong code says "That code isn't valid or has expired."; the right
+  code asks "Join Robin's home?"; B sees Robin's plants badged "Robin's",
+  with no Delete on them.
+- Shared watering: B waters a shared plant, A's card says "Watered today by
+  Sam" and A gets the push.
+- Rename on B shows on A at once; the household name follows.
+- Leave, rejoin, remove: all pass; B's app switches by itself; no remove
+  button for a non-creator; no Leave button when alone.
+- Rename "Saved" passes now that `updateDisplayName` is deployed.
+- Not run: "A leaves" and account deletion (section 5), to keep the test
+  accounts; reminder timing (section 3) needs a console edit and a day.
+- Fixed along the way: the push said "Sam watered the Monty" (now "Sam
+  watered Monty" for nicknames), and disabled switches didn't look disabled.
+
 ## Step 3: Merge and deploy (Kian)
 
 - [ ] Merge the PR. **Deploy on merge** deploys functions, rules and

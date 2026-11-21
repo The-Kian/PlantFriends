@@ -23,6 +23,8 @@ name: Invite a housemate (account A) and reach the join prompt (account B)
 - scrollUntilVisible:
     element: "Logout"
 - tapOn: "Logout"
+# Logout asks first (QA session A).
+- tapOn: "(?i)log out"
 - tapOn: "Email Address"
 - inputText: ${E2E_EMAIL_B}
 - tapOn: "Password"
