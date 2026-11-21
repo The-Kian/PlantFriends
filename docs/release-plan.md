@@ -88,7 +88,7 @@ Run on the Android emulator on 21 November 2026 (signed in as the `test`
 account): cold start, search, add, watering online and offline, start
 offline, Logout, invite code field and the notification switches all pass.
 Search showed Monstera deliciosa twice (catalogue entry with no
-`scientific_name`); fixed. Sign-up passes (throwaway account, credentials as `E2E_*_C` in
+`scientific_name`); fixed. Sign-up passes (test account C, kept; credentials as `E2E_*_C` in
 `.env.local`): "Robin's home" and "Robin (you)" on first load. Not done
 yet: rename "Saved", which fails with NOT_FOUND until `updateDisplayName`
 is deployed (re-check after Step 3). The invite field drops 0, 1, I, L
