@@ -2,12 +2,13 @@ import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { deleteDoc, getFirestore } from "@react-native-firebase/firestore";
 
 import { plantDoc } from "@/helpers/firebase/householdPaths";
+import { queuedWrite } from "@/helpers/firebase/queuedWrite";
 import ErrorService from "@/services/ErrorService";
 
 const removeUserPlantFromFirebase = async (
   userPlantId: string,
   user: FirebaseAuthTypes.User | null,
-  householdId: string | null,
+  householdId: string | null
 ): Promise<boolean> => {
   if (!user || !householdId) {
     ErrorService.handleError("User is not authenticated", "Remove Plant");
@@ -15,7 +16,12 @@ const removeUserPlantFromFirebase = async (
   }
 
   try {
-    await deleteDoc(plantDoc(getFirestore(), householdId, userPlantId));
+    // Offline, the delete waits in Firestore's queue; don't leave the screen
+    // waiting on it.
+    await queuedWrite(
+      deleteDoc(plantDoc(getFirestore(), householdId, userPlantId)),
+      "Delete plant"
+    );
     return true;
   } catch (error) {
     ErrorService.handleError(error, "Remove Plant");

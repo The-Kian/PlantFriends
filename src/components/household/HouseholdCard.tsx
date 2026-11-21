@@ -24,6 +24,24 @@ import { Spacing } from "@/theme/Spacing";
 
 const MAX_MEMBERS = 10;
 
+// The characters invite codes are made of (functions/inviteCode.js): no I, L,
+// O, 0 or 1, which look like each other.
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const CODE_LENGTH = 8;
+const CODE_HINT = "Check the code: it's 8 characters, like K7QM-3PXD.";
+
+/**
+ * What the invite field shows for what was typed or pasted: upper case, only
+ * characters a code can have, and a hyphen after the first four.
+ */
+export function formatCodeInput(text: string): string {
+  const chars = [...text.toUpperCase()]
+    .filter((c) => CODE_ALPHABET.includes(c))
+    .slice(0, CODE_LENGTH)
+    .join("");
+  return chars.length > 4 ? `${chars.slice(0, 4)}-${chars.slice(4)}` : chars;
+}
+
 /**
  * The household's name and members, with invite, join and leave buttons.
  * Whoever set the household up can also remove members.
@@ -37,10 +55,11 @@ const HouseholdCard = () => {
   // The newest invite, shown on the card so the code can be read out or
   // copied even if the share sheet is dismissed.
   const [invite, setInvite] = useState<{ code: string; until: string } | null>(
-    null,
+    null
   );
   const [showJoin, setShowJoin] = useState(false);
   const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
@@ -59,7 +78,7 @@ const HouseholdCard = () => {
       ErrorService.handleError(error, "Leave household", {
         userMessage: leaveErrorMessage(
           error,
-          "Couldn't leave. Check your connection and try again.",
+          "Couldn't leave. Check your connection and try again."
         ),
       });
     } finally {
@@ -71,11 +90,12 @@ const HouseholdCard = () => {
     Alert.alert(
       `Leave ${household?.name ?? "this household"}?`,
       "You'll go back to a household of your own, with no plants. " +
-        "Plants here stay with your housemates.",
+        "Plants only you looked after stay here and become shared with " +
+        "your housemates.",
       [
         { text: "Cancel", style: "cancel" },
         { text: "Leave", style: "destructive", onPress: leave },
-      ],
+      ]
     );
   };
 
@@ -83,8 +103,9 @@ const HouseholdCard = () => {
     const name = nameOf(uid);
     Alert.alert(
       `Remove ${name}?`,
-      `${name} will go back to a household of their own. Plants only they ` +
-        "looked after will be shared with everyone left.",
+      `${name} will go back to a household of their own, with no plants. ` +
+        "Plants only they looked after stay here and become shared with " +
+        "everyone left.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -97,13 +118,13 @@ const HouseholdCard = () => {
               ErrorService.handleError(error, "Remove housemate", {
                 userMessage: leaveErrorMessage(
                   error,
-                  "Couldn't remove them. Check your connection and try again.",
+                  "Couldn't remove them. Check your connection and try again."
                 ),
               });
             }
           },
         },
-      ],
+      ]
     );
   };
 
@@ -132,7 +153,7 @@ const HouseholdCard = () => {
       ErrorService.handleError(error, "Invite housemate", {
         userMessage: joinErrorMessage(
           error,
-          "Couldn't create an invite. Check your connection and try again.",
+          "Couldn't create an invite. Check your connection and try again."
         ),
       });
     } finally {
@@ -157,6 +178,10 @@ const HouseholdCard = () => {
   };
 
   const handleContinue = async () => {
+    if (formatCodeInput(code).replace("-", "").length !== CODE_LENGTH) {
+      setCodeError(CODE_HINT);
+      return;
+    }
     setJoining(true);
     try {
       const preview = await previewInvite(code);
@@ -170,7 +195,7 @@ const HouseholdCard = () => {
         [
           { text: "Cancel", style: "cancel" },
           { text: "Join", onPress: join },
-        ],
+        ]
       );
     } catch (error) {
       ErrorService.handleError(error, "Join a household", {
@@ -207,7 +232,10 @@ const HouseholdCard = () => {
                 accessibilityRole="button"
                 accessibilityLabel={`Remove ${nameOf(uid)}`}
                 hitSlop={10}
-                style={({ pressed }) => pressed && styles.pressed}
+                style={({ pressed }) => [
+                  styles.removeButton,
+                  pressed && styles.pressed,
+                ]}
               >
                 <Ionicons
                   name="person-remove-outline"
@@ -248,8 +276,8 @@ const HouseholdCard = () => {
             {invite.code}
           </ThemedText>
           <ThemedText type="caption">
-            Works until {invite.until}. Your housemate taps Join a household
-            and enters it. Press and hold the code to copy it.
+            Works until {invite.until}. Your housemate taps Join a household and
+            enters it. Press and hold the code to copy it.
           </ThemedText>
           <ThemedButton
             title="Share code"
@@ -257,7 +285,7 @@ const HouseholdCard = () => {
             variant="secondary"
             onPress={() =>
               shareInvite(invite).catch((error) =>
-                ErrorService.handleError(error, "Share invite"),
+                ErrorService.handleError(error, "Share invite")
               )
             }
             accessibilityLabel="Share code"
@@ -279,11 +307,23 @@ const HouseholdCard = () => {
             label="Invite code"
             placeholder="XXXX-XXXX"
             value={code}
-            onChangeText={setCode}
+            onChangeText={(text) => {
+              setCode(formatCodeInput(text));
+              setCodeError(null);
+            }}
             autoCapitalize="characters"
             autoCorrect={false}
+            maxLength={CODE_LENGTH + 1}
             accessibilityLabel="Invite code"
           />
+          {codeError ? (
+            <ThemedText
+              style={[styles.codeError, { color: colors.error }]}
+              accessibilityRole="alert"
+            >
+              {codeError}
+            </ThemedText>
+          ) : null}
           <ThemedButton
             title={joining ? "Checking..." : "Continue"}
             onPress={handleContinue}
@@ -323,13 +363,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 28,
+    minHeight: 32,
   },
   memberName: {
     flex: 1,
   },
   pressed: {
     opacity: 0.6,
+  },
+  removeButton: {
+    minWidth: 48,
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  codeError: {
+    marginTop: -Spacing.small,
+    marginBottom: Spacing.small,
   },
   invite: {
     borderWidth: StyleSheet.hairlineWidth,

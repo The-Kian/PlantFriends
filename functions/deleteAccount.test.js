@@ -44,7 +44,9 @@ function collectionRef(path) {
     where: (field, op, value) => ({
       get: async () => ({
         docs: childDocs(path).filter((s) =>
-          (s.data()[field] || []).includes(value)
+          Array.isArray(s.data()[field])
+            ? s.data()[field].includes(value)
+            : s.data()[field] === value
         ),
       }),
     }),
@@ -70,6 +72,7 @@ function bulkWriter() {
   const ops = [];
   return {
     create: (ref, data) => ops.push(() => store.set(ref.path, data)),
+    set: (ref, data) => ops.push(() => store.set(ref.path, data)),
     delete: (ref) => ops.push(() => store.delete(ref.path)),
     update: (ref, data) => ops.push(() => applyUpdate(ref.path, data)),
     close: async () => ops.forEach((op) => op()),
@@ -192,6 +195,33 @@ describe("deleteAccount", () => {
       members: { u1: { displayName: "Kian" } },
     });
     expect(store.has("Users/u2")).toBe(false);
+  });
+
+  it("revokes the invites they made, and only theirs", async () => {
+    store.set("Users/u1", { householdId: "u1", plantsMigratedAt: 1 });
+    store.set("Households/u1", { memberIds: ["u1"], members: { u1: {} } });
+    store.set("Invites/AAAAAAAA", { householdId: "u1", createdBy: "u1" });
+    store.set("Invites/BBBBBBBB", { householdId: "other", createdBy: "u9" });
+
+    await deleteAccount({}, { auth: { uid: "u1" } });
+
+    expect(store.has("Invites/AAAAAAAA")).toBe(false);
+    expect(store.has("Invites/BBBBBBBB")).toBe(true);
+  });
+
+  it("keys anonymised plants by the plant's ID, so a retry doesn't duplicate them", async () => {
+    const setup = () => {
+      store.set("Users/u1", { householdId: "u1", plantsMigratedAt: 1 });
+      store.set("Households/u1", { memberIds: ["u1"], members: { u1: {} } });
+      store.set("Households/u1/Plants/p1", { plantId: "fern", addedBy: "u1" });
+    };
+    setup();
+    await deleteAccount({}, { auth: { uid: "u1" } });
+    // The same call again, as if the first had failed after anonymising.
+    setup();
+    await deleteAccount({}, { auth: { uid: "u1" } });
+
+    expect(anonymousPlants()).toEqual(["AnonymousPlants/p1"]);
   });
 
   it("shares plants only they looked after, and hands over the household", async () => {

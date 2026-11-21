@@ -54,7 +54,7 @@ describe("fetchFirebasePlants", () => {
     expect(mockWhere).toHaveBeenCalledWith(
       "slug",
       "<=",
-      "nonexistent plant\uf8ff",
+      "nonexistent plant\uf8ff"
     );
     expect(mockGet).toHaveBeenCalled();
     expect(result).toEqual([]);
@@ -65,7 +65,7 @@ describe("fetchFirebasePlants", () => {
     mockGet.mockRejectedValueOnce(error);
 
     await expect(fetchFirebasePlants("Test Plant")).rejects.toThrow(
-      "Firestore error",
+      "Firestore error"
     );
 
     expect(firestore).toHaveBeenCalled();

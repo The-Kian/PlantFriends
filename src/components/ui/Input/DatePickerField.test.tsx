@@ -14,7 +14,7 @@ describe("DatePickerField", () => {
         label="Select Date"
         date={mockDate}
         onDateChange={mockOnDateChange}
-      />,
+      />
     );
   };
 
@@ -41,7 +41,7 @@ describe("DatePickerField", () => {
         label="Select Date"
         date={mockDate}
         onDateChange={mockOnDateChange}
-      />,
+      />
     );
 
     const newSelectedDate = new Date(2023, 12, 12);
@@ -58,10 +58,10 @@ describe("DatePickerField", () => {
         label="Select Date"
         date={newSelectedDate}
         onDateChange={mockOnDateChange}
-      />,
+      />
     );
     expect(
-      screen.getByDisplayValue(newSelectedDate.toDateString()),
+      screen.getByDisplayValue(newSelectedDate.toDateString())
     ).toBeOnTheScreen();
   });
 });

@@ -53,27 +53,33 @@ function countErrors(results) {
 const onlyUnregistered = (errors) =>
   Object.keys(errors).every((code) => code === "DeviceNotRegistered");
 
+/** Logs (once, with a count) the rejected results of a Promise.allSettled. */
+function logRejected(message, results) {
+  const rejected = results.filter((r) => r.status === "rejected");
+  if (rejected.length === 0) return;
+  const reason = rejected[0].reason;
+  log.warn(message, {
+    failed: rejected.length,
+    message: reason && reason.message,
+  });
+}
+
 /**
  * Remembers each accepted push in `PushTickets/{ticketId}` (closed to the
  * app), so checkPushReceipts can ask Expo later whether it was delivered.
  * Never stops a push: a failure here is only logged.
  */
 async function saveTickets(db, batch, tickets, now) {
-  try {
-    await Promise.all(
-      tickets.map((ticket, i) =>
-        ticket && ticket.status === "ok" && ticket.id && batch[i]
-          ? db
-              .doc(`PushTickets/${ticket.id}`)
-              .set({ device: batch[i].ref.path, createdAt: now })
-          : null,
-      ),
-    );
-  } catch (error) {
-    log.warn("Couldn't save push tickets", {
-      message: error && error.message,
-    });
-  }
+  const results = await Promise.allSettled(
+    tickets.map((ticket, i) =>
+      ticket && ticket.status === "ok" && ticket.id && batch[i]
+        ? db
+            .doc(`PushTickets/${ticket.id}`)
+            .set({ device: batch[i].ref.path, createdAt: now })
+        : null,
+    ),
+  );
+  logRejected("Couldn't save push tickets", results);
 }
 
 /**
@@ -135,11 +141,17 @@ async function sendToUsers(
         errors,
       });
     }
-    await Promise.all(
-      tickets.map((ticket, i) =>
-        ticket && ticket.details && ticket.details.error === "DeviceNotRegistered"
-          ? batch[i].ref.delete()
-          : null,
+    // One failed delete must not stop the tickets below being saved.
+    logRejected(
+      "Couldn't remove a dead device",
+      await Promise.allSettled(
+        tickets.map((ticket, i) =>
+          ticket &&
+          ticket.details &&
+          ticket.details.error === "DeviceNotRegistered"
+            ? batch[i].ref.delete()
+            : null,
+        ),
       ),
     );
     await saveTickets(db, batch, tickets, now);
@@ -175,7 +187,7 @@ async function checkPushReceipts(db, now, fetchImpl = fetch) {
   const { data: receipts = {} } = await res.json();
 
   const failures = [];
-  await Promise.all(
+  const settled = await Promise.allSettled(
     snap.docs.map(async (ticket) => {
       const receipt = receipts[ticket.id];
       if (!receipt) {
@@ -199,6 +211,7 @@ async function checkPushReceipts(db, now, fetchImpl = fetch) {
       await ticket.ref.delete();
     }),
   );
+  logRejected("Couldn't finish checking a push receipt", settled);
 
   if (summary.failed > 0) {
     summary.errors = countErrors(failures);

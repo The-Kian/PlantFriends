@@ -31,7 +31,11 @@ jest.mock("./GeneralInfoSection", () => {
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Button } = require("react-native");
-  const MockGeneralInfoSection = ({ onAttributeChange }: { onAttributeChange: (key: string, value: IPlant[keyof IPlant]) => void }) => (
+  const MockGeneralInfoSection = ({
+    onAttributeChange,
+  }: {
+    onAttributeChange: (key: string, value: IPlant[keyof IPlant]) => void;
+  }) => (
     <Button
       testID="attribute-button"
       title="Change Attribute"
@@ -47,7 +51,14 @@ jest.mock("./UserDataSection", () => {
   const React = require("react");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Button } = require("react-native");
-  const MockUserDataSection = ({ onUserDataChange }: { onUserDataChange: (key: string, value: IUserPlant[keyof IUserPlant]) => void })  => (
+  const MockUserDataSection = ({
+    onUserDataChange,
+  }: {
+    onUserDataChange: (
+      key: string,
+      value: IUserPlant[keyof IUserPlant]
+    ) => void;
+  }) => (
     <Button
       testID="user-data-button"
       title="Change User Data"
@@ -64,7 +75,7 @@ describe("PlantForm", () => {
   const renderAddNewPlantForm = (
     displayUserPlantData: boolean = true,
     initialPlantData = mockPlant,
-    initialUserPlantData = mockUserPlant,
+    initialUserPlantData = mockUserPlant
   ) => {
     return render(
       <AuthContext.Provider value={{ ...mockUser, ...mockAuthContextValue }}>
@@ -75,7 +86,7 @@ describe("PlantForm", () => {
           displayUserPlantData={displayUserPlantData}
           isAddingNewPlant={true}
         />
-      </AuthContext.Provider>,
+      </AuthContext.Provider>
     );
   };
 
@@ -112,16 +123,16 @@ describe("PlantForm", () => {
     await waitFor(() => {
       expect(mockOnSave).toHaveBeenCalledWith(
         expect.objectContaining({
-          custom_attributes: {}, 
-          id: "test-uuid", 
-          plantId: "test-uuid", 
-          userId: "user1", 
+          custom_attributes: {},
+          id: "test-uuid",
+          plantId: "test-uuid",
+          userId: "user1",
         }),
-        
+
         expect.objectContaining({
-          id: "test-uuid", 
+          id: "test-uuid",
           name: "NewName",
-        }),
+        })
       );
     });
   });
@@ -140,14 +151,14 @@ describe("PlantForm", () => {
     await waitFor(() => {
       expect(mockOnSave).toHaveBeenCalledWith(
         expect.objectContaining({
-          custom_attributes: {}, 
+          custom_attributes: {},
           id: "test-uuid",
-          plantId: "test-uuid", 
-          userId: "user1", 
+          plantId: "test-uuid",
+          userId: "user1",
         }),
         expect.objectContaining({
           id: "test-uuid",
-        }),
+        })
       );
     });
   });
@@ -164,7 +175,7 @@ describe("PlantForm", () => {
         expect.objectContaining({
           customField: "NewValue",
         }),
-        expect.any(Object), // We don't care about plantData in this test
+        expect.any(Object) // We don't care about plantData in this test
       );
     });
   });

@@ -17,6 +17,14 @@ module.exports = {
     "^@expo/vector-icons$": "<rootDir>/__mocks__/@expo-vector-icons.js",
   },
   // Rules tests run on the Firestore emulator; see firestore-tests/.
-  testPathIgnorePatterns: ["/node_modules/", "<rootDir>/firestore-tests/"],
+  // firestore-tests run against the emulator; .claude/worktrees holds other
+  // checkouts of this repo.
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "<rootDir>/firestore-tests/",
+    "/firestore-tests/",
+    "/\\.claude/",
+  ],
+  modulePathIgnorePatterns: ["<rootDir>/.claude/"],
   setupFilesAfterEnv: ["<rootDir>/jest/setup.js"],
 };

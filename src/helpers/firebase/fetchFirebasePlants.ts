@@ -24,15 +24,17 @@ async function fetchFirebasePlants(plantName: string): Promise<IPlant[]> {
     const q = query(
       collection(db, "Plants"),
       where("slug", ">=", slugQuery),
-      where("slug", "<=", slugQuery + "\uf8ff"),
+      where("slug", "<=", slugQuery + "\uf8ff")
     );
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map((doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => ({
-      ...(doc.data() as IPlant),
-      id: doc.id,
-    })) as IPlant[];
+    return snapshot.docs.map(
+      (doc: FirebaseFirestoreTypes.QueryDocumentSnapshot) => ({
+        ...(doc.data() as IPlant),
+        id: doc.id,
+      })
+    ) as IPlant[];
   } catch (error) {
     // Callers show the failure; this only reports it.
     if (!isOfflineError(error)) {

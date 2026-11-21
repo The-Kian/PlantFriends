@@ -10,7 +10,7 @@ describe("AuthStack", () => {
     render(
       <NavigationContainer>
         <AuthStack />
-      </NavigationContainer>,
+      </NavigationContainer>
     );
 
     expect(screen.getByText("Log In")).toBeTruthy();
@@ -20,7 +20,7 @@ describe("AuthStack", () => {
     render(
       <NavigationContainer>
         <AuthStack />
-      </NavigationContainer>,
+      </NavigationContainer>
     );
 
     expect(screen.getByText("Create a new user")).toBeTruthy();

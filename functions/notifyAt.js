@@ -81,4 +81,10 @@ function notifyAt(epochMs, timeZone) {
   return wallClockToEpoch(date, QUIET_UNTIL_HOUR, zone);
 }
 
-module.exports = { notifyAt, localParts, QUIET_FROM_HOUR, QUIET_UNTIL_HOUR, DAY_MS };
+/** True when `epochMs` falls in quiet hours (21:00 to 07:59) in `timeZone`. */
+function inQuietHours(epochMs, timeZone) {
+  const { hour } = localParts(epochMs, validTimeZone(timeZone));
+  return hour >= QUIET_FROM_HOUR || hour < QUIET_UNTIL_HOUR;
+}
+
+module.exports = { notifyAt, inQuietHours, localParts, QUIET_FROM_HOUR, QUIET_UNTIL_HOUR, DAY_MS };

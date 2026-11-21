@@ -18,7 +18,7 @@ const renderComponent = (userData = mockUserData) => {
     <UserDataSection
       userData={userData}
       onUserDataChange={mockOnUserDataChange}
-    />,
+    />
   );
 };
 
@@ -33,7 +33,7 @@ describe("GeneralInfoSection", () => {
     expect(screen.getByLabelText(`Date Added input field`)).toBeVisible();
     expect(screen.getByLabelText(`Location input field`)).toBeVisible();
     expect(
-      screen.getByLabelText(`Watering Schedule input field`),
+      screen.getByLabelText(`Watering Schedule input field`)
     ).toBeVisible();
   });
 
@@ -45,7 +45,7 @@ describe("GeneralInfoSection", () => {
 
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "custom_name",
-      "New Value",
+      "New Value"
     );
   });
 
@@ -56,7 +56,10 @@ describe("GeneralInfoSection", () => {
     const newDate = new Date(2023, 10, 1);
     fireEvent(datePickerField, "onDateChange", newDate);
 
-    expect(mockOnUserDataChange).toHaveBeenCalledWith("date_added", newDate.getTime());
+    expect(mockOnUserDataChange).toHaveBeenCalledWith(
+      "date_added",
+      newDate.getTime()
+    );
   });
 
   it("calls onAttributeChange with correct arguments for picker input", () => {
@@ -66,7 +69,7 @@ describe("GeneralInfoSection", () => {
     fireEvent(pickerField, "onValueChange", "Kitchen");
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "houseLocation",
-      "Kitchen",
+      "Kitchen"
     );
   });
 
@@ -74,13 +77,13 @@ describe("GeneralInfoSection", () => {
     renderComponent();
 
     const wateringScheduleField = screen.getByLabelText(
-      "Watering Schedule input field",
+      "Watering Schedule input field"
     );
     fireEvent(wateringScheduleField, "onValueChange", "Weekly");
 
     expect(mockOnUserDataChange).toHaveBeenCalledWith(
       "custom_watering_schedule",
-      7,
+      7
     );
   });
 });

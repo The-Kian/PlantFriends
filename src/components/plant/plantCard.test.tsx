@@ -1,13 +1,18 @@
 import React from "react";
 
-import { screen } from "@testing-library/react-native";
+import { Image } from "react-native";
+
+import { fireEvent, screen } from "@testing-library/react-native";
 
 import { IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
 import mockUser from "@/test-utils/MockFirebaseUser";
-import { mockHousehold, mockHouseholdContext } from "@/test-utils/MockHousehold";
+import {
+  mockHousehold,
+  mockHouseholdContext,
+} from "@/test-utils/MockHousehold";
 import { mockUserPlant } from "@/test-utils/MockPlant";
 import { renderWithProviders } from "@/test-utils/renderWithProviders";
 
@@ -19,19 +24,18 @@ describe("PlantCard", () => {
   const now = new Date("2026-10-05T12:00:00Z").getTime();
   const day = 24 * 60 * 60 * 1000;
 
-  const renderCard = (
-    plant: IUserPlant,
-    household = mockHouseholdContext(),
-  ) =>
+  const renderCard = (plant: IUserPlant, household = mockHouseholdContext()) =>
     renderWithProviders(
       <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
         <PlantCard plant={plant} onPress={jest.fn()} onDelete={jest.fn()} />
       </AuthContext.Provider>,
-      { household },
+      { household }
     );
 
   beforeEach(() => {
-    jest.mocked(useMergedPlant).mockReturnValue({ mergedPlant: null, loading: false });
+    jest
+      .mocked(useMergedPlant)
+      .mockReturnValue({ mergedPlant: null, loading: false });
     jest.spyOn(Date, "now").mockReturnValue(now);
   });
 
@@ -71,14 +75,58 @@ describe("PlantCard", () => {
     expect(screen.getByText("Sam's")).toBeTruthy();
   });
 
+  it("hides Delete on a housemate's personal plant", () => {
+    renderCard({
+      ...mockUserPlant,
+      custom_name: "Theirs",
+      addedBy: "user2",
+      carerIds: ["user2"],
+      shared: false,
+    });
+    expect(screen.queryByLabelText("Delete Theirs")).toBeNull();
+
+    renderCard({
+      ...mockUserPlant,
+      id: "2",
+      custom_name: "Ours",
+      addedBy: "user2",
+      carerIds: ["user2"],
+      shared: true,
+    });
+    expect(screen.getByLabelText("Delete Ours")).toBeTruthy();
+  });
+
   it("shows no badge when you live alone", () => {
     renderCard(
       { ...mockUserPlant, addedBy: "user1", shared: true },
       mockHouseholdContext({
         household: { ...mockHousehold, memberIds: ["user1"] },
-      }),
+      })
     );
 
     expect(screen.queryByText("Shared")).toBeNull();
+  });
+});
+
+describe("PlantCard image", () => {
+  it("falls back to the leaf when the picture can't load", () => {
+    jest.mocked(useMergedPlant).mockReturnValue({
+      mergedPlant: { id: "1", name: "Watermelon", images: ["https://x/y.jpg"] },
+      loading: false,
+    });
+    renderWithProviders(
+      <AuthContext.Provider value={{ ...mockAuthContextValue, user: mockUser }}>
+        <PlantCard
+          plant={mockUserPlant}
+          onPress={jest.fn()}
+          onDelete={jest.fn()}
+        />
+      </AuthContext.Provider>,
+      { household: mockHouseholdContext() }
+    );
+
+    fireEvent(screen.UNSAFE_getByType(Image), "error");
+
+    expect(screen.UNSAFE_queryByType(Image)).toBeNull();
   });
 });

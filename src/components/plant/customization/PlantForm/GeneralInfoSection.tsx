@@ -22,7 +22,7 @@ interface GeneralInfoSectionProps {
 
   onAttributeChange: <K extends keyof IPlant>(
     field: K,
-    value: IPlant[K],
+    value: IPlant[K]
   ) => void;
 }
 
@@ -59,7 +59,7 @@ const GeneralInfoSection = ({
                     fieldConfig.field,
                     (text
                       ? [text]
-                      : undefined) as IPlant[typeof fieldConfig.field],
+                      : undefined) as IPlant[typeof fieldConfig.field]
                   )
                 }
               />
@@ -73,7 +73,7 @@ const GeneralInfoSection = ({
                 onChangeText={(text) =>
                   onAttributeChange(
                     fieldConfig.field,
-                    text ? Number(text) : undefined,
+                    text ? Number(text) : undefined
                   )
                 }
               />
@@ -87,7 +87,7 @@ const GeneralInfoSection = ({
                 onValueChange={(itemValue) =>
                   onAttributeChange(
                     fieldConfig.field,
-                    itemValue as IPlant[typeof fieldConfig.field],
+                    itemValue as IPlant[typeof fieldConfig.field]
                   )
                 }
                 options={fieldConfig.options || []}

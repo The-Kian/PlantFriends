@@ -7,7 +7,7 @@ const usePlantCustomizations = () => {
 
   const handlePlantAttributeChange = <K extends keyof IPlant>(
     field: K,
-    value: IPlant[K],
+    value: IPlant[K]
   ) => {
     setCustomizations((prev) => ({
       ...prev,

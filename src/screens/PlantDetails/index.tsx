@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useRoute } from "@react-navigation/native";
-import { type ComponentProps, useContext, useState } from "react";
+import { type ComponentProps, useContext, useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { StyleSheet, ScrollView, Image, Alert, View } from "react-native";
@@ -19,11 +19,11 @@ import { useHousehold } from "@/context/household/HouseholdProvider";
 import logWatering from "@/helpers/firebase/logWatering";
 import setPlantSharing from "@/helpers/firebase/setPlantSharing";
 import { displayNameFor } from "@/helpers/household/setupHousehold";
+import { registerWithExplanation } from "@/helpers/notifications/registerWithExplanation";
 import { getWateringFrequencyInDays } from "@/helpers/plants/wateringCalculations";
 import useMergedPlant from "@/hooks/plants/useMergedPlant";
 import { useTheme } from "@/hooks/utils/useTheme";
 import ErrorService from "@/services/ErrorService";
-import { registerForPush } from "@/services/PushRegistration";
 import { RootState } from "@/store/store";
 import { updatePlant } from "@/store/userPlantsSlice";
 import { Spacing } from "@/theme/Spacing";
@@ -32,6 +32,9 @@ type PlantDetailsScreenRouteProp = RouteProp<
   RootStackParamList,
   "PlantDetails"
 >;
+
+/** How long to wait for a just-added plant before saying it isn't there. */
+export const PLANT_ARRIVAL_MS = 4000;
 
 type Chip = { icon: ComponentProps<typeof Ionicons>["name"]; label: string };
 
@@ -50,9 +53,20 @@ const PlantDetailsScreen = () => {
   const { mergedPlant, loading } = useMergedPlant(userPlant || null);
 
   const [showSplash, setShowSplash] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  // True while a watering is saved on this phone but not yet on the server.
+  const [waitingToSync, setWaitingToSync] = useState(false);
+  // A plant that was only just added reaches the list through the household's
+  // live listener a moment after this screen opens. Don't say "not found"
+  // until it has had a few seconds to arrive.
+  const [waitedForPlant, setWaitedForPlant] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setWaitedForPlant(true), PLANT_ARRIVAL_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // Opened before the household's plants have loaded.
-  if (!userPlant && householdLoading) {
+  // Opened before the household's plants have loaded, or just after adding.
+  if (!userPlant && (householdLoading || !waitedForPlant)) {
     return (
       <ThemedView style={styles.screen}>
         <ScreenHeader />
@@ -100,11 +114,15 @@ const PlantDetailsScreen = () => {
 
       // Only the watering fields are written, so a housemate's edit made at
       // the same time isn't overwritten.
-      const updatedPlant = await logWatering(
+      const updatedPlant = logWatering(
         household.id,
         userPlant,
         { uid: user.uid, displayName: displayNameFor(user) },
         frequency,
+        {
+          onWaiting: () => setWaitingToSync(true),
+          onSynced: () => setWaitingToSync(false),
+        }
       );
 
       dispatch(updatePlant(updatedPlant));
@@ -112,7 +130,7 @@ const PlantDetailsScreen = () => {
 
       // The server plans the next reminder from the new watering date. A
       // housemate who joined and never added a plant is asked here instead.
-      await registerForPush(user.uid, { prompt: true });
+      await registerWithExplanation(user.uid);
     } catch (error) {
       ErrorService.handleError(error, "Log Watering", {
         userMessage: "Failed to log watering. Please try again.",
@@ -123,7 +141,11 @@ const PlantDetailsScreen = () => {
   const handleSharedChange = async (shared: boolean) => {
     if (!user || !household) return;
     try {
-      dispatch(updatePlant(await setPlantSharing(household, userPlant, shared, user.uid)));
+      dispatch(
+        updatePlant(
+          await setPlantSharing(household, userPlant, shared, user.uid)
+        )
+      );
     } catch (error) {
       ErrorService.handleError(error, "Share Plant", {
         userMessage: "Couldn't change sharing. Please try again.",
@@ -134,7 +156,8 @@ const PlantDetailsScreen = () => {
   // "by Sam" when a housemate did the last watering.
   const lastWateredBy =
     userPlant.last_watered_by && userPlant.last_watered_by !== user?.uid
-      ? userPlant.last_watered_by_name ?? memberName(userPlant.last_watered_by)
+      ? (userPlant.last_watered_by_name ??
+        memberName(userPlant.last_watered_by))
       : null;
   const ownerName =
     !userPlant.shared && userPlant.addedBy && userPlant.addedBy !== user?.uid
@@ -179,8 +202,12 @@ const PlantDetailsScreen = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.hero} />
+        {imageUri && !imageFailed ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.hero}
+            onError={() => setImageFailed(true)}
+          />
         ) : (
           <View
             style={[
@@ -236,6 +263,11 @@ const PlantDetailsScreen = () => {
             customSchedule={userPlant.custom_watering_schedule ?? null}
             onLogWatering={handleLogWatering}
           />
+          {waitingToSync && (
+            <ThemedText type="caption">
+              Saved on this phone. It will sync when you're online.
+            </ThemedText>
+          )}
 
           {hasHousemates && (
             <View style={cardStyle}>

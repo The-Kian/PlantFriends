@@ -20,7 +20,7 @@ const renderComponent = (attributes = mockAttributes) => {
     <GeneralInfoSection
       attributes={attributes}
       onAttributeChange={mockOnAttributeChange}
-    />,
+    />
   );
 };
 
@@ -51,12 +51,12 @@ describe("GeneralInfoSection", () => {
     renderComponent();
 
     const numberField = screen.getByLabelText(
-      "Maximum Temperature input field",
+      "Maximum Temperature input field"
     );
     fireEvent.changeText(numberField, "69");
     expect(mockOnAttributeChange).toHaveBeenCalledWith(
       "temperature_maximum",
-      69,
+      69
     );
   });
 
@@ -77,7 +77,7 @@ describe("GeneralInfoSection", () => {
     fireEvent.changeText(listField, "");
     expect(mockOnAttributeChange).toHaveBeenLastCalledWith(
       "scientific_name",
-      undefined,
+      undefined
     );
   });
 
@@ -88,7 +88,7 @@ describe("GeneralInfoSection", () => {
     fireEvent(pickerField, "onValueChange", "Partial Sun");
     expect(mockOnAttributeChange).toHaveBeenCalledWith(
       "sun_requirements",
-      "Partial Sun",
+      "Partial Sun"
     );
   });
 });

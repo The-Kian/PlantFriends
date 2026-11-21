@@ -33,14 +33,17 @@ describe("setPlantSharing", () => {
 
     await setPlantSharing(mockHousehold, plant, false, "user1");
 
-    expect(mockUpdate).toHaveBeenCalledWith({ shared: false, carerIds: ["user2"] });
+    expect(mockUpdate).toHaveBeenCalledWith({
+      shared: false,
+      carerIds: ["user2"],
+    });
   });
 
   it("passes on a failed write", async () => {
     mockUpdate.mockRejectedValueOnce(new Error("permission-denied"));
 
     await expect(
-      setPlantSharing(mockHousehold, mockUserPlant, true, "user1"),
+      setPlantSharing(mockHousehold, mockUserPlant, true, "user1")
     ).rejects.toThrow("permission-denied");
   });
 });

@@ -39,13 +39,13 @@ describe("isRateLimited", () => {
       isRateLimited({
         code: "functions/resource-exhausted",
         message: "Too many requests. Try again in a minute.",
-      }),
+      })
     ).toBe(true);
     expect(
       isRateLimited({
         code: "resource-exhausted",
         message: "This household is full.",
-      }),
+      })
     ).toBe(false);
   });
 });
@@ -53,7 +53,7 @@ describe("isRateLimited", () => {
 describe("searchErrorMessage", () => {
   it("says when the phone is offline", () => {
     expect(searchErrorMessage({ code: "unavailable" }, false)).toMatch(
-      /offline/,
+      /offline/
     );
   });
 
@@ -61,17 +61,17 @@ describe("searchErrorMessage", () => {
     expect(
       searchErrorMessage(
         { code: "resource-exhausted", message: "Too many requests." },
-        true,
-      ),
+        true
+      )
     ).toMatch(/Too many searches/);
   });
 
   it("explains partial results, and points at adding by hand when there are none", () => {
     expect(searchErrorMessage(new Error("boom"), true)).toMatch(
-      /other people have added/,
+      /other people have added/
     );
     expect(searchErrorMessage(new Error("boom"), false)).toMatch(
-      /add the plant yourself/,
+      /add the plant yourself/
     );
   });
 });

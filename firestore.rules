@@ -1,9 +1,37 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // User profiles: each user can read and write only their own profile.
+    // User profiles: each user can read and write only their own profile,
+    // only the keys in clientUserKeys, and never delete it. `householdId` is
+    // special: Cloud Functions change that (joining, leaving,
+    // being removed). The one thing the app may do is point it at a household
+    // it set up on its own and is the only member of: that is first-time
+    // setup (src/helpers/household/setupHousehold.ts).
+    function ownSoloHousehold(uid, hid) {
+      return hid is string
+        && get(/databases/$(database)/documents/Households/$(hid)).data.memberIds == [uid]
+        && get(/databases/$(database)/documents/Households/$(hid)).data.createdBy == uid;
+    }
+
+    // The only profile keys the app writes (AuthProvider, setupHousehold,
+    // setNotificationPref, PushRegistration). Anything else is server-only.
+    function clientUserKeys() {
+      return ['displayName', 'email', 'householdId', 'notificationPrefs',
+              'timeZone', 'plantsMigratedAt'];
+    }
+
+    // Deleting the profile is done by the deleteAccount Cloud Function.
     match /Users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(clientUserKeys())
+        && (!('householdId' in request.resource.data)
+          || ownSoloHousehold(uid, request.resource.data.householdId));
+      allow update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(clientUserKeys())
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['householdId'])
+          || ownSoloHousehold(uid, request.resource.data.get('householdId', null)));
+      allow delete: if false;
     }
 
     // Devices registered for push notifications. The doc ID is the Expo push
@@ -61,6 +89,22 @@ service cloud.firestore {
         && (!('custom_attributes' in data) || data.custom_attributes is map);
     }
 
+    // Fields only Cloud Functions write (reminder planning, see functions/reminders.js).
+    function serverPlantKeys() {
+      return ['notify_at', 'notify_stage', 'notify_for', 'notify_lease', 'notify_sending'];
+    }
+
+    // The fields logWatering writes (src/helpers/firebase/logWatering.ts).
+    function wateringKeys() {
+      return ['last_watered_date', 'next_watering_date', 'last_watered_by', 'last_watered_by_name'];
+    }
+
+    // The person who added a plant, or someone who looks after it.
+    function isCarer(plant) {
+      return plant.get('addedBy', null) == request.auth.uid
+        || request.auth.uid in plant.get('carerIds', []);
+    }
+
     match /Households/{hid} {
       // A user may check whether their own household exists yet; its ID is their uid.
       allow read: if (request.auth != null && hid == request.auth.uid && resource == null)
@@ -85,15 +129,25 @@ service cloud.firestore {
         allow create: if isMember(hid)
           && request.resource.data.addedBy == request.auth.uid
           && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
-          && !request.resource.data.keys().hasAny(['notify_at', 'notify_stage'])
+          && !request.resource.data.keys().hasAny(serverPlantKeys())
           && validHouseholdPlant(request.resource.data);
-        // notify_at and notify_stage are set by Cloud Functions; addedBy never changes.
+        // The notify_* keys are set by Cloud Functions; addedBy never changes.
+        // Who may do what to an existing plant:
+        //  - its adder or a carer (isCarer): any edit, and delete;
+        //  - any other member: only log a watering (wateringKeys), and only
+        //    on a shared plant. They can also delete a shared plant.
+        // A personal plant (shared == false) is its adder's and carers' alone.
         allow update: if isMember(hid)
           && !request.resource.data.diff(resource.data).affectedKeys()
-               .hasAny(['notify_at', 'notify_stage', 'addedBy'])
+               .hasAny(serverPlantKeys().concat(['addedBy']))
           && householdMemberIds(hid).hasAll(request.resource.data.get('carerIds', []))
-          && validHouseholdPlant(request.resource.data);
-        allow delete: if isMember(hid);
+          && validHouseholdPlant(request.resource.data)
+          && (isCarer(resource.data)
+            || (resource.data.get('shared', false) == true
+              && request.resource.data.diff(resource.data).affectedKeys()
+                   .hasOnly(wateringKeys())));
+        allow delete: if isMember(hid)
+          && (isCarer(resource.data) || resource.data.get('shared', false) == true);
       }
     }
 

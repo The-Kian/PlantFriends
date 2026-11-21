@@ -14,11 +14,11 @@ describe("TabNavigator", () => {
     render(
       <NavigationContainer>
         <TabNavigator />
-      </NavigationContainer>,
+      </NavigationContainer>
     );
     expect(await screen.findByRole("button", { name: "Home" })).toBeTruthy();
     expect(
-      await screen.findByRole("button", { name: "My Plants" }),
+      await screen.findByRole("button", { name: "My Plants" })
     ).toBeTruthy();
   });
 });

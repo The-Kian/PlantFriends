@@ -14,12 +14,50 @@ const { displayNameFor, linkWrites, moveWrites, unlinkWrites } = require("./hous
 const MAX_MEMBERS = 10;
 const INVITE_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 const CODE_ATTEMPTS = 3;
+// A household's live invites are capped at 3 (docs/qa-followup-plan.md, E).
+// Making a new invite revokes all older ones (revokeOlderInvites), so there is
+// normally just one and the cap holds without a separate check.
 
 const { HttpsError } = functions.https;
 
 // Firestore's "document already exists" error, as the Admin SDK reports it.
 const isAlreadyExists = (error) =>
   Boolean(error) && (error.code === 6 || error.code === "already-exists");
+
+/** The invite documents whose `field` equals `value`. */
+async function invitesWhere(db, field, value) {
+  return (await db.collection("Invites").where(field, "==", value).get()).docs;
+}
+
+/**
+ * Revokes (deletes) every invite created by `uid`, so their codes stop
+ * working when they leave, are removed or delete their account. A deleted
+ * code gets the same "isn't valid or has expired" answer as an expired one.
+ * (joinHouseholdHandler also refuses a code whose creator is no longer in the
+ * household, as a second line of defence.)
+ */
+async function revokeInvitesBy(db, uid) {
+  const docs = await invitesWhere(db, "createdBy", uid);
+  await Promise.all(docs.map((d) => d.ref.delete()));
+  return docs.length;
+}
+
+/**
+ * After an invite is made: revokes the household's older invites (created
+ * before this one, ties broken by code), so only the newest code works. That
+ * keeps a household far under MAX_ACTIVE_INVITES. Two calls racing can't
+ * revoke each other: each removes only what is older than itself.
+ */
+async function revokeOlderInvites(db, householdId, newCode, now) {
+  const docs = await invitesWhere(db, "householdId", householdId);
+  const older = docs.filter((d) => {
+    if (d.id === newCode) return false;
+    const at = d.get("createdAt");
+    const created = at && at.toMillis ? at.toMillis() : 0;
+    return created < now || (created === now && d.id < newCode);
+  });
+  await Promise.all(older.map((d) => d.ref.delete()));
+}
 
 /** Makes a new invite code for the caller's household. */
 async function createInviteHandler({ db, uid, now }) {
@@ -46,10 +84,12 @@ async function createInviteHandler({ db, uid, now }) {
         createdAt: admin.Timestamp.fromMillis(now),
         expiresAt,
       });
-      return { code, expiresAt: expiresAt.toMillis(), householdName: household.name };
     } catch (error) {
       if (!isAlreadyExists(error)) throw error;
+      continue;
     }
+    await revokeOlderInvites(db, householdId, code, now);
+    return { code, expiresAt: expiresAt.toMillis(), householdName: household.name };
   }
   throw new HttpsError("internal", "Couldn't make an invite. Please try again.");
 }
@@ -81,6 +121,8 @@ async function joinHouseholdHandler({ db, uid, authToken, data, now }) {
     const householdSnap = await transaction.get(householdRef);
     if (!householdSnap.exists) throw notFound;
     const household = householdSnap.data();
+    // An invite dies with the member who made it, even if revoking it failed.
+    if (!(household.memberIds || []).includes(invite.createdBy)) throw notFound;
     const plantsRef = householdRef.collection("Plants");
     const plants = plantsOf(await transaction.get(plantsRef));
 
@@ -147,6 +189,22 @@ async function joinHouseholdHandler({ db, uid, authToken, data, now }) {
  * so then it gets a new random ID.
  */
 async function removeFromHousehold({ db, callerUid, targetUid, now }) {
+  const result = await moveOut({ db, callerUid, targetUid, now });
+  // Their invite codes stop working. The removal has already happened, so a
+  // failure here is logged, not raised; join also checks the creator is still
+  // a member.
+  try {
+    await revokeInvitesBy(db, targetUid);
+  } catch (error) {
+    logFor("households").error("Couldn't revoke invites", {
+      uid: targetUid,
+      message: error && error.message,
+    });
+  }
+  return result;
+}
+
+async function moveOut({ db, callerUid, targetUid, now }) {
   return db.runTransaction(async (transaction) => {
     const callerRef = db.doc(`Users/${callerUid}`);
     const callerSnap = await transaction.get(callerRef);
@@ -229,8 +287,78 @@ async function removeMemberHandler({ db, uid, data, now }) {
   return removeFromHousehold({ db, callerUid: uid, targetUid, now });
 }
 
+/** The names a household could have been auto-named from, as "<name>'s home". */
+function autoNameCandidates(...names) {
+  const found = new Set();
+  for (const raw of names) {
+    const name = typeof raw === "string" ? raw.trim() : "";
+    if (!name) continue;
+    found.add(name);
+    // The app names a household after the email's local part when there's no
+    // display name yet (setupHousehold.ts displayNameFor).
+    if (name.includes("@")) found.add(name.split("@")[0]);
+  }
+  return [...found].map((name) => `${name}'s home`);
+}
+
+/**
+ * Changes the caller's display name everywhere it is shown: their profile and
+ * their entry in the household's member list (which the rules don't let them
+ * write themselves for a housemate to see). If the household still has its
+ * automatic name ("<old name>'s home", or the one built from their email) and
+ * they set it up, it follows the new name.
+ *
+ * `data.displayName` is checked here too (trimmed, 1 to 50 characters; the
+ * wrapper in index.js does the same). Without a household yet (sign-up can
+ * race household setup) only the profile is updated and householdName is null.
+ */
+async function updateDisplayNameHandler({ db, uid, authToken, data }) {
+  const displayName = data && data.displayName;
+  if (typeof displayName !== "string" || !displayName.trim()) {
+    throw new HttpsError("invalid-argument", "displayName must be text of 1 to 50 characters.");
+  }
+  const newName = displayName.trim();
+  if (newName.length > 50) {
+    throw new HttpsError("invalid-argument", "displayName must be text of 1 to 50 characters.");
+  }
+
+  return db.runTransaction(async (transaction) => {
+    const userRef = db.doc(`Users/${uid}`);
+    const userSnap = await transaction.get(userRef);
+    const profile = userSnap.exists ? userSnap.data() : {};
+    const householdId = profile.householdId || uid;
+    const householdRef = db.doc(`Households/${householdId}`);
+    const householdSnap = await transaction.get(householdRef);
+    const household = householdSnap.exists ? householdSnap.data() : null;
+    const isMember = Boolean(household) && (household.memberIds || []).includes(uid);
+
+    transaction.set(userRef, { displayName: newName }, { merge: true });
+    if (!isMember) return { displayName: newName, householdName: null };
+
+    const members = household.members || {};
+    const oldMember = members[uid] || {};
+    const update = {
+      members: { ...members, [uid]: { ...oldMember, displayName: newName } },
+    };
+    let householdName = household.name;
+    const autoNames = autoNameCandidates(
+      profile.displayName,
+      oldMember.displayName,
+      authToken && authToken.email,
+    );
+    if (household.createdBy === uid && autoNames.includes(household.name)) {
+      householdName = `${newName}'s home`;
+      update.name = householdName;
+    }
+    transaction.update(householdRef, update);
+    return { displayName: newName, householdName };
+  });
+}
+
 module.exports = {
   MAX_MEMBERS,
+  revokeInvitesBy,
+  updateDisplayNameHandler,
   createInviteHandler,
   joinHouseholdHandler,
   leaveHouseholdHandler,
