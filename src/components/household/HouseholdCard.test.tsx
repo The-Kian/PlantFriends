@@ -239,6 +239,23 @@ describe("HouseholdCard", () => {
     );
   });
 
+  it("doesn't log a wrong code as an error, but does log a real failure", async () => {
+    const consoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    jest.mocked(previewInvite).mockRejectedValue({ code: "not-found" });
+    renderCard();
+    openJoinForm();
+    fireEvent.press(screen.getByLabelText("Continue"));
+    await waitFor(() => expect(Alert.alert).toHaveBeenCalled());
+    expect(consoleError).not.toHaveBeenCalled();
+
+    jest.mocked(previewInvite).mockRejectedValue({ code: "internal" });
+    fireEvent.press(screen.getByLabelText("Continue"));
+    await waitFor(() => expect(consoleError).toHaveBeenCalled());
+    consoleError.mockRestore();
+  });
+
   it("shows a message when the join itself fails", async () => {
     jest.mocked(previewInvite).mockResolvedValue({
       householdName: "The Flat",

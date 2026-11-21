@@ -93,3 +93,35 @@ describe("wateredMessages", () => {
     );
   });
 });
+
+describe("reminderMessage", () => {
+  const { reminderMessage } = require("./plantMessages");
+  const ids = { plantId: "p1", householdId: "h1" };
+
+  it("puts 'the' before a species name", () => {
+    const plant = { shared: false };
+    expect(reminderMessage({ plant, name: "Pothos", stage: "due", ...ids }).title).toBe(
+      "Time to water the Pothos 💧",
+    );
+    expect(
+      reminderMessage({ plant: { shared: true }, name: "Pothos", stage: "due", ...ids }).title,
+    ).toBe("The Pothos needs watering 💧");
+    expect(reminderMessage({ plant, name: "Pothos", stage: "nudge", ...ids }).title).toBe(
+      "The Pothos is still thirsty 🥀",
+    );
+  });
+
+  it("uses a nickname on its own", () => {
+    const plant = { shared: true, custom_name: "Monty" };
+    expect(reminderMessage({ plant, name: "Monty", stage: "due", ...ids }).title).toBe(
+      "Monty needs watering 💧",
+    );
+    expect(reminderMessage({ plant, name: "Monty", stage: "nudge", ...ids }).title).toBe(
+      "Monty is still thirsty 🥀",
+    );
+    expect(
+      reminderMessage({ plant: { shared: false, custom_name: "Pip" }, name: "Pip", stage: "due", ...ids })
+        .title,
+    ).toBe("Time to water Pip 💧");
+  });
+});

@@ -12,7 +12,7 @@ pnpm android | pnpm ios    # native build + run
 pnpm validate              # type-check + lint + test (run before finishing any change)
 pnpm test                  # Jest (jest-expo); single file: pnpm test src/store/userPlantsSlice.test.ts
 pnpm test -t "name"        # single test by name
-pnpm lint:fix / pnpm format
+pnpm lint:fix            # ESLint --fix, then Prettier (so import reorders stay formatted)
 ```
 
 Cloud Functions (`functions/`, Node 22, CommonJS, firebase-functions v1-style `functions.https.onCall`):
