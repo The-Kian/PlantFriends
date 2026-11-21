@@ -7,6 +7,59 @@ That plan's ten sessions are done in code. This file is the ordered list of
 what is left before the Play internal track. Work through it top to bottom;
 each step says who does it. Tick items in the PR that finishes them.
 
+## Remaining work (21 November 2026, evening)
+
+Done today: PRs #101 and #102 merged and deployed (functions, rules, the
+`notify_at` index), the privacy page deployed, build 1.0.0 (12) on the Play
+internal track, the store listing published (text, icon, feature graphic,
+7 screenshots), the Android API key now also allows the EAS upload key.
+
+**Kian, in Play Console**
+
+- [ ] Testers: Testing → Internal testing → Testers → email list → share the
+      opt-in link.
+- [ ] Policy → App content: privacy policy URL, data safety (answers in
+      `docs/STORE_LISTING.md`), ads: none, app access: restricted with the
+      reviewer login, content rating (Utility, all No), target audience 13+,
+      news/government/financial/health: No. None of these have an API.
+- [ ] First day with testers: Android vitals, Crashlytics, function logs.
+- [ ] After a quiet week: closed testing, then a staged production rollout
+      (start at 20%).
+
+**Kian, later**
+
+- [ ] App Check enforcement once every tester has the build:
+      `ENFORCE_APP_CHECK=true` in `functions/.env` in a PR, then Firestore
+      enforcement in the console (App Check → APIs → Cloud Firestore).
+- [ ] Decide what a leaving member keeps (see "Decision" below).
+
+**Claude, next PRs**
+
+- [ ] Rewrite the old catalogue descriptions ("A Araceae species") with a
+      one-off Admin SDK script over `Plants`; the server now writes
+      "A plant in the Araceae family" for new ones.
+- [ ] Catalogue photos: fill `images` on catalogue plants from Trefle's
+      `image_url` where the slug matches (one-off script, same as above).
+- [ ] Remove the `Users/{uid}/UserPlants` rule and `migrateUserPlants` once
+      all three testers have signed in on the release build.
+- [ ] QA sessions C (edit a plant), D (watering history and undo), H
+      (dependency upgrades: Expo, RN, RN Firebase, audit overrides) and I
+      (snooze, photos, rooms, search and sort), in that order; each is one PR
+      per `docs/qa-followup-plan.md`.
+- [ ] Delete stale remote branches (about 40, all merged or superseded,
+      including `qa-followups` and `ccr-9604bb5d-44qfha`), with Kian's OK
+      on the list first.
+
+**Decision: what a leaving member keeps.** Today their personal plants stay
+in the household as shared plants. Options:
+
+1. Keep as is (simplest; the dialogs already say so).
+2. Personal plants (`shared == false`, `addedBy == leaver`) move with them
+   to their new solo household; shared ones stay. Needs `unlinkWrites` in
+   `functions/householdAdmin.js` to move instead of re-share, the dialogs'
+   copy, and the 500-write batch limit handled.
+3. Ask at leave time. Most work; probably not worth it for three users.
+
 ## Where things stand
 
 - `main` is at `f8b5d36` (#99). CI and **Deploy on merge** are green.
@@ -38,7 +91,7 @@ each step says who does it. Tick items in the PR that finishes them.
       build** writes. Merging deploys rules and functions automatically
       (`docs/RELEASE.md`), so a rule that refuses old builds must wait until
       testers have the new build.
-- [ ] Open one PR to `main` (Kian approves opening it).
+- [x] Open one PR to `main` (Kian approves opening it).
 
 ## Step 1 notes (21 November 2026, branch `release-prep`)
 
@@ -78,7 +131,7 @@ check the QA follow-up items:
 - [x] Log Watering: instant splash; offline shows the "Saved on this phone"
       message, which clears once back online.
 - [x] Starting offline shows plants by nickname with no alerts.
-- [ ] Profile: rename shows "Saved"; Logout confirms; invite code field
+- [x] Profile: rename shows "Saved"; Logout confirms; invite code field
       uppercases and adds the hyphen; notification switches grey out only
       after a permanent refusal.
 
@@ -115,27 +168,27 @@ from `main`:
 
 ## Step 3: Merge and deploy (Kian)
 
-- [ ] Merge the PR. **Deploy on merge** deploys functions, rules and
+- [x] Merge the PR. **Deploy on merge** deploys functions, rules and
       indexes. Watch the run.
 - [x] Confirm `sendWateringReminders` and its Cloud Scheduler job exist.
       If the deploy fails on `cloudscheduler.jobs.update`, give the deploy
       service account the Cloud Scheduler Admin role and re-run.
-- [ ] Confirm the Firestore index (if kept) shows as built.
+- [x] Confirm the Firestore index (if kept) shows as built.
 
 ## Step 4: Two-phone checkpoint (Kian)
 
 Install the new test build on both phones, then run `docs/TEST_SCRIPT.md`:
 
-- [ ] Household: invite, join, leave, remove, rename shows on the other
+- [x] Household: invite, join, leave, remove, rename shows on the other
       phone, B can't delete A's personal plant.
 - [ ] Section 3, reminders: a due plant gets a push from the server.
 - [ ] The Maestro flows in `.maestro/` (never run yet).
 
 ## Step 5: Console and decisions (Kian)
 
-- [ ] Firestore TTL policy on `Invites.expiresAt`.
-- [ ] Restrict the Google API key (session 6).
-- [ ] Alerts, backups and one test restore (session 8).
+- [ ] ~~Firestore TTL policy on `Invites.expiresAt`.~~ Dropped by Kian.
+- [x] Restrict the Google API key (session 6).
+- [ ] Alerts (session 8). ~~Backups and a test restore~~ dropped by Kian.
 - [ ] Turn on App Check enforcement once every tester has the build
       (`ENFORCE_APP_CHECK=true` in a PR, then Firestore in the console).
 - [ ] Decide whether a removed or leaving member's personal plants leave
@@ -144,11 +197,11 @@ Install the new test build on both phones, then run `docs/TEST_SCRIPT.md`:
 
 ## Step 6: Release (Kian)
 
-- [ ] Screenshots (lead with a household screen showing "watered by"), per
+- [x] Screenshots (lead with a household screen showing "watered by"), per
       `docs/STORE_LISTING.md`.
-- [ ] `firebase deploy --only hosting` for the privacy page; fill in the
+- [x] `firebase deploy --only hosting` for the privacy page; fill in the
       Play data safety form from `docs/STORE_LISTING.md`.
-- [ ] `eas build --platform android --profile production`, then
+- [x] `eas build --platform android --profile production`, then
       `eas submit` to the internal track (`docs/RELEASE.md`).
 - [ ] Invite the three testers. Watch Crashlytics and function errors for
       the first day.

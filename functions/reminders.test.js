@@ -402,7 +402,7 @@ describe("sendDueReminders", () => {
     });
     await run(due);
     expect(sentTo(fetch.calls[0])).toEqual(["ExponentPushToken[sam]"]);
-    expect(fetch.calls[0].body[0].title).toBe("Time to water the Monty 💧");
+    expect(fetch.calls[0].body[0].title).toBe("Time to water Monty 💧");
   });
 
   it("skips someone who switched reminders off", async () => {

@@ -62,7 +62,7 @@ function wateredMessages({ plant, plantId, householdId, name, now, timeZone }) {
 
   // On someone's own plant it's "your Monstera"; on a shared one, "the Monstera".
   // A nickname takes no article: "Sam watered Monty".
-  const nickname = Boolean(plant.custom_name && plant.custom_name.trim());
+  const nickname = isNickname(plant);
   const yours = nickname ? name : `your ${name}`;
   const the = nickname ? name : `the ${name}`;
   const owner = !plant.shared ? plant.addedBy : null;
@@ -83,28 +83,36 @@ function wateredMessages({ plant, plantId, householdId, name, now, timeZone }) {
   return messages;
 }
 
+/** A name the person gave the plant ("Monty") takes no article. */
+function isNickname(plant) {
+  return Boolean(plant.custom_name && plant.custom_name.trim());
+}
+
 /**
  * The "time to water" push (stage "due") or the one follow-up a day later
  * (stage "nudge"). Every carer gets the same message.
  */
 function reminderMessage({ plant, plantId, householdId, name, stage }) {
   const data = { plantId, householdId, type: stage };
+  const nickname = isNickname(plant);
+  const The = nickname ? name : `The ${name}`;
+  const the = nickname ? name : `the ${name}`;
   if (stage === "nudge") {
     return {
-      title: `The ${name} is still thirsty 🥀`,
+      title: `${The} is still thirsty 🥀`,
       body: "It was due yesterday. Tap Watered once it's done.",
       data,
     };
   }
   if (plant.shared) {
     return {
-      title: `The ${name} needs watering 💧`,
+      title: `${The} needs watering 💧`,
       body: "Whoever gets there first, tap Watered.",
       data,
     };
   }
   return {
-    title: `Time to water the ${name} 💧`,
+    title: `Time to water ${the} 💧`,
     body: "Tap Watered once it's done.",
     data,
   };
