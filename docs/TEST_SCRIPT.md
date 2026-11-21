@@ -11,6 +11,7 @@ Reminders are never sent 21:00 to 08:00 in the household's time zone, so run
 the reminder parts in the day.
 
 ## 1. Join
+
 - [ ] A: Profile → **Invite housemate** → share the code to B.
 - [ ] B: Profile → **Join a household** → enter the code → the prompt names
       A's household → **Join**.
@@ -19,13 +20,16 @@ the reminder parts in the day.
 - [ ] A wrong code and an expired code both say the same "invalid" message.
 
 ## 2. Shared watering
+
 - [ ] Share a plant. B taps **Watered**: A gets "B watered …" and A's card
       shows "by B".
 - [ ] A turns off **Housemate activity**; B waters; A gets nothing. Turn it on.
 
 ## 3. Due reminder and nudge
+
 Set a plant's `next_watering_date` in the Firebase console to about 5 minutes
 ahead (allow 20 for the scheduler).
+
 - [ ] Personal plant: only its owner gets "Time to water …".
 - [ ] Shared plant: both get "needs watering".
 - [ ] Tapping the reminder opens that plant, app closed and app open.
@@ -39,6 +43,7 @@ ahead (allow 20 for the scheduler).
 - [ ] No reminder arrives twice on one phone.
 
 ## 4. Leave and remove (see also session 2 in the plan)
+
 - [ ] B leaves: B is in a new empty household; A's plants stay; B is gone
       from the members list and from every carer list.
 - [ ] A invites again, B rejoins.
@@ -48,11 +53,14 @@ ahead (allow 20 for the scheduler).
 - [ ] Alone in a household there is no **Leave household** button.
 
 ## 5. Account deletion with a housemate remaining
-- [ ] B deletes their account. A's plants all remain; plants only B cared
-      for are now shared; B is not in A's members list.
+
+- [ ] B deletes their account. Every plant remains, including the ones B
+      added; plants only B cared for are now shared; B is not in A's members
+      list.
 - [ ] A signs in again and nothing is missing.
 
 ## 6. Offline
+
 - [ ] Phone in airplane mode: tap **Watered**. The screen moves on within
       about 3 seconds and the plant shows as watered.
 - [ ] Add a plant offline. The modal closes within about 3 seconds.
@@ -61,15 +69,18 @@ ahead (allow 20 for the scheduler).
 - [ ] Join offline says "You're offline".
 
 ## 7. Notification permission denied
+
 - [ ] Deny notifications in the phone's settings. Profile shows the hint and
       **Open settings** opens the app's settings page.
 
 ## 8. Fresh install on an old account
+
 - [ ] Uninstall, install the build, sign in with an account that has plants.
       Plants, household and members are all there; permission is asked after
       the first plant is added or watered, not on launch.
 
 ## 9. Screen reader and text size
+
 - [ ] TalkBack on: plant cards read as one item (name, status, last watered)
       and the trash button reads "Delete <plant name>".
 - [ ] Settings → Font size and Display size at the largest: Home, My Plants,

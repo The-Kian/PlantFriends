@@ -19,7 +19,7 @@ const {
 } = require("./guards");
 const { unlinkWrites } = require("./householdAdmin");
 const { logFor } = require("./log");
-const { mapTreflePlantToIPlant } = require("./treflePlant");
+const { mapTreflePlantToIPlant, saveToCatalogue } = require("./treflePlant");
 const {
   createInviteHandler,
   joinHouseholdHandler,
@@ -85,8 +85,20 @@ exports.searchPlants = functions
       const dataList =
         payload && Array.isArray(payload.data) ? payload.data : [];
       // The count only: what someone searched for is their own business.
-      log.info("searchPlants finished", { uid, results: dataList.length });
-      return { plants: dataList.map(mapTreflePlantToIPlant) };
+      const plants = dataList.map(mapTreflePlantToIPlant);
+      // Grow our own catalogue so later searches don't need Trefle. A failure
+      // here mustn't fail the search.
+      let saved = 0;
+      try {
+        saved = await saveToCatalogue(admin.db(), plants);
+      } catch (error) {
+        log.warn("searchPlants couldn't save to the catalogue", {
+          uid,
+          message: error && error.message,
+        });
+      }
+      log.info("searchPlants finished", { uid, results: plants.length, saved });
+      return { plants };
     } catch (error) {
       if (error instanceof functions.https.HttpsError) {
         log.warn("searchPlants refused", { uid, code: error.code });
@@ -116,9 +128,9 @@ exports.searchPlants = functions
  * 1. Copies an anonymised version of each of their plants into the
  *    `AnonymousPlants` collection (not readable by clients).
  * 2. Deletes their household with its plants if they are its only member.
- *    In a shared household it deletes only the plants they added and takes
- *    them off the members and carers, as leaving does (unlinkWrites), so
- *    housemates keep their own plants and none is left without a carer.
+ *    In a shared household every plant stays: they come off the members and
+ *    carers, as leaving does (unlinkWrites), plants only they looked after
+ *    become shared, and `addedBy`/`userId` are cleared on the ones they added.
  * 3. Deletes `Users/{uid}` and everything under it.
  * 4. Deletes the Firebase Auth user.
  *
@@ -179,18 +191,30 @@ exports.deleteAccount = functions
       await revoker.close();
 
       if (isMember && hasHousemates) {
-        const others = (await householdRef.collection("Plants").get()).docs
-          .filter((plantDoc) => plantDoc.data().addedBy !== uid)
-          .map((plantDoc) => ({ id: plantDoc.id, data: plantDoc.data() }));
+        // Their plants stay with the housemates, as when someone leaves
+        // (docs/PRIVACY_POLICY.md): plants only they looked after become
+        // shared, and their link to every plant they added is removed.
+        const plants = (await householdRef.collection("Plants").get()).docs.map(
+          (plantDoc) => ({ id: plantDoc.id, data: plantDoc.data() })
+        );
         const writes = unlinkWrites({
           household: householdSnap.data(),
-          plants: others,
+          plants,
           uid,
         });
+        const updates = new Map(
+          writes.plantUpdates.map(({ id, update }) => [id, update])
+        );
+        householdPlants.forEach((plantDoc) => {
+          updates.set(plantDoc.id, {
+            ...(updates.get(plantDoc.id) || {}),
+            addedBy: null,
+            userId: null,
+          });
+        });
         const cleanup = db.bulkWriter();
-        householdPlants.forEach((plantDoc) => cleanup.delete(plantDoc.ref));
         cleanup.update(householdRef, writes.household);
-        writes.plantUpdates.forEach(({ id, update }) =>
+        updates.forEach((update, id) =>
           cleanup.update(householdRef.collection("Plants").doc(id), update)
         );
         await cleanup.close();

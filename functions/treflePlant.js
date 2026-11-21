@@ -74,4 +74,42 @@ function mapTreflePlantToIPlant(plant) {
   };
 }
 
-module.exports = { mapTreflePlantToIPlant };
+/**
+ * A catalogue (`Plants`) entry for a mapped Trefle plant: the same shape the
+ * app saves when someone adds a plant (saveBasePlantToFirebase.ts), with
+ * empty values left out and `contributed_by` set to "Trefle".
+ */
+function catalogueEntry(plant) {
+  const entry = Object.fromEntries(
+    Object.entries({
+      ...plant,
+      slug: plant.name ? plant.name.toLowerCase() : "",
+      contributed_by: "Trefle",
+      isVerified: false,
+    }).filter(([, value]) => value !== null && value !== undefined && value !== "")
+  );
+  return entry;
+}
+
+/**
+ * Saves search results the catalogue doesn't have yet, so the next search
+ * for them is answered from our own database instead of Trefle. Existing
+ * entries are never overwritten. Returns how many were added.
+ */
+async function saveToCatalogue(db, plants) {
+  const named = plants.filter((p) => p.id && (p.name || (p.scientific_name || [])[0]));
+  if (named.length === 0) return 0;
+  const refs = named.map((p) => db.collection("Plants").doc(String(p.id)));
+  const snaps = await db.getAll(...refs);
+  const batch = db.batch();
+  let added = 0;
+  snaps.forEach((snap, i) => {
+    if (snap.exists) return;
+    batch.set(refs[i], catalogueEntry(named[i]));
+    added += 1;
+  });
+  if (added > 0) await batch.commit();
+  return added;
+}
+
+module.exports = { mapTreflePlantToIPlant, catalogueEntry, saveToCatalogue };

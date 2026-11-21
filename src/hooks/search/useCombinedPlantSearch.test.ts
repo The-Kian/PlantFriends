@@ -7,6 +7,7 @@ import ErrorService from "@/services/ErrorService";
 import { mockPlant, mockPlant2 } from "@/test-utils/MockPlant";
 
 import {
+  CATALOGUE_ENOUGH,
   combineResults,
   useCombinedPlantSearch,
 } from "./useCombinedPlantSearch";
@@ -156,6 +157,19 @@ describe("useCombinedPlantSearch", () => {
       scientific_name: ["Monstera deliciosa"],
     };
     expect(combineResults([catalogue], [duplicate])).toEqual([catalogue]);
+  });
+
+  it("skips Trefle when the catalogue already has enough matches", async () => {
+    const catalogue = Array.from({ length: CATALOGUE_ENOUGH }, (_, i) => ({
+      ...mockPlant,
+      id: "c" + i,
+      name: "Monstera " + i,
+    }));
+    jest.mocked(fetchFirebasePlants).mockResolvedValue(catalogue);
+    const { result } = renderSearch("monstera");
+    await flushSearch();
+    expect(fetchTreflePlants).not.toHaveBeenCalled();
+    expect(result.current.plants).toEqual(catalogue);
   });
 
   it("doesn't search for a single character", async () => {

@@ -7,6 +7,13 @@ import { fetchTreflePlants } from "@/helpers/plants/plantAPI/fetchTreflePlants";
 /** Searches shorter than this are too broad to be useful. */
 export const MIN_SEARCH_LENGTH = 2;
 
+/**
+ * When our own catalogue already has this many matches, Trefle isn't asked.
+ * Every Trefle search adds its results to the catalogue (functions
+ * searchPlants), so common searches stop needing the API over time.
+ */
+export const CATALOGUE_ENOUGH = 5;
+
 const firstScientificName = (plant: IPlant) =>
   plant.scientific_name?.[0]?.trim().toLowerCase() ?? "";
 
@@ -93,7 +100,10 @@ export const useCombinedPlantSearch = (searchQuery: string) => {
         // to show Firebase results. Cached results will be used if available.
         let apiPlants: IPlant[] = [];
         try {
-          apiPlants = (await fetchTreflePlants(debouncedQuery)) || [];
+          apiPlants =
+            firebasePlants.length >= CATALOGUE_ENOUGH
+              ? []
+              : (await fetchTreflePlants(debouncedQuery)) || [];
         } catch (apiErr) {
           if (!active) return;
           // Keep the Firebase results; the screen explains the rest.
