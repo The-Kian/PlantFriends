@@ -75,7 +75,7 @@ Each is a few lines. Do them as one PR.
       builds behave like release builds by default.
 - [ ] **Dead branch in login.** `AuthProvider.tsx` `login()` has an
       `auth/user-not-found` branch with a bare `Alert.alert("User not
-  found")`. Email enumeration protection means it never fires; route
+found")`. Email enumeration protection means it never fires; route
       everything through `ErrorService`. Do the same for the bare alerts in
       `register`, `update` and `logout` (search `Alert.alert(` in that file).
 - [ ] **Alert titles.** `ErrorService.showAlert` uses the context string as
@@ -511,6 +511,12 @@ short design note before coding.
 ---
 
 ## Found along the way
+
+- (Emulator) A wrong invite code is logged as an error (red dev toast,
+  `[Join a household] not-found`). It's an expected user mistake; it
+  shouldn't be reported as an error.
+- (Emulator) Store screenshots show the leaf placeholder for catalogue
+  plants: the catalogue entries have no images.
 
 - (21 November 2026) The Android API key (the one in `google-services.json`)
   was used against the Gemini API (`generativelanguage.googleapis.com`) in
