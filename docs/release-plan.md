@@ -26,6 +26,22 @@ internal track, the store listing published (text, icon, feature graphic,
 - [ ] After a quiet week: closed testing, then a staged production rollout
       (start at 20%).
 
+**Two-emulator results, 21 November evening** (A = Robin or throwaway Dee,
+B = Sam):
+
+- Reminders (section 3): a personal plant reminds only its owner; a shared
+  one reminds both; tapping opens the plant; watering on one phone clears
+  both trays. Not run: the next-day nudge, quiet hours and the switches
+  (covered by `functions/reminders.test.js`; check on real phones).
+- "A leaves" (section 4): the housemate becomes the owner and keeps the
+  plants. Finding: the household keeps the leaver's name ("Dee's home"), so
+  both people now have a "Dee's home". Rename it after the new owner when
+  it still has the default name.
+- Account deletion (section 5): the account is removed and the housemate
+  stays; see the decision below about the plants.
+- Fixed: reminders now say "Monty needs watering" for a nickname (was "The
+  Monty"), on top of #102's "Sam watered Monty".
+
 **Kian, later**
 
 - [ ] App Check enforcement once every tester has the build:
@@ -50,8 +66,22 @@ internal track, the store listing published (text, icon, feature graphic,
       including `qa-followups` and `ccr-9604bb5d-44qfha`), with Kian's OK
       on the list first.
 
-**Decision: what a leaving member keeps.** Today their personal plants stay
-in the household as shared plants. Options:
+**Decision: what a leaving or deleted member's plants do.** Today the two
+paths disagree, and the published privacy policy matches only one of them:
+
+- Leaving or being removed: the plants they added stay in the household (the
+  dialogs say so).
+- Deleting the account while housemates remain: `deleteAccount` **deletes**
+  the plants they added (`functions/index.js`, asserted in
+  `deleteAccount.test.js`), but `docs/PRIVACY_POLICY.md` says "the plants
+  stay with the housemates who remain". Seen on the emulators on 21 November:
+  Dee left a plant with Sam, rejoined, deleted the account, and Sam's plant
+  went with it.
+
+Recommended: make deletion behave like leaving (keep the plants, re-share
+the ones only they looked after, clear `addedBy`), which also makes the
+policy true. Or change the policy text to match the code. Options for
+leaving:
 
 1. Keep as is (simplest; the dialogs already say so).
 2. Personal plants (`shared == false`, `addedBy == leaver`) move with them
