@@ -7,7 +7,6 @@ import {
   waitFor,
 } from "@testing-library/react-native";
 
-
 import { IUserPlant } from "@/constants/IPlant";
 import { AuthContext } from "@/context/auth/AuthProvider";
 import mockAuthContextValue from "@/test-utils/MockAuthContextValue";
