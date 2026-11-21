@@ -47,13 +47,16 @@ B = Sam):
 - [ ] App Check enforcement once every tester has the build:
       `ENFORCE_APP_CHECK=true` in `functions/.env` in a PR, then Firestore
       enforcement in the console (App Check → APIs → Cloud Firestore).
-- [ ] Decide what a leaving member keeps (see "Decision" below).
+- [x] Decide what a leaving member keeps: plants stay, on leave and on delete.
 
 **Claude, next PRs**
 
 - [ ] Rewrite the old catalogue descriptions ("A Araceae species") with a
       one-off Admin SDK script over `Plants`; the server now writes
       "A plant in the Araceae family" for new ones.
+- [x] Grow our own catalogue: `searchPlants` now saves every Trefle result
+      to `Plants`, and the app skips Trefle when the catalogue has 5 or more
+      matches (`CATALOGUE_ENOUGH`).
 - [ ] Catalogue photos: fill `images` on catalogue plants from Trefle's
       `image_url` where the slug matches (one-off script, same as above).
 - [ ] Remove the `Users/{uid}/UserPlants` rule and `migrateUserPlants` once
@@ -65,6 +68,9 @@ B = Sam):
 - [ ] Delete stale remote branches (about 40, all merged or superseded,
       including `qa-followups` and `ccr-9604bb5d-44qfha`), with Kian's OK
       on the list first.
+
+**Decided 21 November: deleting an account keeps the plants (like leaving).**
+Done in the keep-plants-on-delete PR. Background:
 
 **Decision: what a leaving or deleted member's plants do.** Today the two
 paths disagree, and the published privacy policy matches only one of them:
