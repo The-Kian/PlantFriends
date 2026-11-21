@@ -37,5 +37,7 @@ name: Add a plant, water it, sign out
 - scrollUntilVisible:
     element: "Logout"
 - tapOn: "Logout"
+# Logout asks first (QA session A).
+- tapOn: "(?i)log out"
 - assertVisible:
     id: "login"
