@@ -69,7 +69,7 @@ each step says who does it. Tick items in the PR that finishes them.
 Build the PR branch with **Build Android test app** (or `pnpm android`) and
 check the QA follow-up items:
 
-- [ ] Sign up with a display name, keyboard open: household is
+- [x] Sign up with a display name, keyboard open: household is
       "<Name>'s home", member list shows "<Name> (you)". Password show/hide.
 - [x] Cold start while signed in goes straight to Home, no Login flash.
 - [x] Search: hint before typing, nothing under 2 characters, "No plants
@@ -88,8 +88,9 @@ Run on the Android emulator on 21 November 2026 (signed in as the `test`
 account): cold start, search, add, watering online and offline, start
 offline, Logout, invite code field and the notification switches all pass.
 Search showed Monstera deliciosa twice (catalogue entry with no
-`scientific_name`); fixed. Not done yet: sign-up (needs a new account),
-and rename "Saved", which fails with NOT_FOUND until `updateDisplayName`
+`scientific_name`); fixed. Sign-up passes (throwaway account, credentials as `E2E_*_C` in
+`.env.local`): "Robin's home" and "Robin (you)" on first load. Not done
+yet: rename "Saved", which fails with NOT_FOUND until `updateDisplayName`
 is deployed (re-check after Step 3). The invite field drops 0, 1, I, L
 and O on purpose (not in the code alphabet).
 
