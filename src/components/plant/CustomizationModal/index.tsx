@@ -1,6 +1,10 @@
 // PlantCustomizationModal.tsx
 
+import { useEffect, useState } from "react";
+
 import {
+  Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -47,6 +51,37 @@ const PlantCustomizationModal = ({
       } // Create a new temporary ID for new user plants
     : userPlant;
 
+  // Back and a tap on the backdrop are easy to do by accident, so once
+  // something has been typed they ask before throwing it away.
+  const [edited, setEdited] = useState(false);
+  const requestClose = () => {
+    if (!edited) {
+      onClose();
+      return;
+    }
+    Alert.alert("Discard this plant?", "What you've entered won't be saved.", [
+      { text: "Keep editing", style: "cancel" },
+      { text: "Discard", style: "destructive", onPress: onClose },
+    ]);
+  };
+
+  // Android doesn't resize a Modal for the keyboard, so Save ended up behind
+  // it. Pad the bottom of the form by the keyboard's height while it's open.
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+    const show = Keyboard.addListener("keyboardDidShow", (e) =>
+      setKeyboardHeight(e.endCoordinates.height)
+    );
+    const hide = Keyboard.addListener("keyboardDidHide", () =>
+      setKeyboardHeight(0)
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
   const handleSave = async (userData: IUserPlant, plantData: IPlant) => {
     await onSave(userData, plantData);
     onClose();
@@ -56,7 +91,7 @@ const PlantCustomizationModal = ({
     <Modal
       animationType="slide"
       transparent={true}
-      onRequestClose={onClose}
+      onRequestClose={requestClose}
       statusBarTranslucent
     >
       <ThemedView
@@ -66,7 +101,7 @@ const PlantCustomizationModal = ({
         {/* Tapping the dimmed backdrop dismisses the sheet. */}
         <Pressable
           style={{ flex: 1 }}
-          onPress={onClose}
+          onPress={requestClose}
           accessibilityLabel="Dismiss"
         />
         <KeyboardAvoidingView
@@ -75,7 +110,10 @@ const PlantCustomizationModal = ({
         >
           <View style={styles.handle} />
           <ScrollView
-            contentContainerStyle={styles.modal}
+            contentContainerStyle={[
+              styles.modal,
+              keyboardHeight > 0 && { paddingBottom: keyboardHeight + 24 },
+            ]}
             keyboardShouldPersistTaps="handled"
           >
             <PlantForm
@@ -84,6 +122,7 @@ const PlantCustomizationModal = ({
               onSave={handleSave}
               displayUserPlantData={displayUserPlantData}
               isAddingNewPlant={isAddingNewPlant} // Pass the new prop
+              onEdit={() => setEdited(true)}
             />
             <ThemedButton title="Close" onPress={onClose} variant="ghost" />
           </ScrollView>

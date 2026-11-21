@@ -19,6 +19,8 @@ interface PlantFormProps {
   onSave: (userPlant: IUserPlant, plantData: IPlant) => Promise<void>;
   displayUserPlantData: boolean;
   isAddingNewPlant: boolean;
+  /** Called on the first and every later change, so the sheet can ask before discarding. */
+  onEdit?: () => void;
 }
 
 const PlantForm = ({
@@ -27,6 +29,7 @@ const PlantForm = ({
   onSave,
   displayUserPlantData,
   isAddingNewPlant,
+  onEdit,
 }: PlantFormProps) => {
   const { user } = useContext(AuthContext);
 
@@ -76,6 +79,7 @@ const PlantForm = ({
     key: keyof IPlant,
     value: IPlant[keyof IPlant]
   ) => {
+    onEdit?.();
     setCustomizations((prev) => ({
       ...prev,
       [key]: value,
@@ -86,6 +90,7 @@ const PlantForm = ({
     key: keyof IUserPlant,
     value: IUserPlant[keyof IUserPlant]
   ) => {
+    onEdit?.();
     setUserData((prev) => ({
       ...prev,
       [key]: value,

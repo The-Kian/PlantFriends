@@ -113,6 +113,15 @@ export function joinErrorMessage(
   return commonMessage(error) ?? JOIN_MESSAGES[errorCode(error)] ?? fallback;
 }
 
+/**
+ * A join that failed because of what the person typed or where they are (a
+ * wrong or expired code, already a member), not because the app broke. These
+ * get their message but aren't logged or reported as errors.
+ */
+export function isExpectedJoinError(error: unknown): boolean {
+  return errorCode(error) in JOIN_MESSAGES;
+}
+
 /** A friendly message for a failed leave or remove call. */
 export function leaveErrorMessage(error: unknown, fallback: string): string {
   return commonMessage(error) ?? LEAVE_MESSAGES[errorCode(error)] ?? fallback;

@@ -11,6 +11,7 @@ import { useHousehold } from "@/context/household/HouseholdProvider";
 import {
   createInvite,
   formatInviteCode,
+  isExpectedJoinError,
   joinErrorMessage,
   joinHousehold,
   leaveErrorMessage,
@@ -161,6 +162,19 @@ const HouseholdCard = () => {
     }
   };
 
+  // A wrong or expired code is the person's mistake: say so, don't log it.
+  const reportJoinError = (error: unknown) => {
+    if (isExpectedJoinError(error)) {
+      Alert.alert("Join a household", joinErrorMessage(error), [
+        { text: "OK" },
+      ]);
+      return;
+    }
+    ErrorService.handleError(error, "Join a household", {
+      userMessage: joinErrorMessage(error),
+    });
+  };
+
   const join = async () => {
     setJoining(true);
     try {
@@ -169,9 +183,7 @@ const HouseholdCard = () => {
       setCode("");
       setShowJoin(false);
     } catch (error) {
-      ErrorService.handleError(error, "Join a household", {
-        userMessage: joinErrorMessage(error),
-      });
+      reportJoinError(error);
     } finally {
       setJoining(false);
     }
@@ -198,9 +210,7 @@ const HouseholdCard = () => {
         ]
       );
     } catch (error) {
-      ErrorService.handleError(error, "Join a household", {
-        userMessage: joinErrorMessage(error),
-      });
+      reportJoinError(error);
     } finally {
       setJoining(false);
     }
